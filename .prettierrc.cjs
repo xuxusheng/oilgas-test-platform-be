@@ -1,0 +1,18 @@
+module.exports = {
+  plugins: ['prettier-plugin-java'],
+  overrides: [
+    {
+      files: '*.java',
+      options: {
+        printWidth: 120,
+        tabWidth: 4,
+        useTabs: false,
+        trailingComma: 'none',
+        bracketSpacing: true,
+        bracketSameLine: true,
+        semi: true,
+        singleQuote: true
+      }
+    }
+  ]
+};
