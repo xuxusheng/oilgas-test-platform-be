@@ -37,13 +37,13 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest createUserRequest) {
-        User user = userService.createUser(createUserRequest);
-        return new ResponseEntity<>(userMapper.toResponse(user), HttpStatus.CREATED);
+        UserResponse userResponse = userService.createUser(createUserRequest);
+        return new ResponseEntity<>(userResponse, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public UserResponse updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest updateUserRequest) {
-        return userMapper.toResponse(userService.updateUser(id, updateUserRequest));
+        return userService.updateUser(id, updateUserRequest);
     }
 
     @DeleteMapping("/{id}")
