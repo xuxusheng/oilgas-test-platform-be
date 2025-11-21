@@ -1,11 +1,13 @@
 package com.yimusi.service;
 
 import com.yimusi.dto.CreateUserRequest;
+import com.yimusi.dto.PageResult;
 import com.yimusi.dto.UpdateUserRequest;
+import com.yimusi.dto.UserPageRequest;
 import com.yimusi.dto.UserResponse;
 import com.yimusi.entity.User;
-
 import java.util.List;
+import org.springframework.lang.NonNull;
 
 /**
  * 用户服务接口，定义了用户相关的业务操作。
@@ -19,11 +21,18 @@ public interface UserService {
     List<User> getAllUsers();
 
     /**
+     * 分页查询用户列表，支持按用户名和角色筛选。
+     *
+     * @param request 分页查询请求参数
+     * @return 分页结果，包含用户列表及分页信息
+     */
+    PageResult<UserResponse> getUsersPage(UserPageRequest request);
+
+    /**
      * 根据用户ID获取用户信息。
      *
      * @param id 要查找的用户ID
      * @return 找到的用户实体
-     * @throws RuntimeException 如果用户未找到
      */
     User getUserById(Long id);
 
@@ -49,5 +58,5 @@ public interface UserService {
      *
      * @param id 要删除的用户ID
      */
-    void deleteUser(Long id);
+    void deleteUser(@NonNull Long id);
 }

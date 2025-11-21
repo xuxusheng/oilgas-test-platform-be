@@ -4,6 +4,7 @@ import com.yimusi.dto.CreateUserRequest;
 import com.yimusi.dto.UpdateUserRequest;
 import com.yimusi.dto.UserResponse;
 import com.yimusi.entity.User;
+import io.micrometer.common.lang.NonNull;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -13,7 +14,6 @@ import org.mapstruct.MappingTarget;
  */
 @Mapper(componentModel = "spring")
 public interface UserMapper {
-
     /**
      * 将User实体转换为UserResponse DTO。
      *
@@ -29,6 +29,7 @@ public interface UserMapper {
      * @param createUserRequest 包含新用户数据的DTO
      * @return 转换后的User实体
      */
+    @NonNull
     @Mapping(target = "id", ignore = true)
     User toEntity(CreateUserRequest createUserRequest);
 

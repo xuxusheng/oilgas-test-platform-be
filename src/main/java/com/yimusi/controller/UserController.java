@@ -2,7 +2,9 @@ package com.yimusi.controller;
 
 import com.yimusi.common.model.ApiResponse;
 import com.yimusi.dto.CreateUserRequest;
+import com.yimusi.dto.PageResult;
 import com.yimusi.dto.UpdateUserRequest;
+import com.yimusi.dto.UserPageRequest;
 import com.yimusi.dto.UserResponse;
 import com.yimusi.mapper.UserMapper;
 import com.yimusi.service.UserService;
@@ -35,6 +37,18 @@ public class UserController {
             .map(userMapper::toResponse)
             .collect(Collectors.toList());
         return ApiResponse.success(responses);
+    }
+
+    /**
+     * 分页查询用户列表，支持按用户名和角色筛选。
+     *
+     * @param request 分页查询请求参数
+     * @return 分页结果，包含用户列表及分页信息
+     */
+    @GetMapping("/page")
+    public ApiResponse<PageResult<UserResponse>> getUsersPage(@Valid UserPageRequest request) {
+        PageResult<UserResponse> pageResult = userService.getUsersPage(request);
+        return ApiResponse.success(pageResult);
     }
 
     /**

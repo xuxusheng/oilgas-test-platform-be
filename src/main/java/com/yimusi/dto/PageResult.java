@@ -24,15 +24,10 @@ public class PageResult<T> {
     /**
      * 总记录数.
      */
-    private long totalElements;
+    private long total;
 
     /**
-     * 总页数.
-     */
-    private int totalPages;
-
-    /**
-     * 当前页码 (从 0 开始).
+     * 当前页码 (从 1 开始，前端友好).
      */
     private int page;
 
@@ -42,17 +37,8 @@ public class PageResult<T> {
     private int size;
 
     /**
-     * 是否是第一页.
-     */
-    private boolean first;
-
-    /**
-     * 是否是最后一页.
-     */
-    private boolean last;
-
-    /**
      * 从 Spring Data JPA 的 Page 对象转换.
+     * 自动将 JPA 的 0-based 页码转换为前端友好的 1-based 页码.
      * @param page Spring Page 对象.
      * @return 转换后的 PageResult 对象.
      */
@@ -60,11 +46,8 @@ public class PageResult<T> {
         return new PageResult<>(
                 page.getContent(),
                 page.getTotalElements(),
-                page.getTotalPages(),
-                page.getNumber(),
-                page.getSize(),
-                page.isFirst(),
-                page.isLast()
+                page.getNumber() + 1,  // JPA 页码 + 1
+                page.getSize()
         );
     }
 }
