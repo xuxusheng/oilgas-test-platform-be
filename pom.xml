@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.5</version> <!-- 使用最新的 Spring Boot 3 版本 -->
+        <version>3.4.1</version> <!-- 使用最新的 Spring Boot 3 版本 -->
         <relativePath/>
     </parent>
 
@@ -19,14 +19,18 @@
     <description>A modern Spring Boot application</description>
 
     <properties>
-        <!-- 使用 JDK 25 -->
-        <java.version>25</java.version>
+        <!-- 使用 JDK 21 LTS (长期支持版本,业界最佳实践) -->
+        <java.version>21</java.version>
+        <!-- Lombok 版本 -->
+        <lombok.version>1.18.36</lombok.version>
         <!-- QueryDSL 版本 -->
         <querydsl.version>5.1.0</querydsl.version>
         <!-- Hutool 版本 -->
         <hutool.version>5.8.27</hutool.version>
         <!-- Testcontainers 版本 -->
         <testcontainers.version>1.19.8</testcontainers.version>
+        <!-- MapStruct 版本 -->
+        <mapstruct.version>1.6.3</mapstruct.version>
     </properties>
 
     <dependencies>
@@ -92,6 +96,13 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- MapStruct 核心依赖 -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${mapstruct.version}</version>
+        </dependency>
+
         <!-- Spring Boot 测试 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -135,26 +146,54 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
                 <configuration>
+                    <source>21</source>
+                    <target>21</target>
+                    <release>21</release>
                     <annotationProcessorPaths>
+                        <!-- Lombok 必须放在最前面 -->
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                        <!-- Lombok 和 QueryDSL 的桥接库,解决注解处理器冲突 -->
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok-mapstruct-binding</artifactId>
+                            <version>0.2.0</version>
+                        </path>
+                        <!-- QueryDSL 注解处理器 -->
                         <path>
                             <groupId>com.querydsl</groupId>
                             <artifactId>querydsl-apt</artifactId>
                             <version>${querydsl.version}</version>
                             <classifier>jakarta</classifier>
                         </path>
+                        <!-- Jakarta Persistence API (QueryDSL 需要) -->
                         <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>1.18.34</version>
+                            <groupId>jakarta.persistence</groupId>
+                            <artifactId>jakarta.persistence-api</artifactId>
+                            <version>3.1.0</version>
+                        </path>
+                        <!-- MapStruct 注解处理器 -->
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${mapstruct.version}</version>
                         </path>
                     </annotationProcessorPaths>
+                    <compilerArgs>
+                        <arg>-Aquerydsl.generatedAnnotationClass=jakarta.annotation.Generated</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
-            
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.4.0</version>
                 <executions>
                     <execution>
                         <id>add-source</id>
@@ -164,12 +203,13 @@
                         </goals>
                         <configuration>
                             <sources>
-                                <source>target/generated-sources/java</source>
+                                <source>${project.build.directory}/generated-sources/java</source>
                             </sources>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+
         </plugins>
     </build>
 </project>
