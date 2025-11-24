@@ -58,5 +58,5 @@ public interface UserService {
      *
      * @param id 要删除的用户ID
      */
-    void deleteUser(@NonNull Long id);
+    void deleteUser(Long id);
 }

@@ -4,6 +4,7 @@ import com.yimusi.common.model.ApiResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
@@ -68,7 +69,9 @@ public class GlobalExceptionHandler {
                             .getPropertyPath()
                             .toString()
                             .substring(violation.getPropertyPath().toString().lastIndexOf('.') + 1),
-                    ConstraintViolation::getMessage
+                    ConstraintViolation::getMessage,
+                    (existing, replacement) -> existing,
+                    LinkedHashMap::new
                 )
             );
 

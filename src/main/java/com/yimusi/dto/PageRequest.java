@@ -1,5 +1,6 @@
 package com.yimusi.dto;
 
+import cn.hutool.core.util.StrUtil;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Pattern;
@@ -60,7 +61,7 @@ public class PageRequest {
      */
     @NonNull
     public Sort toSort(String defaultSortField) {
-        if (sortField != null && !sortField.trim().isEmpty()) {
+        if (StrUtil.isNotBlank(sortField)) {
             Sort.Direction direction = "desc".equalsIgnoreCase(sortOrder) ? Sort.Direction.DESC : Sort.Direction.ASC;
             return Sort.by(direction, sortField);
         }

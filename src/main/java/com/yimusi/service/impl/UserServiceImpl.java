@@ -1,5 +1,6 @@
 package com.yimusi.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.yimusi.common.exception.BadRequestException;
@@ -99,7 +100,15 @@ public class UserServiceImpl implements UserService {
      * {@inheritDoc}
      */
     @Override
-    public void deleteUser(@NonNull Long id) {
+    public void deleteUser(Long id) {
+        if (id == null) {
+            throw new BadRequestException("用户ID不能为空");
+        }
+
+        if (!userRepository.existsById(id)) {
+            throw new ResourceNotFoundException(String.format("ID 为 %s 的用户不存在", id));
+        }
+
         userRepository.deleteById(id);
     }
 
@@ -115,7 +124,7 @@ public class UserServiceImpl implements UserService {
         BooleanBuilder builder = new BooleanBuilder();
 
         // 用户名模糊查询
-        if (request.getUsername() != null && !request.getUsername().trim().isEmpty()) {
+        if (StrUtil.isNotBlank(request.getUsername())) {
             builder.and(qUser.username.containsIgnoreCase(request.getUsername()));
         }
 

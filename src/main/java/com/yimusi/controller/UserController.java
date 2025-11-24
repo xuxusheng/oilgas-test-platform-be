@@ -12,9 +12,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 @RestController
 @RequestMapping("/api/users")
@@ -70,7 +68,6 @@ public class UserController {
      * @return 新增的 {@link UserResponse}
      */
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<UserResponse> createUser(@Valid @RequestBody CreateUserRequest createUserRequest) {
         UserResponse userResponse = userService.createUser(createUserRequest);
         return ApiResponse.success(userResponse);
@@ -93,12 +90,11 @@ public class UserController {
     }
 
     /**
-     * 根据 ID 删除用户，成功后返回 204。
+     * 根据 ID 删除用户，成功后返回 200。
      *
      * @param id 待删除的用户 ID
      */
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     public ApiResponse<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ApiResponse.success();

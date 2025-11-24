@@ -4,10 +4,12 @@ import com.yimusi.dto.CreateUserRequest;
 import com.yimusi.dto.UpdateUserRequest;
 import com.yimusi.dto.UserResponse;
 import com.yimusi.entity.User;
-import io.micrometer.common.lang.NonNull;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.springframework.lang.NonNull;
 
 /**
  * MapStruct映射器接口，用于在User实体和DTO之间进行转换。
@@ -40,6 +42,7 @@ public interface UserMapper {
      * @param updateUserRequest 包含更新数据的DTO
      * @param user              要被更新的目标User实体
      */
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
     void updateEntityFromRequest(UpdateUserRequest updateUserRequest, @MappingTarget User user);
 }
