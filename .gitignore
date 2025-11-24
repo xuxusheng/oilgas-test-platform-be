@@ -185,4 +185,10 @@ dist
 # SvelteKit build / generate output
 .svelte-kit
 
+### IntelliJ IDEA ###
+.idea/
+*.iml
+*.iws
+*.ipr
+
 # End of https://www.toptal.com/developers/gitignore/api/java,maven,node
