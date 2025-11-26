@@ -31,6 +31,10 @@
         <testcontainers.version>1.19.8</testcontainers.version>
         <!-- MapStruct 版本 -->
         <mapstruct.version>1.6.3</mapstruct.version>
+        <!-- Sa-Token 版本 -->
+        <sa-token.version>1.38.0</sa-token.version>
+        <!-- Mockito agent配置（解决Java 21+自加载警告） -->
+        <surefire.argLine>-javaagent:${settings.localRepository}/org/mockito/mockito-core/5.14.2/mockito-core-5.14.2.jar -Dorg.mockito.inline-mock-maker=subclass -Xshare:auto</surefire.argLine>
     </properties>
 
     <dependencies>
@@ -101,6 +105,18 @@
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>${mapstruct.version}</version>
+        </dependency>
+
+        <!-- Sa-Token & JWT -->
+        <dependency>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-spring-boot3-starter</artifactId>
+            <version>${sa-token.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.dev33</groupId>
+            <artifactId>sa-token-jwt</artifactId>
+            <version>${sa-token.version}</version>
         </dependency>
 
         <!-- Spring Boot 测试 -->
@@ -190,6 +206,39 @@
                         <arg>-Aquerydsl.generatedAnnotationClass=jakarta.annotation.Generated</arg>
                     </compilerArgs>
                 </configuration>
+            </plugin>
+
+            <!-- Maven Surefire 插件 - 配置Mockito agent解决JDK 21自加载警告 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
+                <configuration>
+                    <!-- 配置JVM参数，解决Mockito agent自加载警告 -->
+                    <argLine>
+                        <!-- 使用配置文件设置的Mockito agent路径 -->
+                        ${surefire.argLine}
+                    </argLine>
+                    <includes>
+                        <!-- 只运行以Test结尾的测试类 -->
+                        <include>**/*Test.java</include>
+                        <include>**/*Tests.java</include>
+                    </includes>
+                    <!-- 关闭并行测试以避免潜在的mock问题 -->
+                    <parallel>none</parallel>
+                    <threadCount>1</threadCount>
+                    <!-- 启用测试结果缓存 -->
+                    <useFile>true</useFile>
+                    <disableXmlReport>false</disableXmlReport>
+                </configuration>
+                <!-- 特定版本以确保与Spring Boot 3.4.1兼容 -->
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit-platform</artifactId>
+                        <version>3.5.2</version>
+                    </dependency>
+                </dependencies>
             </plugin>
 
             <plugin>

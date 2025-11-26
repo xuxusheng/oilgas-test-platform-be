@@ -10,4 +10,6 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
  * 继承 QuerydslPredicateExecutor 提供 QueryDSL 动态查询能力.
  */
 public interface UserRepository extends JpaRepository<User, Long>, QuerydslPredicateExecutor<User> {
+
+    boolean existsByUsernameAndDeletedFalse(String username);
 }

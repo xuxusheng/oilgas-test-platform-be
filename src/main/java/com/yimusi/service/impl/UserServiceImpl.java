@@ -15,8 +15,10 @@ import com.yimusi.entity.User;
 import com.yimusi.mapper.UserMapper;
 import com.yimusi.repository.UserRepository;
 import com.yimusi.service.UserService;
+import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -36,6 +39,8 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserResponse createUser(CreateUserRequest createUserRequest) {
+        validateUsernameUnique(createUserRequest.getUsername());
+
         User user = userMapper.toEntity(createUserRequest);
         User savedUser = userRepository.save(user);
         return userMapper.toResponse(savedUser);
@@ -90,6 +95,10 @@ public class UserServiceImpl implements UserService {
 
         User user = getUserById(id);
 
+        if (updateUserRequest.getUsername() != null && !updateUserRequest.getUsername().equals(user.getUsername())) {
+            validateUsernameUnique(updateUserRequest.getUsername());
+        }
+
         userMapper.updateEntityFromRequest(updateUserRequest, user);
 
         User savedUser = userRepository.save(user);
@@ -105,11 +114,36 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("用户ID不能为空");
         }
 
-        if (!userRepository.existsById(id)) {
-            throw new ResourceNotFoundException(String.format("ID 为 %s 的用户不存在", id));
+        User user = getUserById(id);
+        markDeleted(user);
+        userRepository.save(user);
+    }
+
+    @Override
+    public void restoreUser(Long id) {
+        if (id == null) {
+            throw new BadRequestException("用户ID不能为空");
         }
 
-        userRepository.deleteById(id);
+        User user = userRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException(String.format("ID 为 %s 的用户不存在", id)));
+        user.setDeleted(false);
+        user.setDeletedAt(null);
+        user.setDeletedBy(null);
+        userRepository.save(user);
+    }
+
+    private void markDeleted(User user) {
+        user.setDeleted(true);
+        user.setDeletedAt(Instant.now());
+        user.setDeletedBy(getOperator());
+    }
+
+    private String getOperator() {
+        return cn.dev33.satoken.stp.StpUtil.isLogin()
+            ? cn.dev33.satoken.stp.StpUtil.getLoginIdAsString()
+            : "system";
     }
 
     /**
@@ -122,6 +156,7 @@ public class UserServiceImpl implements UserService {
     private Predicate buildUserPredicate(UserPageRequest request) {
         QUser qUser = QUser.user;
         BooleanBuilder builder = new BooleanBuilder();
+        builder.and(qUser.deleted.isFalse());
 
         // 用户名模糊查询
         if (StrUtil.isNotBlank(request.getUsername())) {
@@ -134,5 +169,15 @@ public class UserServiceImpl implements UserService {
         }
 
         return builder;
+    }
+
+    private void validateUsernameUnique(String username) {
+        if (username == null) {
+            return;
+        }
+        boolean exists = userRepository.existsByUsernameAndDeletedFalse(username);
+        if (exists) {
+            throw new BadRequestException(String.format("用户名 %s 已存在", username));
+        }
     }
 }

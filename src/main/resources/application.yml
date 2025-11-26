@@ -12,6 +12,12 @@ spring:
     username: your_username
     password: your_password
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+sa-token:
+  token-style: jwt
+  jwt-secret-key: change_me_please
+  timeout: 2592000   # 30 天
+  active-timeout: -1
   # --- JPA/Hibernate 配置 ---
   jpa:
     hibernate:
