@@ -1,0 +1,208 @@
+package com.yimusi.mapper;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import com.yimusi.common.enums.UserRole;
+import com.yimusi.dto.CreateUserRequest;
+import com.yimusi.dto.UpdateUserRequest;
+import com.yimusi.dto.UserResponse;
+import com.yimusi.entity.User;
+import java.time.Instant;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
+
+/**
+ * @description UserMapper映射测试类
+ */
+class UserMapperTest {
+
+    private final UserMapper userMapper = Mappers.getMapper(UserMapper.class);
+
+    @Test
+    void toEntity_ShouldMapCreateUserRequestToUser() {
+        // Arrange
+        CreateUserRequest request = new CreateUserRequest();
+        request.setUsername("testuser");
+        request.setPassword("Passw0rd!");
+        request.setRole(UserRole.MEMBER);
+
+        // Act
+        User user = userMapper.toEntity(request);
+
+        // Assert
+        assertNotNull(user);
+        assertEquals("testuser", user.getUsername());
+        assertEquals("Passw0rd!", user.getPassword());
+        assertEquals(UserRole.MEMBER, user.getRole());
+        assertNull(user.getId());
+        assertNull(user.getCreatedBy());
+        assertNull(user.getCreatedAt());
+    }
+
+    @Test
+    void toResponse_ShouldMapUserToUserResponse() {
+        // Arrange
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("testuser");
+        user.setRole(UserRole.MEMBER);
+        user.setDeleted(false);
+        user.setCreatedBy("admin");
+        user.setCreatedAt(Instant.now());
+        user.setUpdatedBy("admin");
+        user.setUpdatedAt(Instant.now());
+
+        // Act
+        UserResponse response = userMapper.toResponse(user);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(1L, response.getId());
+        assertEquals("testuser", response.getUsername());
+        assertEquals(UserRole.MEMBER, response.getRole());
+    }
+
+    @Test
+    void updateEntityFromRequest_ShouldUpdateUserFromUpdateRequest() {
+        // Arrange
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("olduser");
+        user.setPassword("oldpassword");
+        user.setRole(UserRole.MEMBER);
+
+        UpdateUserRequest request = new UpdateUserRequest();
+        request.setUsername("newuser");
+        request.setPassword("newpassword");
+
+        // Act
+        userMapper.updateEntityFromRequest(request, user);
+
+        // Assert
+        assertEquals("newuser", user.getUsername());
+        assertEquals("newpassword", user.getPassword());
+        assertEquals(UserRole.MEMBER, user.getRole()); // 角色应该保持不变
+        assertEquals(1L, user.getId()); // ID应该保持不变
+    }
+
+    @Test
+    void updateEntityFromRequest_ShouldHandleNullFields() {
+        // Arrange
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("olduser");
+        user.setPassword("oldpassword");
+        user.setRole(UserRole.MEMBER);
+
+        UpdateUserRequest request = new UpdateUserRequest();
+        request.setUsername(null); // 显式设置null
+        request.setPassword(null);
+
+        // Act
+        userMapper.updateEntityFromRequest(request, user);
+
+        // Assert
+        ///null字段不更新现有值
+        assertEquals("olduser", user.getUsername());
+        assertEquals("oldpassword", user.getPassword());
+        assertEquals(UserRole.MEMBER, user.getRole());
+    }
+
+    @Test
+    void updateEntityFromRequest_ShouldOnlyUpdateProvidedFields() {
+        // Arrange
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("olduser");
+        user.setPassword("oldpassword");
+        user.setRole(UserRole.ADMIN);
+
+        UpdateUserRequest request = new UpdateUserRequest();
+        request.setUsername("newuser");
+        //password不设置，应该保持原值
+
+        // Act
+        userMapper.updateEntityFromRequest(request, user);
+
+        // Assert
+        assertEquals("newuser", user.getUsername()); //应该更新
+        assertEquals("oldpassword", user.getPassword()); //应该保持原值
+        assertEquals(UserRole.ADMIN, user.getRole()); //应该保持原值
+    }
+
+    @Test
+    void toResponse_ShouldMapMultipleUsersToUserResponses() {
+        // Arrange
+        User user1 = new User();
+        user1.setId(1L);
+        user1.setUsername("user1");
+        user1.setRole(UserRole.ADMIN);
+        user1.setDeleted(false);
+
+        User user2 = new User();
+        user2.setId(2L);
+        user2.setUsername("user2");
+        user2.setRole(UserRole.MEMBER);
+        user2.setDeleted(false);
+
+        List<User> users = List.of(user1, user2);
+
+        // Act
+        List<UserResponse> responses = users.stream()
+                .map(userMapper::toResponse)
+                .toList();
+
+        // Assert
+        assertNotNull(responses);
+        assertEquals(2, responses.size());
+        assertEquals(1L, responses.get(0).getId());
+        assertEquals("user1", responses.get(0).getUsername());
+        assertEquals(2L, responses.get(1).getId());
+        assertEquals("user2", responses.get(1).getUsername());
+    }
+
+    @Test
+    void toEntity_ShouldMapCreateRequestWithDifferentRoles() {
+        // Test ADMIN role
+        CreateUserRequest adminRequest = new CreateUserRequest();
+        adminRequest.setUsername("adminuser");
+        adminRequest.setPassword("adminpassword");
+        adminRequest.setRole(UserRole.ADMIN);
+
+        User adminUser = userMapper.toEntity(adminRequest);
+
+        assertNotNull(adminUser);
+        assertEquals(UserRole.ADMIN, adminUser.getRole());
+
+        // Test MEMBER role
+        CreateUserRequest memberRequest = new CreateUserRequest();
+        memberRequest.setUsername("memberuser");
+        memberRequest.setPassword("memberpassword");
+        memberRequest.setRole(UserRole.MEMBER);
+
+        User memberUser = userMapper.toEntity(memberRequest);
+
+        assertNotNull(memberUser);
+        assertEquals(UserRole.MEMBER, memberUser.getRole());
+    }
+
+    @Test
+    void shouldNotBreakWhenMappingWithDeletedUsers() {
+        // Arrange
+        User deletedUser = new User();
+        deletedUser.setId(1L);
+        deletedUser.setUsername("deleteduser");
+        deletedUser.setPassword("password");
+        deletedUser.setRole(UserRole.MEMBER);
+        deletedUser.setDeleted(true); // 已删除状态
+        deletedUser.setCreatedBy("admin");
+        deletedUser.setCreatedAt(Instant.now());
+
+        // Act & Assert - 应该能够映射已删除的用户
+        UserResponse response = userMapper.toResponse(deletedUser);
+        assertNotNull(response);
+        assertEquals(1L, response.getId());
+        assertEquals("deleteduser", response.getUsername());
+    }
+}
