@@ -1,11 +1,14 @@
 package com.yimusi.common.exception;
 
+import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.exception.NotPermissionException;
+import cn.dev33.satoken.exception.NotRoleException;
+import cn.dev33.satoken.exception.NotSafeException;
+import cn.dev33.satoken.exception.SaTokenException;
 import com.yimusi.common.model.ApiResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +30,200 @@ public class GlobalExceptionHandler {
         log.warn("Business exception occurred: {}", ex.getMessage());
         ApiResponse<Void> apiResponse = ApiResponse.error(ex.getCode(), ex.getMessage());
         return new ResponseEntity<>(apiResponse, ex.getHttpStatus());
+    }
+
+    /**
+     * 处理未登录异常 (排除账号在其他设备登录的情况)
+     */
+    @ExceptionHandler(NotLoginException.class)
+    public ResponseEntity<ApiResponse<Map<String, Object>>> handleNotLoginException(NotLoginException ex) {
+        // 如果是账号被顶下线的情况，交给并发登录异常处理器处理
+        if (NotLoginException.BE_REPLACED.equals(ex.getType())) {
+            return handleConcurrentLoginException(ex);
+        }
+        ErrorCode errorCode = ErrorCode.NOT_LOGIN;
+
+        Map<String, Object> errorDetails = new LinkedHashMap<>();
+        errorDetails.put("type", ex.getType());
+        errorDetails.put("message", ex.getMessage());
+        errorDetails.put("timestamp", new Date());
+        errorDetails.put("recommendation", "请重新登录或联系管理员");
+
+        String errorMessage = String.format(
+            "%s - Token类型: %s, 账号类型: %s, 提示: %s",
+            errorCode.getMessage(),
+            ex.getType(),
+            ex.getLoginType(),
+            ex.getMessage()
+        );
+
+        log.warn("用户未登录异常 - 类型: {}, 账号类型: {} | {}",
+                 ex.getType(), ex.getLoginType(), ex.getMessage());
+
+        ApiResponse<Map<String, Object>> apiResponse = ApiResponse.error(
+            errorCode.getCode(),
+            errorMessage,
+            errorDetails
+        );
+        return new ResponseEntity<>(apiResponse, errorCode.getHttpStatus());
+    }
+
+    /**
+     * 处理权限不足异常
+     */
+    @ExceptionHandler(NotPermissionException.class)
+    public ResponseEntity<ApiResponse<Map<String, Object>>> handleNotPermissionException(NotPermissionException ex) {
+        ErrorCode errorCode = ErrorCode.NO_PERMISSION;
+
+        Map<String, Object> errorDetails = new LinkedHashMap<>();
+        errorDetails.put("requiredPermission", ex.getPermission());
+        errorDetails.put("message", ex.getMessage());
+        errorDetails.put("timestamp", new Date());
+        errorDetails.put("recommendation", "请联系管理员申请相关权限");
+
+        String errorMessage = String.format(
+            "%s - 缺失权限: %s, 账号类型: %s, 提示: %s",
+            errorCode.getMessage(),
+            ex.getPermission(),
+            ex.getLoginType(),
+            ex.getMessage()
+        );
+
+        log.warn("用户权限不足 - 需要权限: {}, 账号类型: {} | {}",
+                 ex.getPermission(), ex.getLoginType(), ex.getMessage());
+
+        ApiResponse<Map<String, Object>> apiResponse = ApiResponse.error(
+            errorCode.getCode(),
+            errorMessage,
+            errorDetails
+        );
+        return new ResponseEntity<>(apiResponse, errorCode.getHttpStatus());
+    }
+
+    /**
+     * 处理角色不符异常
+     */
+    @ExceptionHandler(NotRoleException.class)
+    public ResponseEntity<ApiResponse<Map<String, Object>>> handleNotRoleException(NotRoleException ex) {
+        ErrorCode errorCode = ErrorCode.NO_ROLE;
+
+        Map<String, Object> errorDetails = new LinkedHashMap<>();
+        errorDetails.put("requiredRole", ex.getRole());
+        errorDetails.put("message", ex.getMessage());
+        errorDetails.put("timestamp", new Date());
+        errorDetails.put("recommendation", "您的角色权限不足，请联系管理员");
+
+        String errorMessage = String.format(
+            "%s - 需要角色: %s, 账号类型: %s, 提示: %s",
+            errorCode.getMessage(),
+            ex.getRole(),
+            ex.getLoginType(),
+            ex.getMessage()
+        );
+
+        log.warn("用户角色不符 - 需要角色: {}, 账号类型: {} | {}",
+                 ex.getRole(), ex.getLoginType(), ex.getMessage());
+
+        ApiResponse<Map<String, Object>> apiResponse = ApiResponse.error(
+            errorCode.getCode(),
+            errorMessage,
+            errorDetails
+        );
+        return new ResponseEntity<>(apiResponse, errorCode.getHttpStatus());
+    }
+
+    /**
+     * 处理Token过期异常
+     */
+    @ExceptionHandler(NotSafeException.class)
+    public ResponseEntity<ApiResponse<Map<String, Object>>> handleNotSafeException(NotSafeException ex) {
+        ErrorCode errorCode = ErrorCode.TOKEN_EXPIRED;
+
+        Map<String, Object> errorDetails = new LinkedHashMap<>();
+        errorDetails.put("tokenValue", ex.getTokenValue());
+        errorDetails.put("service", ex.getService());
+        errorDetails.put("message", ex.getMessage());
+        errorDetails.put("timestamp", new Date());
+        errorDetails.put("recommendation", "请重新获取有效的Token");
+
+        String errorMessage = String.format(
+            "%s - Token值: %s, 服务: %s, 账号类型: %s, 提示: %s",
+            errorCode.getMessage(),
+            ex.getTokenValue(),
+            ex.getService(),
+            ex.getLoginType(),
+            ex.getMessage()
+        );
+
+        log.warn("Token安全异常 - Token值: {}, 服务: {}, 账号类型: {} | {}",
+                 ex.getTokenValue(), ex.getService(), ex.getLoginType(), ex.getMessage());
+
+        ApiResponse<Map<String, Object>> apiResponse = ApiResponse.error(
+            errorCode.getCode(),
+            errorMessage,
+            errorDetails
+        );
+        return new ResponseEntity<>(apiResponse, errorCode.getHttpStatus());
+    }
+
+    /**
+     * 处理账号在其他设备登录异常
+     */
+    public ResponseEntity<ApiResponse<Map<String, Object>>> handleConcurrentLoginException(NotLoginException ex) {
+        ErrorCode errorCode = ErrorCode.CONCURRENT_LOGIN;
+
+        Map<String, Object> errorDetails = new LinkedHashMap<>();
+        errorDetails.put("type", ex.getType());
+        errorDetails.put("message", ex.getMessage());
+        errorDetails.put("timestamp", new Date());
+        errorDetails.put("concurrentDevice", "其他设备");
+        errorDetails.put("recommendation", "您的账号已在其他设备登录，如非本人操作请注意账号安全");
+
+        String errorMessage = String.format(
+            "%s - 账号已被在其他设备登录, Token类型: %s, 账号类型: %s, 提示: %s",
+            errorCode.getMessage(),
+            ex.getType(),
+            ex.getLoginType(),
+            ex.getMessage()
+        );
+
+        log.warn("账号并发登录异常 - Token类型: {}, 账号类型: {} | {}",
+                 ex.getType(), ex.getLoginType(), ex.getMessage());
+
+        ApiResponse<Map<String, Object>> apiResponse = ApiResponse.error(
+            errorCode.getCode(),
+            errorMessage,
+            errorDetails
+        );
+        return new ResponseEntity<>(apiResponse, errorCode.getHttpStatus());
+    }
+
+    /**
+     * 处理通用Token异常
+     */
+    @ExceptionHandler(SaTokenException.class)
+    public ResponseEntity<ApiResponse<Map<String, Object>>> handleSaTokenException(SaTokenException ex) {
+        ErrorCode errorCode = ErrorCode.INVALID_TOKEN;
+
+        Map<String, Object> errorDetails = new LinkedHashMap<>();
+        errorDetails.put("type", "未知的Token异常");
+        errorDetails.put("message", ex.getMessage());
+        errorDetails.put("timestamp", new Date());
+        errorDetails.put("recommendation", "请清除本地Token后重新登录");
+
+        String errorMessage = String.format(
+            "Token验证失败 - %s",
+            ex.getMessage()
+        );
+
+        log.error("Sa-Token通用异常", ex);
+
+        ApiResponse<Map<String, Object>> apiResponse = ApiResponse.error(
+            errorCode.getCode(),
+            errorMessage,
+            errorDetails
+        );
+        return new ResponseEntity<>(apiResponse, errorCode.getHttpStatus());
     }
 
     /**
