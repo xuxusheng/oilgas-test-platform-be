@@ -9,17 +9,25 @@ import com.yimusi.dto.UserResponse;
 import com.yimusi.entity.User;
 import java.time.Instant;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
 /**
- * @description UserMapper映射测试类
+ * UserMapper测试类
+ *
+ * 测试UserMapper的映射功能：
+ * - 创建用户请求(CreateUserRequest)到User实体的映射
+ * - User实体到用户响应(UserResponse)的映射
+ * - 更新用户请求(UpdateUserRequest)到User实体的更新操作
+ * - 包含边界情况和异常场景的测试
  */
 class UserMapperTest {
 
     private final UserMapper userMapper = Mappers.getMapper(UserMapper.class);
 
     @Test
+    @DisplayName("测试将创建用户请求映射为User实体")
     void toEntity_ShouldMapCreateUserRequestToUser() {
         // Arrange
         CreateUserRequest request = new CreateUserRequest();
@@ -41,6 +49,7 @@ class UserMapperTest {
     }
 
     @Test
+    @DisplayName("测试将User实体映射为用户响应对象")
     void toResponse_ShouldMapUserToUserResponse() {
         // Arrange
         User user = new User();
@@ -64,6 +73,7 @@ class UserMapperTest {
     }
 
     @Test
+    @DisplayName("测试通过更新请求更新用户实体")
     void updateEntityFromRequest_ShouldUpdateUserFromUpdateRequest() {
         // Arrange
         User user = new User();
@@ -87,6 +97,7 @@ class UserMapperTest {
     }
 
     @Test
+    @DisplayName("测试更新实体时处理空字段")
     void updateEntityFromRequest_ShouldHandleNullFields() {
         // Arrange
         User user = new User();
@@ -103,13 +114,14 @@ class UserMapperTest {
         userMapper.updateEntityFromRequest(request, user);
 
         // Assert
-        ///null字段不更新现有值
+        // 验证null字段保持原有值不变
         assertEquals("olduser", user.getUsername());
         assertEquals("oldpassword", user.getPassword());
         assertEquals(UserRole.MEMBER, user.getRole());
     }
 
     @Test
+    @DisplayName("测试只更新提供的字段")
     void updateEntityFromRequest_ShouldOnlyUpdateProvidedFields() {
         // Arrange
         User user = new User();
@@ -120,18 +132,19 @@ class UserMapperTest {
 
         UpdateUserRequest request = new UpdateUserRequest();
         request.setUsername("newuser");
-        //password不设置，应该保持原值
+        // password字段不设置，应该保持原值
 
         // Act
         userMapper.updateEntityFromRequest(request, user);
 
         // Assert
-        assertEquals("newuser", user.getUsername()); //应该更新
-        assertEquals("oldpassword", user.getPassword()); //应该保持原值
-        assertEquals(UserRole.ADMIN, user.getRole()); //应该保持原值
+        assertEquals("newuser", user.getUsername()); // 应该被更新
+        assertEquals("oldpassword", user.getPassword()); // 应该保持原值不变
+        assertEquals(UserRole.ADMIN, user.getRole()); // 应该保持原值不变
     }
 
     @Test
+    @DisplayName("测试批量映射多个用户为响应对象")
     void toResponse_ShouldMapMultipleUsersToUserResponses() {
         // Arrange
         User user1 = new User();
@@ -163,6 +176,7 @@ class UserMapperTest {
     }
 
     @Test
+    @DisplayName("测试不同角色的创建请求映射")
     void toEntity_ShouldMapCreateRequestWithDifferentRoles() {
         // Test ADMIN role
         CreateUserRequest adminRequest = new CreateUserRequest();
@@ -188,6 +202,7 @@ class UserMapperTest {
     }
 
     @Test
+    @DisplayName("测试删除用户的数据映射")
     void shouldNotBreakWhenMappingWithDeletedUsers() {
         // Arrange
         User deletedUser = new User();

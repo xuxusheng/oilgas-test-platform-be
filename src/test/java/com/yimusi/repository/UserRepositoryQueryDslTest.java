@@ -12,14 +12,17 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @description  UserRepository QueryDSL多条件查询测试
+ * UserRepository QueryDSL多条件查询测试
+ * 覆盖 QueryDSL 的常见过滤能力：多条件组合、模糊/精确匹配、角色过滤以及软删除隔离。
  */
 @Transactional
+@DisplayName("UserRepository QueryDSL多条件查询测试")
 class UserRepositoryQueryDslTest extends BaseIntegrationTest {
 
     @Autowired
@@ -30,9 +33,12 @@ class UserRepositoryQueryDslTest extends BaseIntegrationTest {
     private User anotherMember;
     private User deletedUser;
 
+    /**
+     * 构建管理员、普通会员和软删除用户，确保测试覆盖不同角色与删除状态。
+     */
     @BeforeEach
     void setUp() {
-        // 创建测试数据
+        // 创建管理员、普通用户以及软删除用户，以覆盖常见的过滤组合
         adminUser = new User();
         adminUser.setUsername("admin");
         adminUser.setPassword("adminpassword");
@@ -74,13 +80,21 @@ class UserRepositoryQueryDslTest extends BaseIntegrationTest {
         userRepository.save(deletedUser);
     }
 
+    /**
+     * 清理每个用例写入的用户，避免数据串联。
+     */
     @AfterEach
     void tearDown() {
         // 清理测试数据
         userRepository.deleteAll();
     }
 
+    /**
+     * 测试 existsByUsernameAndDeletedFalse 方法
+     * 验证已被软删除的用户名不会被视为活跃用户。
+     */
     @Test
+    @DisplayName("测试 existsByUsernameAndDeletedFalse 仅返回未删除用户")
     void findByIdAndDeletedFalse_ShouldFindActiveUser() {
         // Test existsByUsernameAndDeletedFalse
         boolean existsAdmin = userRepository.existsByUsernameAndDeletedFalse("admin");
@@ -90,7 +104,11 @@ class UserRepositoryQueryDslTest extends BaseIntegrationTest {
         assertFalse(existsDeleted, "不应该找到删除的用户");
     }
 
+    /**
+     * 验证 QueryDSL 能够通过角色 + 删除状态的组合条件精准过滤用户。
+     */
     @Test
+    @DisplayName("测试 QueryDSL 多条件过滤 MEMBER 未删除用户")
     void QueryDSL_MultipleRestrictions_ShouldFindUsersWithConditions() {
         QUser qUser = QUser.user;
 
@@ -107,7 +125,12 @@ class UserRepositoryQueryDslTest extends BaseIntegrationTest {
                 "所有结果应该是未删除的");
     }
 
+    /**
+     * 测试 QueryDSL startsWith 条件
+     * 确认模糊匹配的同时仍然排除软删除用户。
+     */
     @Test
+    @DisplayName("测试 QueryDSL 用户名前缀匹配并过滤软删除")
     void QueryDSL_UsernameStartsWith_ShouldFindUsers() {
         QUser qUser = QUser.user;
 
@@ -119,7 +142,12 @@ class UserRepositoryQueryDslTest extends BaseIntegrationTest {
         assertEquals("admin", adUsers.get(0).getUsername());
     }
 
+    /**
+     * 验证基础的未删除过滤器
+     * 确保默认查询只返回活跃数据。
+     */
     @Test
+    @DisplayName("测试 QueryDSL 不返回软删除用户")
     void QueryDSL_AllUsers_ShouldOnlyReturnNonDeleted() {
         QUser qUser = QUser.user;
         BooleanExpression notDeleted = qUser.deleted.isFalse();
@@ -131,7 +159,12 @@ class UserRepositoryQueryDslTest extends BaseIntegrationTest {
                 "所有活跃用户都不应标记为删除");
     }
 
+    /**
+     * 测试 QueryDSL in 条件
+     * 确认多角色过滤可以与软删除过滤叠加。
+     */
     @Test
+    @DisplayName("测试 QueryDSL 支持多角色组合过滤")
     void QueryDSL_FindByMultipleRoles() {
         QUser qUser = QUser.user;
 
@@ -144,7 +177,12 @@ class UserRepositoryQueryDslTest extends BaseIntegrationTest {
         assertEquals(3, multiRoleUsers.size(), "应该有3个不同角色的用户");
     }
 
+    /**
+     * 测试 QueryDSL 精确匹配条件
+     * 确保用户名精确匹配时仍遵从删除状态过滤。
+     */
     @Test
+    @DisplayName("测试 QueryDSL 用户名精确匹配且排除软删除")
     void QueryDSL_UsernameExactMatch() {
         QUser qUser = QUser.user;
 
@@ -156,7 +194,12 @@ class UserRepositoryQueryDslTest extends BaseIntegrationTest {
         assertEquals(UserRole.MEMBER, exactUsers.get(0).getRole());
     }
 
+    /**
+     * 测试删除后的再次查询
+     * 验证删库操作会影响后续 QueryDSL 条件查询的结果集。
+     */
     @Test
+    @DisplayName("测试删除后 QueryDSL 查询的活跃用户数量会减少")
     void deleteAndQuery_ShouldReduceActiveUserCount() {
         QUser qUser = QUser.user;
         BooleanExpression notDeleted = qUser.deleted.isFalse();
