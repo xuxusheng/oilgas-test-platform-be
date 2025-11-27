@@ -55,17 +55,6 @@ public class User extends BaseAuditEntity {
     private UserRole role;
 
     /**
-     * 在保存或更新实体之前加密密码
-     */
-    @PrePersist
-    @PreUpdate
-    public void hashPasswordBeforeSave() {
-        if (password != null && !password.startsWith("$2a$")) {
-            this.password = BCrypt.hashpw(password);
-        }
-    }
-
-    /**
      * 验证密码是否正确
      * @param plainPassword 明文密码
      * @return 密码是否匹配

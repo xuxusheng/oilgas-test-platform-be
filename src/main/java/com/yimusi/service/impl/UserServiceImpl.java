@@ -43,6 +43,9 @@ public class UserServiceImpl implements UserService {
         validateUsernameUnique(createUserRequest.getUsername());
 
         User user = userMapper.toEntity(createUserRequest);
+        if (createUserRequest.getPassword() != null) {
+            user.setPassword(BCrypt.hashpw(createUserRequest.getPassword()));
+        }
         User savedUser = userRepository.save(user);
         return userMapper.toResponse(savedUser);
     }
