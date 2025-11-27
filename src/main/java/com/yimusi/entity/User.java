@@ -20,7 +20,7 @@ import jakarta.persistence.PreUpdate;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "users", indexes = {
-    @Index(name = "idx_users_username_deleted", columnList = "username, deleted", unique = true)
+    @Index(name = "idx_users_username", columnList = "username")
 })
 @SQLDelete(sql = "UPDATE users SET deleted = true, deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("deleted = false")
@@ -34,7 +34,8 @@ public class User extends BaseAuditEntity {
     private Long id;
 
     /**
-     * 用户的登录名，未删除数据中必须唯一且不能为空。
+     * 用户的登录名，在未删除的用户中必须唯一，不能为空。
+     * 唯一性由业务层代码保证。
      */
     @Column(nullable = false, length = 50)
     private String username;

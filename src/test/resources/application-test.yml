@@ -4,8 +4,8 @@
 spring:
   jpa:
     hibernate:
-      # 测试环境使用 update,保持表结构,允许测试类之间共享数据库
-      ddl-auto: update
+      # 测试环境使用 create-drop，每个测试类开始时重新创建表
+      ddl-auto: create-drop
     # 测试时显示 SQL 便于调试
     show-sql: false
     properties:
