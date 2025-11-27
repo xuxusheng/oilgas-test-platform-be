@@ -35,6 +35,19 @@ sa-token:
   is-print: true
   is-log: false
 
+# --- 日志配置 ---
+logging:
+  config: classpath:logback-spring.xml
+  file:
+    name: ./logs/springboot-app.log
+  level:
+    root: INFO
+    com.yimusi: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
+    org.hibernate.SQL: WARN
+    com.zaxxer.hikari: WARN
+
 # --- Actuator 监控端点配置 ---
 management:
   endpoints:

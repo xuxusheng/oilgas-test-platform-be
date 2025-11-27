@@ -80,7 +80,14 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
-        
+
+        <!-- Logstash Logback Encoder - JSON 格式日志 -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>8.0</version>
+        </dependency>
+
         <!-- Hutool 工具库 (按需引入) -->
         <dependency>
             <groupId>cn.hutool</groupId>

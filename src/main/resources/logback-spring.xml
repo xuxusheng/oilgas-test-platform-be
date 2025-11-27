@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Spring Boot 生产级日志配置（最佳实践版）
+    特性：
+    1. 异步日志写入，提升性能
+    2. 精确的日志级别过滤，避免重复记录
+    3. MDC 支持（traceId、userId 追踪）
+    4. 自动压缩归档日志
+    5. JMX 运行时调整支持
+    6. 环境变量配置，适应不同部署场景
+    7. 优雅关闭，保证日志完整性
+-->
+<configuration scan="true" scanPeriod="60 seconds">
+
+    <!-- JMX 支持：允许运行时动态调整日志级别 -->
+    <jmxConfigurator/>
+
+    <!-- 优雅关闭：确保应用关闭时日志不丢失 -->
+    <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
+
+    <!-- ========================================
+         属性定义
+         ======================================== -->
+    <property name="APP_NAME" value="oilgas-platform"/>
+
+    <!-- 日志路径：优先使用环境变量，否则使用默认值 -->
+    <property name="LOG_PATH" value="${LOG_PATH:-./logs}"/>
+
+    <!-- 标准日志格式：包含 MDC 字段（traceId、userId） -->
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{40} [traceId=%X{traceId:-N/A}, userId=%X{userId:-N/A}] - %msg%n"/>
+
+    <!-- 彩色控制台格式：开发环境友好 -->
+    <property name="CONSOLE_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{40}) %magenta([traceId=%X{traceId:-N/A}]) - %msg%n"/>
+
+    <!-- 简洁格式：测试环境使用 -->
+    <property name="SIMPLE_PATTERN"
+              value="%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"/>
+
+    <!-- 异步队列大小 -->
+    <property name="ASYNC_QUEUE_SIZE" value="512"/>
+    <property name="ASYNC_DISCARD_THRESHOLD" value="0"/>
+
+    <!-- 是否启用 JSON 日志（默认启用） -->
+    <property name="ENABLE_JSON_LOG" value="${ENABLE_JSON_LOG:-true}"/>
+
+    <!-- ========================================
+         生产环境配置
+         ======================================== -->
+    <springProfile name="prod">
+
+        <!-- ==================== 同步 Appenders ==================== -->
+
+        <!-- 控制台输出 -->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${LOG_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
+        <!-- 总日志文件：包含所有级别，便于完整查看 -->
+        <appender name="ALL_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_PATH}/${APP_NAME}-all.log</file>
+            <encoder>
+                <pattern>${LOG_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <!-- 按天滚动，加上序号，压缩为 .gz -->
+                <fileNamePattern>${LOG_PATH}/archive/${APP_NAME}-all-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <maxFileSize>200MB</maxFileSize>
+                <maxHistory>30</maxHistory>
+                <!-- 总大小限制 -->
+                <totalSizeCap>20GB</totalSizeCap>
+            </rollingPolicy>
+        </appender>
+
+        <!-- ERROR 日志：仅记录 ERROR 级别 -->
+        <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_PATH}/${APP_NAME}-error.log</file>
+            <encoder>
+                <pattern>${LOG_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_PATH}/archive/${APP_NAME}-error-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <maxFileSize>100MB</maxFileSize>
+                <maxHistory>60</maxHistory>
+                <totalSizeCap>10GB</totalSizeCap>
+            </rollingPolicy>
+            <!-- 精确匹配 ERROR 级别，避免重复记录 -->
+            <filter class="ch.qos.logback.classic.filter.LevelFilter">
+                <level>ERROR</level>
+                <onMatch>ACCEPT</onMatch>
+                <onMismatch>DENY</onMismatch>
+            </filter>
+        </appender>
+
+        <!-- WARN 日志：仅记录 WARN 级别 -->
+        <appender name="WARN_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_PATH}/${APP_NAME}-warn.log</file>
+            <encoder>
+                <pattern>${LOG_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_PATH}/archive/${APP_NAME}-warn-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <maxFileSize>100MB</maxFileSize>
+                <maxHistory>30</maxHistory>
+                <totalSizeCap>5GB</totalSizeCap>
+            </rollingPolicy>
+            <!-- 精确匹配 WARN 级别 -->
+            <filter class="ch.qos.logback.classic.filter.LevelFilter">
+                <level>WARN</level>
+                <onMatch>ACCEPT</onMatch>
+                <onMismatch>DENY</onMismatch>
+            </filter>
+        </appender>
+
+        <!-- INFO 日志：仅记录 INFO 级别 -->
+        <appender name="INFO_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_PATH}/${APP_NAME}-info.log</file>
+            <encoder>
+                <pattern>${LOG_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_PATH}/archive/${APP_NAME}-info-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <maxFileSize>200MB</maxFileSize>
+                <maxHistory>15</maxHistory>
+                <totalSizeCap>10GB</totalSizeCap>
+            </rollingPolicy>
+            <!-- 精确匹配 INFO 级别 -->
+            <filter class="ch.qos.logback.classic.filter.LevelFilter">
+                <level>INFO</level>
+                <onMatch>ACCEPT</onMatch>
+                <onMismatch>DENY</onMismatch>
+            </filter>
+        </appender>
+
+        <!-- JSON 格式日志：用于 ELK/Loki 等日志收集系统 -->
+        <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_PATH}/${APP_NAME}-json.log</file>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <!-- 自定义字段 -->
+                <customFields>{"app":"${APP_NAME}","env":"prod"}</customFields>
+                <!-- 包含 MDC 字段 -->
+                <includeMdcKeyNames>traceId,userId,ip,method,uri</includeMdcKeyNames>
+                <!-- 包含调用者信息（对于 ERROR 日志很有用） -->
+                <includeCallerData>false</includeCallerData>
+                <!-- 包含上下文信息 -->
+                <includeContext>true</includeContext>
+                <!-- 字段命名策略 -->
+                <fieldNames>
+                    <timestamp>timestamp</timestamp>
+                    <version>[ignore]</version>
+                    <levelValue>[ignore]</levelValue>
+                </fieldNames>
+                <!-- 时间戳格式 -->
+                <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSSZ</timestampPattern>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_PATH}/archive/${APP_NAME}-json-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <maxFileSize>200MB</maxFileSize>
+                <maxHistory>30</maxHistory>
+                <totalSizeCap>20GB</totalSizeCap>
+            </rollingPolicy>
+        </appender>
+
+        <!-- ==================== 异步 Appenders ==================== -->
+
+        <!-- 异步总日志 -->
+        <appender name="ASYNC_ALL" class="ch.qos.logback.classic.AsyncAppender">
+            <queueSize>${ASYNC_QUEUE_SIZE}</queueSize>
+            <discardingThreshold>${ASYNC_DISCARD_THRESHOLD}</discardingThreshold>
+            <includeCallerData>false</includeCallerData>
+            <appender-ref ref="ALL_FILE"/>
+        </appender>
+
+        <!-- 异步错误日志 -->
+        <appender name="ASYNC_ERROR" class="ch.qos.logback.classic.AsyncAppender">
+            <queueSize>${ASYNC_QUEUE_SIZE}</queueSize>
+            <discardingThreshold>0</discardingThreshold>
+            <includeCallerData>true</includeCallerData>
+            <appender-ref ref="ERROR_FILE"/>
+        </appender>
+
+        <!-- 异步警告日志 -->
+        <appender name="ASYNC_WARN" class="ch.qos.logback.classic.AsyncAppender">
+            <queueSize>${ASYNC_QUEUE_SIZE}</queueSize>
+            <discardingThreshold>${ASYNC_DISCARD_THRESHOLD}</discardingThreshold>
+            <includeCallerData>false</includeCallerData>
+            <appender-ref ref="WARN_FILE"/>
+        </appender>
+
+        <!-- 异步信息日志 -->
+        <appender name="ASYNC_INFO" class="ch.qos.logback.classic.AsyncAppender">
+            <queueSize>${ASYNC_QUEUE_SIZE}</queueSize>
+            <discardingThreshold>${ASYNC_DISCARD_THRESHOLD}</discardingThreshold>
+            <includeCallerData>false</includeCallerData>
+            <appender-ref ref="INFO_FILE"/>
+        </appender>
+
+        <!-- 异步 JSON 日志 -->
+        <appender name="ASYNC_JSON" class="ch.qos.logback.classic.AsyncAppender">
+            <queueSize>${ASYNC_QUEUE_SIZE}</queueSize>
+            <discardingThreshold>${ASYNC_DISCARD_THRESHOLD}</discardingThreshold>
+            <includeCallerData>false</includeCallerData>
+            <appender-ref ref="JSON_FILE"/>
+        </appender>
+
+        <!-- ==================== Logger 配置 ==================== -->
+
+        <!-- 根 Logger -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_ALL"/>
+            <appender-ref ref="ASYNC_ERROR"/>
+            <appender-ref ref="ASYNC_WARN"/>
+            <appender-ref ref="ASYNC_INFO"/>
+            <appender-ref ref="ASYNC_JSON"/>
+        </root>
+
+        <!-- 应用包日志 -->
+        <logger name="com.yimusi" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="ASYNC_ALL"/>
+            <appender-ref ref="ASYNC_ERROR"/>
+            <appender-ref ref="ASYNC_WARN"/>
+            <appender-ref ref="ASYNC_INFO"/>
+            <appender-ref ref="ASYNC_JSON"/>
+        </logger>
+
+        <!-- 框架日志：降低噪音 -->
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.hibernate" level="WARN"/>
+        <logger name="com.zaxxer.hikari" level="WARN"/>
+        <logger name="org.mybatis" level="WARN"/>
+
+        <!-- SQL 日志：生产环境建议关闭，需要时可调整为 DEBUG -->
+        <logger name="org.hibernate.SQL" level="WARN"/>
+        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="WARN"/>
+
+    </springProfile>
+
+    <!-- ========================================
+         开发环境配置
+         ======================================== -->
+    <springProfile name="dev">
+
+        <!-- 彩色控制台输出 -->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${CONSOLE_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
+        <!-- 开发环境文件日志（可选） -->
+        <appender name="DEV_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_PATH}/${APP_NAME}-dev.log</file>
+            <encoder>
+                <pattern>${LOG_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_PATH}/archive/${APP_NAME}-dev-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+                <maxFileSize>100MB</maxFileSize>
+                <maxHistory>7</maxHistory>
+                <totalSizeCap>1GB</totalSizeCap>
+            </rollingPolicy>
+        </appender>
+
+        <!-- 根 Logger -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="DEV_FILE"/>
+        </root>
+
+        <!-- 应用包日志：开发环境使用 DEBUG -->
+        <logger name="com.yimusi" level="DEBUG"/>
+
+        <!-- 框架日志：适度输出 -->
+        <logger name="org.springframework" level="INFO"/>
+        <logger name="org.springframework.web" level="DEBUG"/>
+        <logger name="org.springframework.security" level="DEBUG"/>
+        <logger name="org.hibernate" level="INFO"/>
+        <logger name="com.zaxxer.hikari" level="INFO"/>
+
+        <!-- SQL 日志：开发环境显示 SQL 和参数 -->
+        <logger name="org.hibernate.SQL" level="DEBUG"/>
+        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+
+        <!-- MyBatis SQL 日志 -->
+        <logger name="com.yimusi.mapper" level="DEBUG"/>
+
+    </springProfile>
+
+    <!-- ========================================
+         测试环境配置
+         ======================================== -->
+    <springProfile name="test">
+
+        <!-- 简洁控制台输出 -->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${SIMPLE_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+            <!-- 测试环境过滤掉 DEBUG，减少输出 -->
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>INFO</level>
+            </filter>
+        </appender>
+
+        <!-- 测试日志文件（用于 CI/CD 日志收集） -->
+        <appender name="TEST_FILE" class="ch.qos.logback.core.FileAppender">
+            <file>${LOG_PATH}/${APP_NAME}-test.log</file>
+            <encoder>
+                <pattern>${LOG_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+            <append>false</append>
+        </appender>
+
+        <!-- 根 Logger：测试环境适度输出 -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="TEST_FILE"/>
+        </root>
+
+        <!-- 应用包日志：测试环境使用 INFO，便于调试 -->
+        <logger name="com.yimusi" level="INFO"/>
+
+        <!-- 框架日志：降低噪音 -->
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.springframework.test" level="INFO"/>
+        <logger name="org.hibernate" level="WARN"/>
+        <logger name="com.zaxxer.hikari" level="WARN"/>
+
+        <!-- TestContainers 日志 -->
+        <logger name="org.testcontainers" level="INFO"/>
+        <logger name="tc" level="INFO"/>
+
+        <!-- 测试框架日志 -->
+        <logger name="org.junit" level="INFO"/>
+
+    </springProfile>
+
+</configuration>
