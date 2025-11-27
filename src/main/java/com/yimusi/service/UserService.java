@@ -66,4 +66,21 @@ public interface UserService {
      * @param id 用户ID
      */
     void restoreUser(Long id);
+
+    /**
+     * 根据用户名查找用户。
+     *
+     * @param username 用户名
+     * @return 用户实体
+     */
+    User findByUsername(String username);
+
+    /**
+     * 验证用户密码。
+     *
+     * @param username 用户名
+     * @param password 密码
+     * @return 验证成功的用户
+     */
+    User validateUser(String username, String password);
 }

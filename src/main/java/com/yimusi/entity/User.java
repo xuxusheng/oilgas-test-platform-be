@@ -1,5 +1,6 @@
 package com.yimusi.entity;
 
+import cn.hutool.crypto.digest.BCrypt;
 import com.yimusi.common.enums.UserRole;
 import com.yimusi.entity.base.BaseAuditEntity;
 import jakarta.persistence.*;
@@ -7,6 +8,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
+
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 
 /**
  * 代表用户的JPA实体。
@@ -48,4 +52,24 @@ public class User extends BaseAuditEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private UserRole role;
+
+    /**
+     * 在保存或更新实体之前加密密码
+     */
+    @PrePersist
+    @PreUpdate
+    public void hashPasswordBeforeSave() {
+        if (password != null && !password.startsWith("$2a$")) {
+            this.password = BCrypt.hashpw(password);
+        }
+    }
+
+    /**
+     * 验证密码是否正确
+     * @param plainPassword 明文密码
+     * @return 密码是否匹配
+     */
+    public boolean verifyPassword(String plainPassword) {
+        return BCrypt.checkpw(plainPassword, this.password);
+    }
 }

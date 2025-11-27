@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
+import cn.hutool.crypto.digest.BCrypt;
 
 /**
  * 用户服务实现类，处理所有与用户相关的业务逻辑。
@@ -184,5 +185,29 @@ public class UserServiceImpl implements UserService {
         if (exists) {
             throw new BadRequestException(String.format("用户名 %s 已存在", username));
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public User findByUsername(String username) {
+        if (username == null) {
+            throw new BadRequestException("用户名不能为空");
+        }
+        return userRepository.findByUsernameAndDeletedFalse(username)
+                .orElseThrow(() -> new ResourceNotFoundException(String.format("用户名 %s 不存在", username)));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public User validateUser(String username, String password) {
+        User user = findByUsername(username);
+        if (!user.verifyPassword(password)) {
+            throw new BadRequestException("用户名或密码错误");
+        }
+        return user;
     }
 }
