@@ -8,23 +8,17 @@ spring:
     name: springboot-app
   # --- 数据源配置 ---
   datasource:
-    url: jdbc:mysql://localhost:3306/your_database_name?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
-    username: your_username
-    password: your_password
+    url: jdbc:mysql://localhost:3306/oilgas_test_db?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
+    username: root
+    password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
-
-sa-token:
-  token-style: jwt
-  jwt-secret-key: change_me_please
-  timeout: 2592000   # 30 天
-  active-timeout: -1
   # --- JPA/Hibernate 配置 ---
   jpa:
     hibernate:
       # ddl-auto: [create | create-drop | update | validate | none]
-      #   - update: 启动时自动更新表结构（开发方便）
+      #   - update: 启动时自动更新表结构(开发方便)
       #   - validate: 启动时校验表结构
-      #   - none: 生产环境推荐，更安全
+      #   - none: 生产环境推荐,更安全
       ddl-auto: update
     # 在控制台显示执行的SQL语句
     show-sql: true
@@ -32,14 +26,23 @@ sa-token:
       hibernate:
         format_sql: true
 
+# Sa-Token 配置
+sa-token:
+  token-style: jwt
+  jwt-secret-key: yimusi-oilgas-platform-change-me-for-production
+  timeout: 2592000   # 30 天
+  active-timeout: -1
+  is-print: true
+  is-log: false
+
 # --- Actuator 监控端点配置 ---
 management:
   endpoints:
     web:
       exposure:
-        # [安全警告] 开发时可设为 "*"，生产环境强烈建议改为 ["health", "info", "prometheus"]
+        # [安全警告] 开发时可设为 "*",生产环境强烈建议改为 ["health", "info", "prometheus"]
         include: "*"
   endpoint:
     health:
-      # 默认只显示基本信息，保护敏感数据
+      # 默认只显示基本信息,保护敏感数据
       show-details: never
