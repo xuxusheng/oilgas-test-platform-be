@@ -9,9 +9,6 @@ import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-
 /**
  * 代表用户的JPA实体。
  * 对应数据库中的 "users" 表。
@@ -19,9 +16,7 @@ import jakarta.persistence.PreUpdate;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = "users", indexes = {
-    @Index(name = "idx_users_username", columnList = "username")
-})
+@Table(name = "users", indexes = { @Index(name = "idx_users_username", columnList = "username") })
 @SQLDelete(sql = "UPDATE users SET deleted = true, deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("deleted = false")
 public class User extends BaseAuditEntity {

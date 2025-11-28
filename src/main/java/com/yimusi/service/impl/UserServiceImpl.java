@@ -5,6 +5,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.yimusi.common.exception.BadRequestException;
 import com.yimusi.common.exception.ResourceNotFoundException;
+import com.yimusi.common.util.OperatorUtil;
 import com.yimusi.dto.CreateUserRequest;
 import com.yimusi.dto.PageResult;
 import com.yimusi.dto.UpdateUserRequest;
@@ -141,18 +142,7 @@ public class UserServiceImpl implements UserService {
     private void markDeleted(User user) {
         user.setDeleted(true);
         user.setDeletedAt(Instant.now());
-        user.setDeletedBy(getOperator());
-    }
-
-    private String getOperator() {
-        try {
-            return cn.dev33.satoken.stp.StpUtil.isLogin()
-                ? cn.dev33.satoken.stp.StpUtil.getLoginIdAsString()
-                : "system";
-        } catch (Exception e) {
-            // Handle test scenarios where SaToken context is not available
-            return "system";
-        }
+        user.setDeletedBy(OperatorUtil.getOperator());
     }
 
     /**
