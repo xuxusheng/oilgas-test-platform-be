@@ -14,7 +14,7 @@ import com.yimusi.dto.UpdateProjectRequest;
 import com.yimusi.entity.Project;
 import com.yimusi.mapper.ProjectMapper;
 import com.yimusi.repository.ProjectRepository;
-import com.yimusi.service.impl.ProjectServiceImpl;
+import com.yimusi.service.ProjectServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

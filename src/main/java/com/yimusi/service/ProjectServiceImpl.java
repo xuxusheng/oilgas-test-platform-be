@@ -1,4 +1,4 @@
-package com.yimusi.service.impl;
+package com.yimusi.service;
 
 import cn.hutool.core.util.StrUtil;
 import com.querydsl.core.BooleanBuilder;

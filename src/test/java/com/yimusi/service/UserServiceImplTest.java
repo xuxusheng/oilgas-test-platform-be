@@ -15,7 +15,7 @@ import com.yimusi.dto.UserResponse;
 import com.yimusi.entity.User;
 import com.yimusi.mapper.UserMapper;
 import com.yimusi.repository.UserRepository;
-import com.yimusi.service.impl.UserServiceImpl;
+import com.yimusi.service.UserServiceImpl;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +35,7 @@ import org.springframework.data.domain.PageRequest;
 /**
  * 用户业务逻辑服务单元测试类
  *
- * <p>该类对 {@link com.yimusi.service.impl.UserServiceImpl} 进行全面的单元测试，
+ * <p>该类对 {@link com.yimusi.service.UserServiceImpl} 进行全面的单元测试，
  * 覆盖用户操作的各个场景，包括用户创建、查询、更新、删除、恢复、分页查询等业务逻辑。
  * 使用 Mockito 框架进行依赖注入和模拟，确保测试的隔离性和可靠性。</p>
  *
@@ -50,7 +50,7 @@ import org.springframework.data.domain.PageRequest;
  *   <li>异常边界情况：空参数校验、资源不存在处理</li>
  * </ul>
  *
- * @see com.yimusi.service.impl.UserServiceImpl
+ * @see com.yimusi.service.UserServiceImpl
  */
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
