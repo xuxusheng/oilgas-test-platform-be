@@ -4,15 +4,17 @@ import com.yimusi.common.exception.BadRequestException;
 import com.yimusi.entity.SequenceGenerator;
 import com.yimusi.enums.SequenceBizType;
 import com.yimusi.repository.SequenceGeneratorRepository;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 序列号生成服务
@@ -21,9 +23,19 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(rollbackFor = Exception.class)
 public class SequenceGeneratorService {
 
     private final SequenceGeneratorRepository sequenceGeneratorRepository;
+
+    // 缓存枚举查找结果，提升性能
+    private final Map<String, SequenceBizType> BIZ_TYPE_CACHE = new ConcurrentHashMap<>();
+
+    // 需要溢出检查的业务类型（可扩展）
+    private static final List<String> OVERFLOW_CHECK_ENABLED_TYPES = List.of(
+        SequenceBizType.INSPECTION_DEVICE.getCode(),
+        SequenceBizType.PROJECT_INTERNAL.getCode()
+    );
 
     // ==================== 枚举便捷方法（推荐使用） ====================
 
@@ -33,7 +45,7 @@ public class SequenceGeneratorService {
      * @param bizType 业务类型枚举
      * @return 序列号
      */
-    public Long nextId(SequenceBizType bizType) {
+    public String nextId(SequenceBizType bizType) {
         return nextIds(bizType, 1).get(0);
     }
 
@@ -44,36 +56,9 @@ public class SequenceGeneratorService {
      * @param count 需要获取的序列号数量
      * @return 序列号列表
      */
-    public List<Long> nextIds(SequenceBizType bizType, int count) {
-        return nextIds(bizType.getCode(), count);
-    }
-
-    /**
-     * 获取格式化的序列号字符串（单个）
-     * 业务代码推荐使用此方法
-     *
-     * @param bizType 业务类型枚举
-     * @return 格式化后的序列号字符串（如：IND202501280001）
-     */
-    public String nextFormattedId(SequenceBizType bizType) {
-        Long seqNo = nextId(bizType);
-        return bizType.formatSequenceNo(seqNo);
-    }
-
-    /**
-     * 批量获取格式化的序列号字符串
-     *
-     * @param bizType 业务类型枚举
-     * @param count 需要获取的数量
-     * @return 格式化后的序列号字符串列表
-     */
-    public List<String> nextFormattedIds(SequenceBizType bizType, int count) {
-        List<Long> seqNos = nextIds(bizType, count);
-        List<String> result = new ArrayList<>(count);
-        for (Long seqNo : seqNos) {
-            result.add(bizType.formatSequenceNo(seqNo));
-        }
-        return result;
+    public List<String> nextIds(SequenceBizType bizType, int count) {
+        List<Long> seqNos = generateSequences(bizType.getCode(), count);
+        return seqNos.stream().map(bizType::formatSequenceNo).collect(Collectors.toList());
     }
 
     // ==================== 基础方法（字符串参数，支持动态业务类型） ====================
@@ -85,7 +70,7 @@ public class SequenceGeneratorService {
      * @param bizType 业务类型字符串
      * @return 序列号
      */
-    public Long nextId(String bizType) {
+    public String nextId(String bizType) {
         return nextIds(bizType, 1).get(0);
     }
 
@@ -99,7 +84,15 @@ public class SequenceGeneratorService {
      * @throws BadRequestException 如果参数非法
      */
     @Transactional(rollbackFor = Exception.class)
-    public List<Long> nextIds(String bizType, int count) {
+    public List<String> nextIds(String bizType, int count) {
+        List<Long> seqNos = generateSequences(bizType, count);
+        return formatSequences(bizType, seqNos);
+    }
+
+    /**
+     * 核心生成逻辑，返回原始序列值
+     */
+    private List<Long> generateSequences(String bizType, int count) {
         // 1. 参数校验
         validateParams(bizType, count);
 
@@ -112,8 +105,12 @@ public class SequenceGeneratorService {
         if (sequence.getResetStrategy().needReset(sequence.getLastResetTime())) {
             // 需要重置
             if (log.isInfoEnabled()) {
-                log.info("序列号需要重置: bizType={}, strategy={}, lastResetTime={}",
-                        bizType, sequence.getResetStrategy(), sequence.getLastResetTime());
+                log.info(
+                    "序列号需要重置: bizType={}, strategy={}, lastResetTime={}",
+                    bizType,
+                    sequence.getResetStrategy(),
+                    sequence.getLastResetTime()
+                );
             }
             sequence.setCurrentValue(0L);
             sequence.setLastResetTime(Instant.now());
@@ -130,31 +127,19 @@ public class SequenceGeneratorService {
         long end = sequence.getCurrentValue() + count;
 
         // 5. 检查序列号是否溢出（如果是在枚举中的业务类型）
-        try {
-            SequenceBizType enumType = SequenceBizType.fromCode(bizType);
-            if (enumType.getSequenceLength() > 0) {
-                long maxValue = (long) Math.pow(10, enumType.getSequenceLength()) - 1;
-                if (end > maxValue) {
-                    throw new BadRequestException(String.format(
-                        "序列号溢出: bizType=%s, currentValue=%d, count=%d, maxValue=%d",
-                        bizType, sequence.getCurrentValue(), count, maxValue
-                    ));
-                }
-            }
-        } catch (IllegalArgumentException e) {
-            // 不在枚举中的业务类型，不检查溢出
-            if (log.isDebugEnabled()) {
-                log.debug("业务类型不在枚举中，跳过溢出检查: bizType={}", bizType);
-            }
-        }
+        checkOverflow(bizType, end);
 
         // 6. 更新数据库中的当前值并保存
         sequence.setCurrentValue(end);
         sequenceGeneratorRepository.save(sequence);
 
         if (log.isDebugEnabled()) {
-            log.debug("序列号记录更新成功: bizType={}, oldValue={}, newValue={}",
-                    bizType, sequence.getCurrentValue() - count, end);
+            log.debug(
+                "序列号记录更新成功: bizType={}, oldValue={}, newValue={}",
+                bizType,
+                sequence.getCurrentValue() - count,
+                end
+            );
         }
 
         // 7. 生成序列号列表
@@ -164,11 +149,28 @@ public class SequenceGeneratorService {
         }
 
         if (log.isInfoEnabled()) {
-            log.info("生成序列号成功: bizType={}, range=[{}, {}], count={}, currentValue={}",
-                    bizType, start, end, count, end);
+            log.info(
+                "生成序列号成功: bizType={}, range=[{}, {}], count={}, currentValue={}",
+                bizType,
+                start,
+                end,
+                count,
+                end
+            );
         }
 
         return result;
+    }
+
+    /**
+     * 将原始序列值转换为最终字符串
+     */
+    private List<String> formatSequences(String bizType, List<Long> seqNos) {
+        SequenceBizType enumType = getBizType(bizType);
+        if (enumType == null) {
+            return seqNos.stream().map(String::valueOf).collect(Collectors.toList());
+        }
+        return seqNos.stream().map(enumType::formatSequenceNo).collect(Collectors.toList());
     }
 
     /**
@@ -198,8 +200,7 @@ public class SequenceGeneratorService {
         try {
             SequenceGenerator saved = sequenceGeneratorRepository.save(sequence);
             if (log.isInfoEnabled()) {
-                log.info("初始化序列号记录: bizType={}, resetStrategy={}",
-                        bizType, saved.getResetStrategy());
+                log.info("初始化序列号记录: bizType={}, resetStrategy={}", bizType, saved.getResetStrategy());
             }
             return saved;
         } catch (DataIntegrityViolationException e) {
@@ -209,10 +210,47 @@ public class SequenceGeneratorService {
             }
             return sequenceGeneratorRepository
                 .findByBizTypeForUpdate(bizType)
-                .orElseThrow(() -> new BadRequestException(
-                    String.format("初始化序列号失败: bizType=%s", bizType)
-                ));
+                .orElseThrow(() -> new BadRequestException(String.format("初始化序列号失败: bizType=%s", bizType)));
         }
+    }
+
+    /**
+     * 检查序列号是否溢出
+     *
+     * @param bizType 业务类型
+     * @param end 序列号结束值
+     */
+    private void checkOverflow(String bizType, long end) {
+        // 只对特定业务类型进行溢出检查，避免性能开销
+        if (!OVERFLOW_CHECK_ENABLED_TYPES.contains(bizType)) {
+            return;
+        }
+
+        SequenceBizType enumType = getBizType(bizType);
+        if (enumType != null && enumType.getSequenceLength() > 0) {
+            long maxValue = (long) Math.pow(10, enumType.getSequenceLength()) - 1;
+            if (end > maxValue) {
+                throw new BadRequestException(
+                    String.format("序列号溢出: bizType=%s, end=%d, maxValue=%d", bizType, end, maxValue)
+                );
+            }
+        }
+    }
+
+    /**
+     * 获取缓存的枚举类型（使用缓存提升性能）
+     *
+     * @param bizType 业务类型
+     * @return 枚举类型
+     */
+    private SequenceBizType getBizType(String bizType) {
+        return BIZ_TYPE_CACHE.computeIfAbsent(bizType, k -> {
+            try {
+                return SequenceBizType.fromCode(bizType);
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        });
     }
 
     /**
@@ -265,9 +303,6 @@ public class SequenceGeneratorService {
      * @return 当前序列号值，如果不存在返回0
      */
     public Long getCurrentValue(String bizType) {
-        return sequenceGeneratorRepository
-            .findByBizType(bizType)
-            .map(SequenceGenerator::getCurrentValue)
-            .orElse(0L);
+        return sequenceGeneratorRepository.findByBizType(bizType).map(SequenceGenerator::getCurrentValue).orElse(0L);
     }
 }

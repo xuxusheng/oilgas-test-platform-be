@@ -43,49 +43,23 @@ class SequenceGeneratorServiceTest extends BaseIntegrationTest {
 
     @Test
     void testNextId() {
-        Long id = sequenceGeneratorService.nextId(SequenceBizType.INSPECTION_DEVICE);
-        assertNotNull(id);
-        assertTrue(id > 0);
-        assertEquals(1L, id);
-    }
-
-    @Test
-    void testNextIds() {
-        List<Long> ids = sequenceGeneratorService.nextIds(SequenceBizType.INSPECTION_DEVICE, 3);
-        assertNotNull(ids);
-        assertEquals(3, ids.size());
-        
-        // 验证序列号递增
-        for (int i = 0; i < ids.size(); i++) {
-            assertEquals(i + 1, ids.get(i));
-        }
-    }
-
-    @Test
-    void testNextFormattedId() {
-        String deviceNo = sequenceGeneratorService.nextFormattedId(SequenceBizType.INSPECTION_DEVICE);
+        String deviceNo = sequenceGeneratorService.nextId(SequenceBizType.INSPECTION_DEVICE);
         assertNotNull(deviceNo);
         assertTrue(deviceNo.startsWith("IND"));
-        // IND + YYYYMMDD + 0001 = 15
         assertEquals(15, deviceNo.length());
     }
 
     @Test
-    void testNextFormattedIds() {
-        List<String> deviceNos = sequenceGeneratorService.nextFormattedIds(
-            SequenceBizType.INSPECTION_DEVICE, 
-            2
-        );
-        
+    void testNextIds() {
+        List<String> deviceNos = sequenceGeneratorService.nextIds(SequenceBizType.INSPECTION_DEVICE, 2);
         assertNotNull(deviceNos);
         assertEquals(2, deviceNos.size());
-        
+
         for (String deviceNo : deviceNos) {
             assertTrue(deviceNo.startsWith("IND"));
             assertEquals(15, deviceNo.length());
         }
-        
-        // 验证序列号递增
+
         assertTrue(deviceNos.get(1).compareTo(deviceNos.get(0)) > 0);
     }
 
@@ -94,14 +68,11 @@ class SequenceGeneratorServiceTest extends BaseIntegrationTest {
         Long projectId = 123L;
         String bizType = "project_internal_" + projectId;
         
-        Long id = sequenceGeneratorService.nextId(bizType);
-        assertNotNull(id);
-        assertTrue(id > 0);
-        assertEquals(1L, id);
-        
-        // 多次调用应该递增
-        Long id2 = sequenceGeneratorService.nextId(bizType);
-        assertEquals(id + 1, id2);
+        String id = sequenceGeneratorService.nextId(bizType);
+        assertEquals("1", id);
+
+        String id2 = sequenceGeneratorService.nextId(bizType);
+        assertEquals("2", id2);
     }
 
     @Test
@@ -120,7 +91,7 @@ class SequenceGeneratorServiceTest extends BaseIntegrationTest {
     void testBatchCreate() {
         // 模拟批量创建设备
         int batchSize = 2;
-        List<String> deviceNos = sequenceGeneratorService.nextFormattedIds(
+        List<String> deviceNos = sequenceGeneratorService.nextIds(
             SequenceBizType.INSPECTION_DEVICE,
             batchSize
         );

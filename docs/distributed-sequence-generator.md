@@ -401,6 +401,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * 序列号生成服务
@@ -409,9 +412,19 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(rollbackFor = Exception.class)
 public class SequenceGeneratorService {
 
     private final SequenceGeneratorRepository sequenceGeneratorRepository;
+
+    // 缓存枚举查找结果，提升性能
+    private final Map<String, SequenceBizType> BIZ_TYPE_CACHE = new ConcurrentHashMap<>();
+
+    // 需要溢出检查的业务类型（可扩展）
+    private static final List<String> OVERFLOW_CHECK_ENABLED_TYPES = List.of(
+        SequenceBizType.INSPECTION_DEVICE.getCode(),
+        SequenceBizType.PROJECT_INTERNAL.getCode()
+    );
 
     // ==================== 枚举便捷方法（推荐使用） ====================
 
@@ -421,7 +434,7 @@ public class SequenceGeneratorService {
      * @param bizType 业务类型枚举
      * @return 序列号
      */
-    public Long nextId(SequenceBizType bizType) {
+    public String nextId(SequenceBizType bizType) {
         return nextIds(bizType, 1).get(0);
     }
 
@@ -432,36 +445,11 @@ public class SequenceGeneratorService {
      * @param count 需要获取的序列号数量
      * @return 序列号列表
      */
-    public List<Long> nextIds(SequenceBizType bizType, int count) {
-        return nextIds(bizType.getCode(), count);
-    }
-
-    /**
-     * 获取格式化的序列号字符串（单个）
-     * 业务代码推荐使用此方法
-     *
-     * @param bizType 业务类型枚举
-     * @return 格式化后的序列号字符串（如：IND202501280001）
-     */
-    public String nextFormattedId(SequenceBizType bizType) {
-        Long seqNo = nextId(bizType);
-        return bizType.formatSequenceNo(seqNo);
-    }
-
-    /**
-     * 批量获取格式化的序列号字符串
-     *
-     * @param bizType 业务类型枚举
-     * @param count 需要获取的数量
-     * @return 格式化后的序列号字符串列表
-     */
-    public List<String> nextFormattedIds(SequenceBizType bizType, int count) {
-        List<Long> seqNos = nextIds(bizType, count);
-        List<String> result = new ArrayList<>(count);
-        for (Long seqNo : seqNos) {
-            result.add(bizType.formatSequenceNo(seqNo));
-        }
-        return result;
+    public List<String> nextIds(SequenceBizType bizType, int count) {
+        List<Long> seqNos = generateSequences(bizType.getCode(), count);
+        return seqNos.stream()
+            .map(bizType::formatSequenceNo)
+            .collect(Collectors.toList());
     }
 
     // ==================== 基础方法（字符串参数，支持动态业务类型） ====================
@@ -473,7 +461,7 @@ public class SequenceGeneratorService {
      * @param bizType 业务类型字符串
      * @return 序列号
      */
-    public Long nextId(String bizType) {
+    public String nextId(String bizType) {
         return nextIds(bizType, 1).get(0);
     }
 
@@ -487,7 +475,15 @@ public class SequenceGeneratorService {
      * @throws BadRequestException 如果参数非法
      */
     @Transactional(rollbackFor = Exception.class)
-    public List<Long> nextIds(String bizType, int count) {
+    public List<String> nextIds(String bizType, int count) {
+        List<Long> seqNos = generateSequences(bizType, count);
+        return formatSequences(bizType, seqNos);
+    }
+
+    /**
+     * 核心生成逻辑，返回原始序列值
+     */
+    private List<Long> generateSequences(String bizType, int count) {
         // 1. 参数校验
         validateParams(bizType, count);
 
@@ -499,34 +495,63 @@ public class SequenceGeneratorService {
         // 3. 判断是否需要重置或初始化
         if (sequence.getResetStrategy().needReset(sequence.getLastResetTime())) {
             // 需要重置
-            log.info("序列号需要重置: bizType={}, strategy={}, lastResetTime={}",
-                bizType, sequence.getResetStrategy(), sequence.getLastResetTime());
+            if (log.isInfoEnabled()) {
+                log.info("序列号需要重置: bizType={}, strategy={}, lastResetTime={}",
+                        bizType, sequence.getResetStrategy(), sequence.getLastResetTime());
+            }
             sequence.setCurrentValue(0L);
             sequence.setLastResetTime(Instant.now());
         } else if (sequence.getLastResetTime() == null) {
             // 首次使用，初始化 lastResetTime
             sequence.setLastResetTime(Instant.now());
-            log.info("首次使用，初始化 lastResetTime: bizType={}", bizType);
+            if (log.isInfoEnabled()) {
+                log.info("首次使用，初始化 lastResetTime: bizType={}", bizType);
+            }
         }
 
         // 4. 计算序列号范围
         long start = sequence.getCurrentValue() + 1;
         long end = sequence.getCurrentValue() + count;
 
-        // 5. 更新数据库中的当前值并保存
+        // 5. 检查序列号是否溢出（如果是在枚举中的业务类型）
+        checkOverflow(bizType, end);
+
+        // 6. 更新数据库中的当前值并保存
         sequence.setCurrentValue(end);
         sequenceGeneratorRepository.save(sequence);
 
-        // 6. 生成序列号列表
+        if (log.isDebugEnabled()) {
+            log.debug("序列号记录更新成功: bizType={}, oldValue={}, newValue={}",
+                    bizType, sequence.getCurrentValue() - count, end);
+        }
+
+        // 7. 生成序列号列表
         List<Long> result = new ArrayList<>(count);
         for (long i = start; i <= end; i++) {
             result.add(i);
         }
 
-        log.info("生成序列号成功: bizType={}, range=[{}, {}], count={}",
-            bizType, start, end, count);
+        if (log.isInfoEnabled()) {
+            log.info("生成序列号成功: bizType={}, range=[{}, {}], count={}, currentValue={}",
+                    bizType, start, end, count, end);
+        }
 
         return result;
+    }
+
+    /**
+     * 将原始序列值转换为最终字符串
+     */
+    private List<String> formatSequences(String bizType, List<Long> seqNos) {
+        SequenceBizType enumType = getBizType(bizType);
+        if (enumType == null) {
+            return seqNos.stream()
+                .map(String::valueOf)
+                .collect(Collectors.toList());
+        }
+        return seqNos.stream()
+            .map(enumType::formatSequenceNo)
+            .collect(Collectors.toList());
     }
 
     /**
@@ -537,35 +562,80 @@ public class SequenceGeneratorService {
      * @return 初始化的序列号记录
      */
     private SequenceGenerator initializeSequence(String bizType) {
-        try {
-            SequenceGenerator sequence = new SequenceGenerator();
-            sequence.setBizType(bizType);
-            sequence.setCurrentValue(0L);
+        SequenceGenerator sequence = new SequenceGenerator();
+        sequence.setBizType(bizType);
+        sequence.setCurrentValue(0L);
 
-            // 尝试从枚举获取重置策略
-            try {
-                SequenceBizType enumType = SequenceBizType.fromCode(bizType);
-                sequence.setResetStrategy(enumType.getResetStrategy());
-            } catch (IllegalArgumentException e) {
-                // 如果不在枚举中，默认不重置（支持动态 bizType）
-                sequence.setResetStrategy(com.yimusi.enums.ResetStrategy.NONE);
+        // 尝试从枚举获取重置策略
+        try {
+            SequenceBizType enumType = SequenceBizType.fromCode(bizType);
+            sequence.setResetStrategy(enumType.getResetStrategy());
+        } catch (IllegalArgumentException e) {
+            // 如果不在枚举中，默认不重置（支持动态 bizType）
+            sequence.setResetStrategy(com.yimusi.enums.ResetStrategy.NONE);
+            if (log.isInfoEnabled()) {
                 log.info("业务类型不在枚举中，使用默认策略 NONE: bizType={}", bizType);
             }
+        }
 
+        try {
             SequenceGenerator saved = sequenceGeneratorRepository.save(sequence);
-            log.info("初始化序列号记录: bizType={}, resetStrategy={}",
-                bizType, saved.getResetStrategy());
+            if (log.isInfoEnabled()) {
+                log.info("初始化序列号记录: bizType={}, resetStrategy={}",
+                        bizType, saved.getResetStrategy());
+            }
             return saved;
-
         } catch (DataIntegrityViolationException e) {
             // 并发场景下可能出现唯一键冲突，重新查询
-            log.warn("初始化序列号记录时发生唯一键冲突，尝试重新查询: bizType={}", bizType);
+            if (log.isWarnEnabled()) {
+                log.warn("初始化序列号记录时发生唯一键冲突，尝试重新查询: bizType={}", bizType);
+            }
             return sequenceGeneratorRepository
                 .findByBizTypeForUpdate(bizType)
                 .orElseThrow(() -> new BadRequestException(
                     String.format("初始化序列号失败: bizType=%s", bizType)
                 ));
         }
+    }
+
+    /**
+     * 检查序列号是否溢出
+     *
+     * @param bizType 业务类型
+     * @param end 序列号结束值
+     */
+    private void checkOverflow(String bizType, long end) {
+        // 只对特定业务类型进行溢出检查，避免性能开销
+        if (!OVERFLOW_CHECK_ENABLED_TYPES.contains(bizType)) {
+            return;
+        }
+
+        SequenceBizType enumType = getBizType(bizType);
+        if (enumType != null && enumType.getSequenceLength() > 0) {
+            long maxValue = (long) Math.pow(10, enumType.getSequenceLength()) - 1;
+            if (end > maxValue) {
+                throw new BadRequestException(String.format(
+                    "序列号溢出: bizType=%s, end=%d, maxValue=%d",
+                    bizType, end, maxValue
+                ));
+            }
+        }
+    }
+
+    /**
+     * 获取缓存的枚举类型（使用缓存提升性能）
+     *
+     * @param bizType 业务类型
+     * @return 枚举类型
+     */
+    private SequenceBizType getBizType(String bizType) {
+        return BIZ_TYPE_CACHE.computeIfAbsent(bizType, k -> {
+            try {
+                return SequenceBizType.fromCode(bizType);
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        });
     }
 
     /**
@@ -578,6 +648,15 @@ public class SequenceGeneratorService {
     private void validateParams(String bizType, int count) {
         if (bizType == null || bizType.trim().isEmpty()) {
             throw new BadRequestException("业务类型不能为空");
+        }
+
+        // 防止sql注入，bizType 只允许字母、数字、下划线
+        if (!bizType.matches("^[a-zA-Z0-9_]+$")) {
+            throw new BadRequestException("业务类型只能包含字母、数字和下划线");
+        }
+
+        if (bizType.length() > 50) {
+            throw new BadRequestException("业务类型长度不能超过50个字符");
         }
 
         if (count <= 0) {
@@ -616,6 +695,7 @@ public class SequenceGeneratorService {
     }
 }
 ```
+
 
 ---
 
@@ -658,7 +738,7 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
     @Transactional(rollbackFor = Exception.class)
     public InspectionDeviceResponse createDevice(CreateInspectionDeviceRequest request) {
         // 1. 生成设备编号（自动按当天日期格式化）
-        String deviceNo = sequenceGeneratorService.nextFormattedId(
+        String deviceNo = sequenceGeneratorService.nextId(
             SequenceBizType.INSPECTION_DEVICE
         );
 
@@ -666,15 +746,9 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
         InspectionDevice device = deviceMapper.toEntity(request);
         device.setDeviceNo(deviceNo);
 
-        // 3. 如果指定了项目ID，生成项目内部序号（每个项目独立计数）
-        if (device.getProjectId() != null) {
-            Long internalNo = sequenceGeneratorService.nextId(
-                "project_internal_" + device.getProjectId()  // 动态拼接 bizType
-            );
-            device.setProjectInternalNo(internalNo.intValue());
-        }
+        // 可根据实际业务继续生成其他编号，例如部门文档号等
 
-        // 4. 保存实体
+        // 3. 保存实体
         InspectionDevice savedDevice = deviceRepository.save(device);
         log.info("创建检测设备成功: deviceNo={}, id={}", deviceNo, savedDevice.getId());
 
@@ -701,7 +775,7 @@ public List<InspectionDeviceResponse> batchCreateDevices(
     }
 
     // 1. 批量获取设备编号（一次数据库访问）
-    List<String> deviceNos = sequenceGeneratorService.nextFormattedIds(
+    List<String> deviceNos = sequenceGeneratorService.nextIds(
         SequenceBizType.INSPECTION_DEVICE,
         requests.size()
     );
@@ -714,14 +788,6 @@ public List<InspectionDeviceResponse> batchCreateDevices(
 
         InspectionDevice device = deviceMapper.toEntity(request);
         device.setDeviceNo(deviceNo);
-
-        // 处理项目内部序号（每个项目独立计数）
-        if (device.getProjectId() != null) {
-            Long internalNo = sequenceGeneratorService.nextId(
-                "project_internal_" + device.getProjectId()
-            );
-            device.setProjectInternalNo(internalNo.intValue());
-        }
 
         InspectionDevice savedDevice = deviceRepository.save(device);
         responses.add(deviceMapper.toResponse(savedDevice));
@@ -740,7 +806,7 @@ public List<InspectionDeviceResponse> batchCreateDevices(
 
 ```java
 // 设备编号：自动按当天日期重置，格式 IND + YYYYMMDD + 4位流水号
-String deviceNo = sequenceGeneratorService.nextFormattedId(
+String deviceNo = sequenceGeneratorService.nextId(
     SequenceBizType.INSPECTION_DEVICE
 );
 // 结果：IND202501280001（2025年1月28日第1个设备）
@@ -757,22 +823,17 @@ String deviceNo = sequenceGeneratorService.nextFormattedId(
 适用于需要运行时动态决定的场景：
 
 ```java
-// 项目内部序号：每个项目独立计数
-Long projectId = 123L;
-Long internalNo = sequenceGeneratorService.nextId(
-    "project_internal_" + projectId  // 运行时拼接
+// 动态业务序号：例如针对不同部门或租户单独计数
+Long deptId = 2001L;
+String deptSeqNo = sequenceGeneratorService.nextId(
+    "dept_document_" + deptId  // 运行时拼接
 );
-// 项目123: 1,2,3...  项目456: 1,2,3...
+// 如果需要纯数字可以自行转换：Integer.parseInt(deptSeqNo)
 
 // 优点：
 // 1. 灵活，可以动态拼接 bizType
 // 2. 无需预先定义枚举
 // 3. 适合多租户、多维度隔离的场景
-
-// 示例：不同的部门独立计数
-Long deptSeqNo = sequenceGeneratorService.nextId(
-    "dept_document_" + deptId
-);
 ```
 
 #### 对比总结
@@ -780,7 +841,7 @@ Long deptSeqNo = sequenceGeneratorService.nextId(
 | 特性 | 枚举 API | 字符串 API |
 |------|---------|-----------|
 | 类型安全 | ✅ 编译期检查 | ⚠️ 运行时字符串 |
-| 自动格式化 | ✅ 自动格式化 | ❌ 返回纯数字 |
+| 自动格式化 | ✅ 自动格式化 | ⚠️ 若在枚举中配置则自动格式化，否则返回纯数字 |
 | 自动重置 | ✅ 根据策略自动重置 | ✅ 根据策略自动重置 |
 | 溢出检查 | ✅ 自动检查 | ❌ 无检查 |
 | 灵活性 | ⚠️ 需预定义 | ✅ 动态拼接 |
@@ -829,12 +890,12 @@ public void testConcurrentGenerate() throws Exception {
     int countPerThread = 100;
     ExecutorService executor = Executors.newFixedThreadPool(threadCount);
     CountDownLatch latch = new CountDownLatch(threadCount);
-    Set<Long> allIds = Collections.synchronizedSet(new HashSet<>());
+    Set<String> allIds = Collections.synchronizedSet(new HashSet<>());
 
     for (int i = 0; i < threadCount; i++) {
         executor.submit(() -> {
             try {
-                List<Long> ids = sequenceGeneratorService.nextIds(
+                List<String> ids = sequenceGeneratorService.nextIds(
                     SequenceBizType.INSPECTION_DEVICE,
                     countPerThread
                 );
@@ -863,17 +924,17 @@ public void testConcurrentGenerate() throws Exception {
 
 ```java
 // 2025-01-28 第一次调用
-String deviceNo1 = service.nextFormattedId(INSPECTION_DEVICE);
+String deviceNo1 = service.nextId(INSPECTION_DEVICE);
 // 结果: IND202501280001
 // 数据库记录: current_value=1, last_reset_time=2025-01-28 10:00:00
 
 // 2025-01-28 再次调用（同一天）
-String deviceNo2 = service.nextFormattedId(INSPECTION_DEVICE);
+String deviceNo2 = service.nextId(INSPECTION_DEVICE);
 // 结果: IND202501280002（继续递增，不重置）
 // 数据库记录: current_value=2, last_reset_time=2025-01-28 10:00:00
 
 // 2025-01-29 调用（新的一天）
-String deviceNo3 = service.nextFormattedId(INSPECTION_DEVICE);
+String deviceNo3 = service.nextId(INSPECTION_DEVICE);
 // 结果: IND202501290001（自动重置为1）
 // 数据库记录: current_value=1, last_reset_time=2025-01-29 08:00:00
 ```
@@ -892,7 +953,7 @@ String deviceNo3 = service.nextFormattedId(INSPECTION_DEVICE);
 // ✅ 正确：同一事务
 @Transactional
 public void createDevice() {
-    String deviceNo = sequenceService.nextFormattedId(INSPECTION_DEVICE);
+    String deviceNo = sequenceService.nextId(INSPECTION_DEVICE);
     device.setDeviceNo(deviceNo);
     deviceRepository.save(device);  // 如果失败，序列号会回滚
 }
@@ -900,7 +961,7 @@ public void createDevice() {
 // ❌ 错误：分离事务
 @Transactional
 public String getDeviceNo() {
-    return sequenceService.nextFormattedId(INSPECTION_DEVICE);  // 事务已提交
+    return sequenceService.nextId(INSPECTION_DEVICE);  // 事务已提交
 }
 
 @Transactional
@@ -916,10 +977,10 @@ public void createDevice(String deviceNo) {
 
 ```java
 // ✅ 正确
-List<Long> ids = service.nextIds(bizType, 100);
+List<String> ids = service.nextIds(bizType, 100);
 
 // ❌ 错误：超过限制
-List<Long> ids = service.nextIds(bizType, 20000);
+List<String> ids = service.nextIds(bizType, 20000);
 // 抛出异常：单次获取数量不能超过10000
 ```
 
@@ -950,7 +1011,7 @@ String deviceNo2 = bizType.formatSequenceNo(10000L);
 1. **批量获取但部分使用**
    ```java
    // 获取100个，但只用了50个，剩余50个未使用
-   List<Long> ids = service.nextIds(bizType, 100);
+   List<String> ids = service.nextIds(bizType, 100);
    // 使用 ids[0] ~ ids[49]
    // 如果后续获取，会从 101 开始（51-100 丢失）
    ```
@@ -959,7 +1020,7 @@ String deviceNo2 = bizType.formatSequenceNo(10000L);
    ```java
    @Transactional
    public void createDevice() {
-       String deviceNo = service.nextFormattedId(INSPECTION_DEVICE);  // 获取编号1
+       String deviceNo = service.nextId(INSPECTION_DEVICE);  // 获取编号1
        device.setDeviceNo(deviceNo);
        deviceRepository.save(device);
        throw new RuntimeException();  // 事务回滚，但序列号已消耗

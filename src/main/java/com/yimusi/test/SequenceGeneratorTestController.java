@@ -30,7 +30,7 @@ public class SequenceGeneratorTestController {
      */
     @GetMapping("/device-no")
     public Map<String, Object> getDeviceNo() {
-        String deviceNo = sequenceGeneratorService.nextFormattedId(SequenceBizType.INSPECTION_DEVICE);
+        String deviceNo = sequenceGeneratorService.nextId(SequenceBizType.INSPECTION_DEVICE);
         
         log.info("生成设备编号: {}", deviceNo);
         
@@ -45,8 +45,8 @@ public class SequenceGeneratorTestController {
      */
     @GetMapping("/device-nos")
     public Map<String, Object> getDeviceNos(@RequestParam(defaultValue = "5") int count) {
-        List<String> deviceNos = sequenceGeneratorService.nextFormattedIds(
-            SequenceBizType.INSPECTION_DEVICE, 
+        List<String> deviceNos = sequenceGeneratorService.nextIds(
+            SequenceBizType.INSPECTION_DEVICE,
             count
         );
         
@@ -68,7 +68,7 @@ public class SequenceGeneratorTestController {
             @RequestParam(defaultValue = "1") int count) {
         
         String bizType = "project_internal_" + projectId;
-        List<Long> internalNos = sequenceGeneratorService.nextIds(bizType, count);
+        List<String> internalNos = sequenceGeneratorService.nextIds(bizType, count);
         
         log.info("生成项目内部序号: projectId={}, sequenceNos={}", projectId, internalNos);
         
@@ -133,7 +133,7 @@ public class SequenceGeneratorTestController {
             final int threadIndex = i;
             threads[i] = new Thread(() -> {
                 try {
-                    List<String> deviceNos = sequenceGeneratorService.nextFormattedIds(
+                    List<String> deviceNos = sequenceGeneratorService.nextIds(
                         SequenceBizType.INSPECTION_DEVICE,
                         countPerThread
                     );
