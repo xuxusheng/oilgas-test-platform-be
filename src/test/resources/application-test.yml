@@ -2,6 +2,14 @@
 # 使用 Testcontainers 的 @ServiceConnection 自动配置数据库连接
 
 spring:
+  # Redis 配置
+  # 注意: host 和 port 会被 BaseIntegrationTest 中的 @DynamicPropertySource 动态覆盖为 Testcontainer 的实际地址
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+
   jpa:
     hibernate:
       # 测试环境使用 create-drop，每个测试类开始时重新创建表
@@ -28,6 +36,14 @@ sa-token:
   timeout: 86400   # 1 天
   is-print: false
   is-log: false
+
+# Redisson 测试配置
+yimusi:
+  lock:
+    redisson:
+      enabled: true
+      wait-time: PT3S  # 测试环境短一点的等待时间
+      lease-time: PT10S # 测试环境短一点的锁持有时间
 
 # 日志配置 - 测试时减少日志输出
 logging:
