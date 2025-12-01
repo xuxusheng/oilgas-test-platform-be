@@ -6,7 +6,10 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -32,4 +35,27 @@ public abstract class BaseIntegrationTest {
     @ServiceConnection
     @SuppressWarnings("resource") // 资源由 Testcontainers 扩展自动管理
     private static final MySQLContainer<?> MYSQL_CONTAINER = new MySQLContainer<>("mysql:8.0.36").withReuse(false);
+
+    /**
+     * 定义和管理Redis测试容器
+     * 为了支持 Redisson 分布式锁功能的集成测试
+     * 使用 @DynamicPropertySource 动态配置 Redis 连接
+     */
+    @Container
+    @SuppressWarnings("resource")
+    private static final GenericContainer<?> REDIS_CONTAINER = new GenericContainer<>("redis:7.0")
+            .withReuse(false)
+            .withExposedPorts(6379)
+            .withLogConsumer(new Slf4jLogConsumer(org.slf4j.LoggerFactory.getLogger(GenericContainer.class)));
+
+    /**
+     * 配置动态属性，将测试容器的连接信息注入到 Spring 环境中
+     */
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        // 配置 Redis 连接信息
+        registry.add("spring.data.redis.host", REDIS_CONTAINER::getHost);
+        registry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getMappedPort(6379));
+        registry.add("spring.data.redis.database", () -> 0);
+    }
 }
