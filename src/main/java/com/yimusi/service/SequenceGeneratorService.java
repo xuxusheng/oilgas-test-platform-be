@@ -7,8 +7,6 @@ import com.yimusi.repository.SequenceGeneratorRepository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,15 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class SequenceGeneratorService {
 
     private final SequenceGeneratorRepository sequenceGeneratorRepository;
-
-    // 缓存枚举查找结果，提升性能
-    private final Map<String, SequenceBizType> BIZ_TYPE_CACHE = new ConcurrentHashMap<>();
-
-    // 需要溢出检查的业务类型（可扩展）
-    private static final List<String> OVERFLOW_CHECK_ENABLED_TYPES = List.of(
-        SequenceBizType.INSPECTION_DEVICE.getCode(),
-        SequenceBizType.PROJECT_INTERNAL.getCode()
-    );
 
     // ==================== 枚举便捷方法（推荐使用） ====================
 
@@ -166,7 +155,7 @@ public class SequenceGeneratorService {
      * 将原始序列值转换为最终字符串
      */
     private List<String> formatSequences(String bizType, List<Long> seqNos) {
-        SequenceBizType enumType = getBizType(bizType);
+        SequenceBizType enumType = SequenceBizType.findByCode(bizType).orElse(null);
         if (enumType == null) {
             return seqNos.stream().map(String::valueOf).collect(Collectors.toList());
         }
@@ -186,10 +175,10 @@ public class SequenceGeneratorService {
         sequence.setCurrentValue(0L);
 
         // 尝试从枚举获取重置策略
-        try {
-            SequenceBizType enumType = SequenceBizType.fromCode(bizType);
+        SequenceBizType enumType = SequenceBizType.findByCode(bizType).orElse(null);
+        if (enumType != null) {
             sequence.setResetStrategy(enumType.getResetStrategy());
-        } catch (IllegalArgumentException e) {
+        } else {
             // 如果不在枚举中，默认不重置（支持动态 bizType）
             sequence.setResetStrategy(com.yimusi.enums.ResetStrategy.NONE);
             if (log.isInfoEnabled()) {
@@ -221,36 +210,15 @@ public class SequenceGeneratorService {
      * @param end 序列号结束值
      */
     private void checkOverflow(String bizType, long end) {
-        // 只对特定业务类型进行溢出检查，避免性能开销
-        if (!OVERFLOW_CHECK_ENABLED_TYPES.contains(bizType)) {
+        SequenceBizType enumType = SequenceBizType.findByCode(bizType).orElse(null);
+        if (enumType == null || enumType.getSequenceLength() <= 0) {
             return;
         }
 
-        SequenceBizType enumType = getBizType(bizType);
-        if (enumType != null && enumType.getSequenceLength() > 0) {
-            long maxValue = (long) Math.pow(10, enumType.getSequenceLength()) - 1;
-            if (end > maxValue) {
-                throw new BadRequestException(
-                    String.format("序列号溢出: bizType=%s, end=%d, maxValue=%d", bizType, end, maxValue)
-                );
-            }
+        long maxValue = (long) Math.pow(10, enumType.getSequenceLength()) - 1;
+        if (end > maxValue && log.isWarnEnabled()) {
+            log.warn("序列号达到定义长度限制: bizType={}, end={}, maxValue={}", bizType, end, maxValue);
         }
-    }
-
-    /**
-     * 获取缓存的枚举类型（使用缓存提升性能）
-     *
-     * @param bizType 业务类型
-     * @return 枚举类型
-     */
-    private SequenceBizType getBizType(String bizType) {
-        return BIZ_TYPE_CACHE.computeIfAbsent(bizType, k -> {
-            try {
-                return SequenceBizType.fromCode(bizType);
-            } catch (IllegalArgumentException e) {
-                return null;
-            }
-        });
     }
 
     /**

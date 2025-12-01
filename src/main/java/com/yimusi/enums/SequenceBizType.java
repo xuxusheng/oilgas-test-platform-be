@@ -1,6 +1,9 @@
 package com.yimusi.enums;
 
-import com.yimusi.common.exception.BadRequestException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import lombok.Getter;
 
 /**
@@ -32,6 +35,16 @@ public enum SequenceBizType {
     private final int sequenceLength;
     private final ResetStrategy resetStrategy;
 
+    private static final Map<String, SequenceBizType> CODE_CACHE;
+
+    static {
+        Map<String, SequenceBizType> cache = new HashMap<>();
+        for (SequenceBizType type : values()) {
+            cache.put(type.code, type);
+        }
+        CODE_CACHE = Collections.unmodifiableMap(cache);
+    }
+
     SequenceBizType(String code, String description, String prefix, int sequenceLength, ResetStrategy resetStrategy) {
         this.code = code;
         this.description = description;
@@ -45,41 +58,42 @@ public enum SequenceBizType {
      *
      * @param seqNo 序列号
      * @return 格式化后的完整编号
-     * @throws BadRequestException 如果序列号超出长度限制
      */
     public String formatSequenceNo(Long seqNo) {
         String datePart = resetStrategy.getDatePart();
 
-        // 检查序列号是否超出长度限制
         if (sequenceLength > 0) {
             long maxValue = (long) Math.pow(10, sequenceLength) - 1;
             if (seqNo > maxValue) {
-                throw new BadRequestException(String.format(
-                    "序列号 %d 超出最大长度限制（%d位，最大值：%d）",
-                    seqNo, sequenceLength, maxValue
-                ));
+                // 超出定义长度时不再抛异常，直接返回未截断的流水号以保证兼容
+                return prefix + datePart + seqNo;
             }
             String seqStr = String.format("%0" + sequenceLength + "d", seqNo);
             return prefix + datePart + seqStr;
-        } else {
-            // 不限制长度，直接返回
-            return prefix + seqNo;
         }
+
+        // 不限制长度，直接附加日期部分和原始序列
+        return prefix + datePart + seqNo;
     }
 
     /**
-     * 根据编码获取枚举
+     * 根据编码获取枚举（严格模式）
      *
      * @param code 业务类型编码
      * @return 对应的枚举值
      * @throws IllegalArgumentException 如果编码不存在
      */
     public static SequenceBizType fromCode(String code) {
-        for (SequenceBizType type : values()) {
-            if (type.code.equals(code)) {
-                return type;
-            }
-        }
-        throw new IllegalArgumentException("未知的业务类型: " + code);
+        return findByCode(code).orElseThrow(() -> new IllegalArgumentException("未知的业务类型: " + code));
+    }
+
+    /**
+     * 尝试根据编码获取枚举（找不到返回 Optional.empty，不抛异常）
+     *
+     * @param code 业务类型编码
+     * @return 找到则返回 Optional 包装的枚举值
+     */
+    public static Optional<SequenceBizType> findByCode(String code) {
+        return Optional.ofNullable(CODE_CACHE.get(code));
     }
 }
