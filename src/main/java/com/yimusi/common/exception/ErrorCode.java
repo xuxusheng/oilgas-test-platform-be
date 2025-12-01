@@ -27,7 +27,11 @@ public enum ErrorCode {
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, 40103, "Token无效或已被禁用"),
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, 40104, "Token已过期"),
     DEVICE_MISMATCH(HttpStatus.UNAUTHORIZED, 40105, "设备信息不匹配"),
-    CONCURRENT_LOGIN(HttpStatus.UNAUTHORIZED, 40106, "账号在其他设备登录，当前设备已下线");
+    CONCURRENT_LOGIN(HttpStatus.UNAUTHORIZED, 40106, "账号在其他设备登录，当前设备已下线"),
+
+    // --- 序列号生成相关错误 ---
+    SEQUENCE_LOCK_TIMEOUT(HttpStatus.INTERNAL_SERVER_ERROR, 50001, "获取序列号生成锁超时"),
+    SEQUENCE_LOCK_INTERRUPTED(HttpStatus.INTERNAL_SERVER_ERROR, 50002, "获取序列号生成锁被中断");
 
     private final HttpStatus httpStatus;
     private final int code;
