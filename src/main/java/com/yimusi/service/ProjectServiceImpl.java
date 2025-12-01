@@ -15,7 +15,6 @@ import com.yimusi.entity.Project;
 import com.yimusi.entity.QProject;
 import com.yimusi.mapper.ProjectMapper;
 import com.yimusi.repository.ProjectRepository;
-import com.yimusi.service.ProjectService;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

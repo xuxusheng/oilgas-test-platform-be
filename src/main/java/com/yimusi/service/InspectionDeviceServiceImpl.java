@@ -15,7 +15,6 @@ import com.yimusi.entity.InspectionDevice;
 import com.yimusi.entity.QInspectionDevice;
 import com.yimusi.mapper.InspectionDeviceMapper;
 import com.yimusi.repository.InspectionDeviceRepository;
-import com.yimusi.service.InspectionDeviceService;
 import com.yimusi.util.InspectionDeviceNoGenerator;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
