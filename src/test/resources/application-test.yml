@@ -2,6 +2,13 @@
 # 使用 Testcontainers 的 @ServiceConnection 自动配置数据库连接
 
 spring:
+  # Jackson 配置
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+      write-date-timestamps-as-nanoseconds: false
+    deserialization:
+      read-date-timestamps-as-nanoseconds: false
   # Redis 配置
   # 注意: host 和 port 会被 BaseIntegrationTest 中的 @DynamicPropertySource 动态覆盖为 Testcontainer 的实际地址
   data:

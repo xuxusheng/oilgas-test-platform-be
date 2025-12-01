@@ -15,6 +15,8 @@ import com.yimusi.entity.Project;
 import com.yimusi.mapper.ProjectMapper;
 import com.yimusi.repository.ProjectRepository;
 import com.yimusi.service.ProjectServiceImpl;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,6 +33,7 @@ import org.springframework.data.domain.PageRequest;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * 项目业务逻辑服务单元测试类
@@ -42,6 +45,9 @@ class ProjectServiceImplTest {
 
     @Mock
     private ProjectRepository projectRepository;
+
+    @Mock
+    private EntityManager entityManager;
 
     @Spy
     private ProjectMapper projectMapper = Mappers.getMapper(ProjectMapper.class);
@@ -188,7 +194,13 @@ class ProjectServiceImplTest {
     void restoreProject_ShouldClearDeletedFields() {
         // Arrange - 设置测试环境：项目处于已删除状态
         project.setDeleted(true);
-        when(projectRepository.findById(1L)).thenReturn(Optional.of(project));
+
+        // Mock原生SQL查询行为
+        @SuppressWarnings("unchecked")
+        jakarta.persistence.Query nativeQuery = mock(jakarta.persistence.Query.class);
+        when(entityManager.createNativeQuery(anyString(), eq(Project.class))).thenReturn(nativeQuery);
+        when(nativeQuery.setParameter(anyString(), any())).thenReturn(nativeQuery);
+        when(nativeQuery.getResultStream()).thenReturn(Stream.of(project));
 
         // Act - 执行项目恢复操作
         projectService.restoreProject(1L);
@@ -283,13 +295,16 @@ class ProjectServiceImplTest {
     }
 
     @Test
-    @DisplayName("项目唯一性验证 - 重复项目编号应抛出异常")
-    void validateProjectNoUnique_WithDuplicate_ShouldThrowException() {
+    @DisplayName("项目唯一性验证 - 重复项目编号应返回false")
+    void validateProjectNoUnique_WithDuplicate_ShouldReturnFalse() {
         // Arrange - 设置测试环境：模拟项目编号已存在
         when(projectRepository.existsByProjectNoAndDeletedFalse("PRJ001")).thenReturn(true);
 
-        // Act & Assert - 执行唯一性验证并验证抛出异常
-        assertThrows(BadRequestException.class, () -> projectService.validateProjectNoUnique("PRJ001"));
+        // Act - 执行唯一性验证
+        boolean result = projectService.validateProjectNoUnique("PRJ001");
+
+        // Assert - 验证返回false（不唯一）
+        assertFalse(result);
     }
 
     @Test

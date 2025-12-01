@@ -63,6 +63,9 @@ public class MDCFilter implements Filter {
             // 记录请求完成日志
             logRequestCompletion(requestWrapper, responseWrapper, startTime);
 
+            // 重要：将缓存的响应体写回到实际响应中
+            responseWrapper.copyBodyToResponse();
+
         } catch (Exception e) {
             MDC.put("error", e.getMessage());
             throw e;

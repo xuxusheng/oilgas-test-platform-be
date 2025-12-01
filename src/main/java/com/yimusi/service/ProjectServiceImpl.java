@@ -15,6 +15,7 @@ import com.yimusi.entity.Project;
 import com.yimusi.entity.QProject;
 import com.yimusi.mapper.ProjectMapper;
 import com.yimusi.repository.ProjectRepository;
+import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -33,15 +34,19 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
     private final ProjectMapper projectMapper;
+    private final EntityManager entityManager;
 
     /**
      * {@inheritDoc}
      */
     @Override
     public ProjectResponse createProject(CreateProjectRequest createProjectRequest) {
-        validateProjectNoUnique(createProjectRequest.getProjectNo());
+        // 验证项目编号唯一性
+        if (!validateProjectNoUnique(createProjectRequest.getProjectNo())) {
+            throw new BadRequestException(String.format("项目编号 %s 已存在", createProjectRequest.getProjectNo()));
+        }
 
-        Project project = projectMapper.toEntity     (createProjectRequest);
+        Project project = projectMapper.toEntity(createProjectRequest);
         Project savedProject = projectRepository.save(project);
         return projectMapper.toResponse(savedProject);
     }
@@ -137,9 +142,20 @@ public class ProjectServiceImpl implements ProjectService {
             throw new BadRequestException("项目ID不能为空");
         }
 
-        Project project = projectRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(String.format("ID 为 %s 的项目不存在", id)));
+        // 使用原生SQL查询，绕过 @SQLRestriction 限制
+        // 这样可以查询到已删除的项目
+        @SuppressWarnings("unchecked")
+        Project project = (Project) entityManager.createNativeQuery(
+                "SELECT * FROM projects WHERE id = :id", Project.class)
+                .setParameter("id", id)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
+
+        if (project == null) {
+            throw new ResourceNotFoundException(String.format("ID 为 %s 的项目不存在", id));
+        }
+
         project.setDeleted(false);
         project.setDeletedAt(null);
         project.setDeletedBy(null);
@@ -190,10 +206,7 @@ public class ProjectServiceImpl implements ProjectService {
         if (projectNo == null) {
             return true;
         }
-        boolean exists = projectRepository.existsByProjectNoAndDeletedFalse(projectNo);
-        if (exists) {
-            throw new BadRequestException(String.format("项目编号 %s 已存在", projectNo));
-        }
-        return true;
+        // 返回是否唯一（不存在则唯一）
+        return !projectRepository.existsByProjectNoAndDeletedFalse(projectNo);
     }
 }

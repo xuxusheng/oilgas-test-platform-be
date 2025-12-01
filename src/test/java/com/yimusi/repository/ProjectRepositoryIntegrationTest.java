@@ -78,7 +78,7 @@ class ProjectRepositoryIntegrationTest extends BaseIntegrationTest {
     void findAllProjects() {
         List<Project> projects = projectRepository.findAll();
 
-        assertEquals(3, projects.size()); // 包含两个未删除和一个删除的
+        assertEquals(2, projects.size()); // 由于@SQLRestriction("deleted = false")，只返回未删除的项目
     }
 
     @Test
@@ -240,7 +240,7 @@ class ProjectRepositoryIntegrationTest extends BaseIntegrationTest {
     void orderedQuery() {
         List<Project> projects = projectRepository.findAll(Sort.by(Sort.Direction.ASC, "projectNo"));
 
-        assertEquals(3, projects.size());
+        assertEquals(2, projects.size()); // 由于@SQLRestriction("deleted = false")，只返回未删除的项目
         assertTrue(projects.get(0).getProjectNo().compareTo(projects.get(1).getProjectNo()) < 0);
     }
 

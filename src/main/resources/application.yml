@@ -6,6 +6,13 @@ server:
 spring:
   application:
     name: springboot-app
+  # Jackson 配置
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+      write-date-timestamps-as-nanoseconds: false
+    deserialization:
+      read-date-timestamps-as-nanoseconds: false
   data:
     redis:
       host: localhost
