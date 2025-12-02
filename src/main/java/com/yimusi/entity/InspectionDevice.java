@@ -53,7 +53,7 @@ public class InspectionDevice extends BaseAuditEntity {
     private String deviceModel;
 
     /**
-     * IP地址，全局唯一。
+     * IP 地址，全局唯一。
      */
     @Column(name = "ip", nullable = false, length = 50)
     private String ip;

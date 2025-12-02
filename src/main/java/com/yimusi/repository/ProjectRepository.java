@@ -25,6 +25,14 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Queryds
     boolean existsByProjectNoAndDeletedFalse(String projectNo);
 
     /**
+     * 根据 ID 检查项目是否存在（包含删除状态检查）
+     *
+     * @param projectId 项目 ID
+     * @return 是否存在
+     */
+    boolean existsByIdAndDeletedFalse(Long projectId);
+
+    /**
      * 根据项目编号和未删除状态查找项目
      *
      * @param projectNo 项目编号
@@ -51,7 +59,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long>, Queryds
     /**
      * 为指定项目获取悲观写锁，避免并发写入造成的冲突
      *
-     * @param projectId 项目ID
+     * @param projectId 项目 ID
      * @return 项目实体（仅用于锁定）
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)

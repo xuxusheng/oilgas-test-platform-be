@@ -27,10 +27,10 @@ public class CreateInspectionDeviceRequest {
     private String deviceModel;
 
     /**
-     * IP地址，必须全局唯一。
+     * IP 地址，必须全局唯一。
      */
-    @NotBlank(message = "IP地址不能为空")
-    @Size(max = 50, message = "IP地址长度不能超过 50 个字符")
+    @NotBlank(message = "IP 地址不能为空")
+    @Size(max = 50, message = "IP 地址长度不能超过 50 个字符")
     private String ip;
 
     /**

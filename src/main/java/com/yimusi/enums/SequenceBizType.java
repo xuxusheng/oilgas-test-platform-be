@@ -25,7 +25,7 @@ public enum SequenceBizType {
      * 项目内部序号
      * 格式：纯数字
      * 示例：1, 2, 3...
-     * 说明：不重置，全局递增（如需按项目隔离，使用字符串API动态拼接bizType）
+     * 说明：不重置，全局递增（如需按项目隔离，使用字符串 API 动态拼接 bizType）
      */
     PROJECT_INTERNAL("project_internal", "项目内部序号", "", 0, ResetStrategy.NONE);
 

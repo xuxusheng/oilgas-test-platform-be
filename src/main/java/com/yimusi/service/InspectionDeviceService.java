@@ -30,9 +30,9 @@ public interface InspectionDeviceService {
     PageResult<InspectionDeviceResponse> getDevicesPage(InspectionDevicePageRequest request);
 
     /**
-     * 根据设备ID获取检测设备信息。
+     * 根据设备 ID 获取检测设备信息。
      *
-     * @param id 要查找的设备ID
+     * @param id 要查找的设备 ID
      * @return 找到的设备实体
      */
     InspectionDevice getDeviceById(Long id);
@@ -54,18 +54,18 @@ public interface InspectionDeviceService {
     InspectionDeviceResponse createDevice(CreateInspectionDeviceRequest createRequest);
 
     /**
-     * 更新指定ID的检测设备信息。
+     * 更新指定 ID 的检测设备信息。
      *
-     * @param id            要更新的设备ID
+     * @param id            要更新的设备 ID
      * @param updateRequest 包含要更新的设备信息的请求体
      * @return 更新成功后的设备信息响应体
      */
     InspectionDeviceResponse updateDevice(Long id, UpdateInspectionDeviceRequest updateRequest);
 
     /**
-     * 根据ID删除检测设备（软删除）。
+     * 根据 ID 删除检测设备（软删除）。
      *
-     * @param id 要删除的设备ID
+     * @param id 要删除的设备 ID
      */
     void deleteDevice(Long id);
 
@@ -85,9 +85,9 @@ public interface InspectionDeviceService {
     boolean validateSerialNumberUnique(String serialNumber);
 
     /**
-     * 验证IP地址的唯一性。
+     * 验证 IP 地址的唯一性。
      *
-     * @param ip IP地址
+     * @param ip IP 地址
      * @return true 如果不存在，false 如果已存在
      */
     boolean validateIpUnique(String ip);

@@ -143,12 +143,12 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
             validateSerialNumberUnique(updateRequest.getSerialNumber());
         }
 
-        // 如果更新了IP，需要验证唯一性
+        // 如果更新了 IP，需要验证唯一性
         if (StrUtil.isNotBlank(updateRequest.getIp()) && !updateRequest.getIp().equals(device.getIp())) {
             validateIpUnique(updateRequest.getIp());
         }
 
-        // 如果更新了项目ID，需要重新生成项目内部序号
+        // 如果更新了项目 ID，需要重新生成项目内部序号
         if (updateRequest.getProjectId() != null && !updateRequest.getProjectId().equals(device.getProjectId())) {
             device.setProjectInternalNo(generateProjectInternalNo(updateRequest.getProjectId()));
         }
@@ -209,7 +209,12 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
 
     private Integer generateProjectInternalNo(Long projectId) {
         if (projectId == null) {
-            return null;
+            throw new BadRequestException("projectId cannot be null");
+        }
+
+        // 先进行非锁依赖的验证，避免不必要地持有锁
+        if (!projectRepository.existsByIdAndDeletedFalse(projectId)) {
+            throw new BadRequestException(String.format("ID 为 %s 的项目不存在或已删除", projectId));
         }
 
         String lockName = "inspection-device:project-internal-no:" + projectId;
@@ -221,11 +226,6 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
             if (!lock.tryLock(5, 30, TimeUnit.SECONDS)) {
                 throw new BadRequestException("系统繁忙，获取项目锁定失败，请稍后重试");
             }
-
-            // 确认项目存在，只需要检查项目是否存在即可
-            projectRepository
-                .findById(projectId)
-                .orElseThrow(() -> new BadRequestException(String.format("ID 为 %s 的项目不存在或已删除", projectId)));
 
             int maxInternalNo = deviceRepository
                 .findMaxProjectInternalNoIncludingDeletedByProjectId(projectId)
@@ -275,7 +275,7 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
             builder.and(qDevice.ip.eq(request.getIp()));
         }
 
-        // 项目ID精确查询
+        // 项目 ID 精确查询
         if (request.getProjectId() != null) {
             builder.and(qDevice.projectId.eq(request.getProjectId()));
         }
@@ -313,7 +313,7 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
         }
         boolean exists = deviceRepository.existsByIpAndDeletedFalse(ip);
         if (exists) {
-            throw new BadRequestException(String.format("IP地址 %s 已存在", ip));
+            throw new BadRequestException(String.format("IP 地址 %s 已存在", ip));
         }
         return true;
     }

@@ -30,9 +30,9 @@ public interface ProjectService {
     PageResult<ProjectResponse> getProjectsPage(ProjectPageRequest request);
 
     /**
-     * 根据项目ID获取项目信息。
+     * 根据项目 ID 获取项目信息。
      *
-     * @param id 要查找的项目ID
+     * @param id 要查找的项目 ID
      * @return 找到的项目实体
      */
     Project getProjectById(Long id);
@@ -54,18 +54,18 @@ public interface ProjectService {
     ProjectResponse createProject(CreateProjectRequest createProjectRequest);
 
     /**
-     * 更新指定ID的项目信息。
+     * 更新指定 ID 的项目信息。
      *
-     * @param id                   要更新的项目ID
+     * @param id                   要更新的项目 ID
      * @param updateProjectRequest 包含要更新的项目信息的请求体
      * @return 更新成功后的项目信息响应体
      */
     ProjectResponse updateProject(Long id, UpdateProjectRequest updateProjectRequest);
 
     /**
-     * 根据ID删除项目。
+     * 根据 ID 删除项目。
      *
-     * @param id 要删除的项目ID
+     * @param id 要删除的项目 ID
      */
     void deleteProject(Long id);
 

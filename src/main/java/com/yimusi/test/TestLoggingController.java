@@ -20,7 +20,7 @@ public class TestLoggingController {
 
     @GetMapping("/log")
     public Map<String, Object> testLog() {
-        // 添加自定义MDC上下文
+        // 添加自定义 MDC 上下文
         MDC.put("customField", "test-value");
         MDC.put("operation", "test-logging");
 

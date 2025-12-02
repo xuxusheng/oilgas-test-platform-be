@@ -291,7 +291,7 @@ public class SequenceGeneratorServiceImpl implements SequenceGeneratorService {
             throw new BadRequestException("业务类型不能为空");
         }
 
-        // 防止sql注入，bizType 只允许字母、数字、下划线
+        // 防止 sql 注入，bizType 只允许字母、数字、下划线
         if (!bizType.matches("^[a-zA-Z0-9_]+$")) {
             throw new BadRequestException("业务类型只能包含字母、数字和下划线");
         }

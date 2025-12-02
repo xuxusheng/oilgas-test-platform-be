@@ -146,7 +146,7 @@ public class ProjectServiceImpl implements ProjectService {
             throw new BadRequestException("项目ID不能为空");
         }
 
-        // 使用原生SQL查询，绕过 @SQLRestriction 限制
+        // 使用原生 SQL 查询，绕过 @SQLRestriction 限制
         // 这样可以查询到已删除的项目
         @SuppressWarnings("unchecked")
         Project project = (Project) entityManager

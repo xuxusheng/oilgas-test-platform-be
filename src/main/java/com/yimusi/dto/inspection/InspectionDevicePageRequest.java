@@ -32,7 +32,7 @@ public class InspectionDevicePageRequest extends PageRequest {
     private String deviceModel;
 
     /**
-     * IP地址（精确查询）.
+     * IP 地址（精确查询）.
      * 为空时不作为查询条件.
      */
     private String ip;

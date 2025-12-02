@@ -41,10 +41,10 @@ public class AuthController {
         // 验证用户
         User user = userService.validateUser(loginRequest.getUsername(), loginRequest.getPassword());
 
-        // 使用Sa-Token登录
+        // 使用 Sa-Token 登录
         StpUtil.login(user.getId());
 
-        // 获取token信息
+        // 获取 token 信息
         SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
 
         // 构建响应

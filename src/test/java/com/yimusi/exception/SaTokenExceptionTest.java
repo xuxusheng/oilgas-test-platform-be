@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Sa-Token 异常处理器测试类
- * 验证新增的sa-token异常处理功能是否正常工作
+ * 验证新增的 sa-token 异常处理功能是否正常工作
  */
 public class SaTokenExceptionTest {
 
@@ -29,7 +29,7 @@ public class SaTokenExceptionTest {
 
     @Test
     void testHandleNotLoginException() {
-        // 模拟NotLoginException
+        // 模拟 NotLoginException
         NotLoginException ex = new NotLoginException("token已过期", "user", NotLoginException.TOKEN_TIMEOUT);
 
         ResponseEntity<ApiResponse<Map<String, Object>>> response = exceptionHandler.handleNotLoginException(ex);
@@ -41,7 +41,7 @@ public class SaTokenExceptionTest {
 
     @Test
     void testHandleNotPermissionException() {
-        // 模拟NotPermissionException
+        // 模拟 NotPermissionException
         NotPermissionException ex = new NotPermissionException("user:delete", "user");
 
         ResponseEntity<ApiResponse<Map<String, Object>>> response = exceptionHandler.handleNotPermissionException(ex);
@@ -51,7 +51,7 @@ public class SaTokenExceptionTest {
         assertTrue(response.getBody().getMessage().contains("user:delete"));
         assertEquals(403, response.getStatusCode().value());
 
-        // 验证details中包含权限信息
+        // 验证 details 中包含权限信息
         Map<String, Object> details = (Map<String, Object>) response.getBody().getData();
         assertEquals("user:delete", details.get("requiredPermission"));
         assertEquals("请联系管理员申请相关权限", details.get("recommendation"));
@@ -59,7 +59,7 @@ public class SaTokenExceptionTest {
 
     @Test
     void testHandleNotRoleException() {
-        // 模拟NotRoleException
+        // 模拟 NotRoleException
         NotRoleException ex = new NotRoleException("admin", "user");
 
         ResponseEntity<ApiResponse<Map<String, Object>>> response = exceptionHandler.handleNotRoleException(ex);

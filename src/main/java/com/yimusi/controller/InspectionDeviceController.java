@@ -140,9 +140,9 @@ public class InspectionDeviceController {
     }
 
     /**
-     * 验证IP地址的唯一性。
+     * 验证 IP 地址的唯一性。
      *
-     * @param ip IP地址
+     * @param ip IP 地址
      * @return 是否唯一
      */
     @GetMapping("/validate-ip/{ip}")

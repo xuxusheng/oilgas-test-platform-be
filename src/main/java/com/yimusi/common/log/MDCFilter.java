@@ -17,9 +17,9 @@ import java.util.UUID;
  * MDC 过滤器 - 自动添加请求上下文到日志
  *
  * 功能：
- * 1. 生成唯一追踪ID (traceId)，用于分布式链路追踪
+ * 1. 生成唯一追踪 ID (traceId)，用于分布式链路追踪
  * 2. 记录用户信息 (userId) - 如果已登录
- * 3. 记录客户端IP地址和请求方法
+ * 3. 记录客户端 IP 地址和请求方法
  * 4. 记录请求耗时并自动选择日志级别
  * 5. 支持通过 HTTP 头传播 traceId (X-Trace-ID)
  * 6. 自动清理 MDC 上下文，避免内存泄漏
@@ -51,7 +51,7 @@ public class MDCFilter implements Filter {
         long startTime = System.currentTimeMillis();
 
         try {
-            // 设置请求信息到MDC
+            // 设置请求信息到 MDC
             setupMDC(httpRequest, httpResponse);
 
             // 包装响应以支持多次读取（用于日志记录）
@@ -70,24 +70,24 @@ public class MDCFilter implements Filter {
             MDC.put("error", e.getMessage());
             throw e;
         } finally {
-            // 清理MDC
+            // 清理 MDC
             clearMDC();
         }
     }
 
     private void setupMDC(HttpServletRequest request, HttpServletResponse response) {
-        // 生成追踪ID (traceId)
+        // 生成追踪 ID (traceId)
         String traceId = generateTraceId(request);
         MDC.put(TRACE_ID, traceId);
 
-        // 设置IP地址
+        // 设置 IP 地址
         String ipAddress = getClientIpAddress(request);
         MDC.put(USER_IP, ipAddress);
 
-        // 设置HTTP方法
+        // 设置 HTTP 方法
         MDC.put(REQUEST_METHOD, request.getMethod());
 
-        // 设置请求URI
+        // 设置请求 URI
         MDC.put(REQUEST_URI, request.getRequestURI());
 
         // 设置用户信息（如果已登录）
@@ -153,7 +153,7 @@ public class MDCFilter implements Filter {
     }
 
     /**
-     * 获取客户端IP地址（支持代理）
+     * 获取客户端 IP 地址（支持代理）
      */
     private String getClientIpAddress(HttpServletRequest request) {
         String[] ipHeaders = {
@@ -173,7 +173,7 @@ public class MDCFilter implements Filter {
         for (String header : ipHeaders) {
             String ip = request.getHeader(header);
             if (ip != null && ip.length() != 0 && !"unknown".equalsIgnoreCase(ip)) {
-                // 处理多代理情况，取第一个IP
+                // 处理多代理情况，取第一个 IP
                 if (ip.contains(",")) {
                     return ip.split(",")[0].trim();
                 }

@@ -34,7 +34,7 @@ public class InspectionDeviceResponse {
     private String deviceModel;
 
     /**
-     * IP地址。
+     * IP 地址。
      */
     private String ip;
 

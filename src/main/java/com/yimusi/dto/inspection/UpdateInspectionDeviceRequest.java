@@ -24,9 +24,9 @@ public class UpdateInspectionDeviceRequest {
     private String deviceModel;
 
     /**
-     * IP地址。
+     * IP 地址。
      */
-    @Size(max = 50, message = "IP地址长度不能超过 50 个字符")
+    @Size(max = 50, message = "IP 地址长度不能超过 50 个字符")
     private String ip;
 
     /**

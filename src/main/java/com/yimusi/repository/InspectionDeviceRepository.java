@@ -49,25 +49,25 @@ public interface InspectionDeviceRepository extends JpaRepository<InspectionDevi
     boolean existsBySerialNumberAndDeletedFalse(String serialNumber);
 
     /**
-     * 根据IP和未删除状态查找设备
+     * 根据 IP 和未删除状态查找设备
      *
-     * @param ip IP地址
+     * @param ip IP 地址
      * @return 设备实体（如果存在）
      */
     Optional<InspectionDevice> findByIpAndDeletedFalse(String ip);
 
     /**
-     * 根据IP和未删除状态检查设备是否存在
+     * 根据 IP 和未删除状态检查设备是否存在
      *
-     * @param ip IP地址
+     * @param ip IP 地址
      * @return 是否存在
      */
     boolean existsByIpAndDeletedFalse(String ip);
 
     /**
-     * 根据项目ID和未删除状态查找设备列表
+     * 根据项目 ID 和未删除状态查找设备列表
      *
-     * @param projectId 项目ID
+     * @param projectId 项目 ID
      * @return 设备实体列表
      */
     List<InspectionDevice> findByProjectIdAndDeletedFalse(Long projectId);
@@ -81,20 +81,20 @@ public interface InspectionDeviceRepository extends JpaRepository<InspectionDevi
     List<InspectionDevice> findByStatusAndDeletedFalse(InspectionDeviceStatus status);
 
     /**
-     * 根据项目ID查询项目内最大序号（只包含未删除的设备）
+     * 根据项目 ID 查询项目内最大序号（只包含未删除的设备）
      * 注意：这个方法主要用于已有业务逻辑，序号生成应该使用包含已删除的方法
      *
-     * @param projectId 项目ID
+     * @param projectId 项目 ID
      * @return 项目内最大序号
      */
     @Query("SELECT MAX(d.projectInternalNo) FROM InspectionDevice d WHERE d.projectId = :projectId AND d.deleted = false")
     Optional<Integer> findMaxProjectInternalNoByProjectId(Long projectId);
 
     /**
-     * 根据项目ID查询项目内最大序号（包含所有设备，包括已删除的）
+     * 根据项目 ID 查询项目内最大序号（包含所有设备，包括已删除的）
      * 用于生成新的项目内部序号，确保序号的连续性
      *
-     * @param projectId 项目ID
+     * @param projectId 项目 ID
      * @return 项目内最大序号（包含已删除的设备）
      */
     @Query("SELECT MAX(d.projectInternalNo) FROM InspectionDevice d WHERE d.projectId = :projectId")
