@@ -75,7 +75,7 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
     @Override
     public InspectionDevice getDeviceById(Long id) {
         if (id == null) {
-            throw new BadRequestException("设备ID不能为空");
+            throw new BadRequestException("设备 ID 不能为空");
         }
 
         InspectionDevice device = deviceRepository.findById(id).orElse(null);
@@ -130,7 +130,7 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
     @Override
     public InspectionDeviceResponse updateDevice(Long id, UpdateInspectionDeviceRequest updateRequest) {
         if (id == null) {
-            throw new BadRequestException("设备ID不能为空");
+            throw new BadRequestException("设备 ID 不能为空");
         }
 
         InspectionDevice device = getDeviceById(id);
@@ -168,7 +168,7 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
     @Override
     public void deleteDevice(Long id) {
         if (id == null) {
-            throw new BadRequestException("设备ID不能为空");
+            throw new BadRequestException("设备 ID 不能为空");
         }
 
         InspectionDevice device = getDeviceById(id);
@@ -183,7 +183,7 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
     @Override
     public void restoreDevice(Long id) {
         if (id == null) {
-            throw new BadRequestException("设备ID不能为空");
+            throw new BadRequestException("设备 ID 不能为空");
         }
 
         InspectionDevice device = deviceRepository

@@ -58,7 +58,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public Project getProjectById(Long id) {
         if (id == null) {
-            throw new BadRequestException("项目ID不能为空");
+            throw new BadRequestException("项目 ID 不能为空");
         }
 
         Project project = projectRepository.findById(id).orElse(null);
@@ -113,7 +113,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectResponse updateProject(Long id, UpdateProjectRequest updateProjectRequest) {
         if (id == null) {
-            throw new BadRequestException("项目ID不能为空");
+            throw new BadRequestException("项目 ID 不能为空");
         }
 
         Project project = getProjectById(id);
@@ -132,7 +132,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void deleteProject(Long id) {
         if (id == null) {
-            throw new BadRequestException("项目ID不能为空");
+            throw new BadRequestException("项目 ID 不能为空");
         }
 
         Project project = getProjectById(id);
@@ -143,7 +143,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public void restoreProject(Long id) {
         if (id == null) {
-            throw new BadRequestException("项目ID不能为空");
+            throw new BadRequestException("项目 ID 不能为空");
         }
 
         // 使用原生 SQL 查询，绕过 @SQLRestriction 限制

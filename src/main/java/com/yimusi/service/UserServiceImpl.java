@@ -55,7 +55,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserById(Long id) {
         if (id == null) {
-            throw new BadRequestException("用户ID不能为空");
+            throw new BadRequestException("用户 ID 不能为空");
         }
 
         User user = userRepository.findById(id).orElse(null);
@@ -94,7 +94,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse updateUser(Long id, UpdateUserRequest updateUserRequest) {
         if (id == null) {
-            throw new BadRequestException("用户ID不能为空");
+            throw new BadRequestException("用户 ID 不能为空");
         }
 
         User user = getUserById(id);
@@ -115,7 +115,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Long id) {
         if (id == null) {
-            throw new BadRequestException("用户ID不能为空");
+            throw new BadRequestException("用户 ID 不能为空");
         }
 
         User user = getUserById(id);
@@ -126,7 +126,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void restoreUser(Long id) {
         if (id == null) {
-            throw new BadRequestException("用户ID不能为空");
+            throw new BadRequestException("用户 ID 不能为空");
         }
 
         User user = userRepository.findById(id).orElse(null);

@@ -30,7 +30,7 @@ public class SaTokenExceptionTest {
     @Test
     void testHandleNotLoginException() {
         // 模拟 NotLoginException
-        NotLoginException ex = new NotLoginException("token已过期", "user", NotLoginException.TOKEN_TIMEOUT);
+        NotLoginException ex = new NotLoginException("token 已过期", "user", NotLoginException.TOKEN_TIMEOUT);
 
         ResponseEntity<ApiResponse<Map<String, Object>>> response = exceptionHandler.handleNotLoginException(ex);
 
@@ -95,13 +95,13 @@ public class SaTokenExceptionTest {
     @Test
     void testHandleSaTokenException() {
         // 模拟通用token异常
-        SaTokenException ex = new SaTokenException("无效的token格式");
+        SaTokenException ex = new SaTokenException("无效的 token 格式");
 
         ResponseEntity<ApiResponse<Map<String, Object>>> response = exceptionHandler.handleSaTokenException(ex);
 
         assertEquals(40103, response.getBody().getCode());
-        assertTrue(response.getBody().getMessage().contains("Token验证失败"));
-        assertTrue(response.getBody().getMessage().contains("无效的token格式"));
+        assertTrue(response.getBody().getMessage().contains("Token 验证失败"));
+        assertTrue(response.getBody().getMessage().contains("无效的 token 格式"));
         assertEquals(401, response.getStatusCode().value());
 
         // 验证details中包含错误信息

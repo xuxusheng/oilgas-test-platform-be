@@ -24,8 +24,8 @@ public enum ErrorCode {
     NOT_LOGIN(HttpStatus.UNAUTHORIZED, 40102, "用户未登录或登录已过期"),
     NO_PERMISSION(HttpStatus.FORBIDDEN, 40301, "用户权限不足"),
     NO_ROLE(HttpStatus.FORBIDDEN, 40302, "用户角色不符"),
-    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, 40103, "Token无效或已被禁用"),
-    TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, 40104, "Token已过期"),
+    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, 40103, "Token 无效或已被禁用"),
+    TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, 40104, "Token 已过期"),
     DEVICE_MISMATCH(HttpStatus.UNAUTHORIZED, 40105, "设备信息不匹配"),
     CONCURRENT_LOGIN(HttpStatus.UNAUTHORIZED, 40106, "账号在其他设备登录，当前设备已下线"),
 
