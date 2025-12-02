@@ -6,10 +6,10 @@ import com.querydsl.core.types.Predicate;
 import com.yimusi.common.exception.BadRequestException;
 import com.yimusi.common.exception.ResourceNotFoundException;
 import com.yimusi.common.util.OperatorUtil;
+import com.yimusi.dto.common.PageResult;
 import com.yimusi.dto.inspection.CreateInspectionDeviceRequest;
 import com.yimusi.dto.inspection.InspectionDevicePageRequest;
 import com.yimusi.dto.inspection.InspectionDeviceResponse;
-import com.yimusi.dto.common.PageResult;
 import com.yimusi.dto.inspection.UpdateInspectionDeviceRequest;
 import com.yimusi.entity.InspectionDevice;
 import com.yimusi.entity.QInspectionDevice;
@@ -17,15 +17,17 @@ import com.yimusi.enums.SequenceBizType;
 import com.yimusi.mapper.InspectionDeviceMapper;
 import com.yimusi.repository.InspectionDeviceRepository;
 import com.yimusi.repository.ProjectRepository;
+import java.time.Instant;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Page;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.List;
 
 /**
  * 检测设备服务实现类，处理所有与检测设备相关的业务逻辑。
@@ -40,6 +42,7 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
     private final InspectionDeviceMapper deviceMapper;
     private final SequenceGeneratorService sequenceGeneratorService;
     private final ProjectRepository projectRepository;
+    private final RedissonClient redissonClient;
 
     /**
      * {@inheritDoc}
@@ -56,13 +59,11 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
         // 生成设备编号
         device.setDeviceNo(sequenceGeneratorService.nextId(SequenceBizType.INSPECTION_DEVICE));
 
-        // 如果指定了项目ID，则生成项目内部序号
-        InspectionDevice savedDevice;
-        if (device.getProjectId() != null) {
-            device.setProjectInternalNo(generateProjectInternalNo(device.getProjectId()));
-        }
-        savedDevice = deviceRepository.save(device);
-        log.info("Created inspection device: {}", savedDevice.getDeviceNo());
+        // 生成项目内部序号
+        device.setProjectInternalNo(generateProjectInternalNo(device.getProjectId()));
+
+        InspectionDevice savedDevice = deviceRepository.save(device);
+        log.info("创建待检设备: {}", savedDevice.getDeviceNo());
 
         return deviceMapper.toResponse(savedDevice);
     }
@@ -77,9 +78,11 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
             throw new BadRequestException("设备ID不能为空");
         }
 
-        return deviceRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(String.format("ID 为 %s 的设备不存在", id)));
+        InspectionDevice device = deviceRepository.findById(id).orElse(null);
+        if (device == null) {
+            throw new ResourceNotFoundException(String.format("ID 为 %s 的设备不存在", id));
+        }
+        return device;
     }
 
     /**
@@ -91,9 +94,11 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
         if (deviceNo == null) {
             throw new BadRequestException("设备编号不能为空");
         }
-        return deviceRepository
-            .findByDeviceNoAndDeletedFalse(deviceNo)
-            .orElseThrow(() -> new ResourceNotFoundException(String.format("设备编号 %s 不存在", deviceNo)));
+        InspectionDevice device = deviceRepository.findByDeviceNoAndDeletedFalse(deviceNo).orElse(null);
+        if (device == null) {
+            throw new ResourceNotFoundException(String.format("设备编号 %s 不存在", deviceNo));
+        }
+        return device;
     }
 
     /**
@@ -131,20 +136,20 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
         InspectionDevice device = getDeviceById(id);
 
         // 如果更新了出厂编号，需要验证唯一性
-        if (StrUtil.isNotBlank(updateRequest.getSerialNumber()) &&
-            !updateRequest.getSerialNumber().equals(device.getSerialNumber())) {
+        if (
+            StrUtil.isNotBlank(updateRequest.getSerialNumber()) &&
+            !updateRequest.getSerialNumber().equals(device.getSerialNumber())
+        ) {
             validateSerialNumberUnique(updateRequest.getSerialNumber());
         }
 
         // 如果更新了IP，需要验证唯一性
-        if (StrUtil.isNotBlank(updateRequest.getIp()) &&
-            !updateRequest.getIp().equals(device.getIp())) {
+        if (StrUtil.isNotBlank(updateRequest.getIp()) && !updateRequest.getIp().equals(device.getIp())) {
             validateIpUnique(updateRequest.getIp());
         }
 
         // 如果更新了项目ID，需要重新生成项目内部序号
-        if (updateRequest.getProjectId() != null &&
-            !updateRequest.getProjectId().equals(device.getProjectId())) {
+        if (updateRequest.getProjectId() != null && !updateRequest.getProjectId().equals(device.getProjectId())) {
             device.setProjectInternalNo(generateProjectInternalNo(updateRequest.getProjectId()));
         }
 
@@ -152,7 +157,7 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
         deviceMapper.updateEntityFromRequest(updateRequest, device);
 
         InspectionDevice savedDevice = deviceRepository.save(device);
-        log.info("Updated inspection device: {}", savedDevice.getDeviceNo());
+        log.info("更新检测设备: {}", savedDevice.getDeviceNo());
 
         return deviceMapper.toResponse(savedDevice);
     }
@@ -169,7 +174,7 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
         InspectionDevice device = getDeviceById(id);
         markDeleted(device);
         deviceRepository.save(device);
-        log.info("Deleted inspection device: {}", device.getDeviceNo());
+        log.info("删除检测设备: {}", device.getDeviceNo());
     }
 
     /**
@@ -188,7 +193,7 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
         device.setDeletedAt(null);
         device.setDeletedBy(null);
         deviceRepository.save(device);
-        log.info("Restored inspection device: {}", device.getDeviceNo());
+        log.info("恢复检测设备: {}", device.getDeviceNo());
     }
 
     /**
@@ -206,22 +211,36 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
         if (projectId == null) {
             return null;
         }
-        lockProject(projectId);
-        int maxInternalNo = deviceRepository
-            .findMaxProjectInternalNoByProjectId(projectId)
-            .orElse(0);
-        return maxInternalNo + 1;
-    }
 
-    /**
-     * 使用悲观锁锁定项目，避免并发生成项目内部序号时出现冲突
-     *
-     * @param projectId 项目ID
-     */
-    private void lockProject(Long projectId) {
-        projectRepository
-            .lockById(projectId)
-            .orElseThrow(() -> new BadRequestException(String.format("ID 为 %s 的项目不存在或已删除", projectId)));
+        String lockName = "inspection-device:project-internal-no:" + projectId;
+        RLock lock = redissonClient.getLock(lockName);
+
+        try {
+            // 尝试获取锁：等待5秒，锁自动释放时间为30秒
+            // 使用 tryLock 可以避免在分布式环境下线程永久阻塞
+            if (!lock.tryLock(5, 30, TimeUnit.SECONDS)) {
+                throw new BadRequestException("系统繁忙，获取项目锁定失败，请稍后重试");
+            }
+
+            // 确认项目存在，只需要检查项目是否存在即可
+            projectRepository
+                .findById(projectId)
+                .orElseThrow(() -> new BadRequestException(String.format("ID 为 %s 的项目不存在或已删除", projectId)));
+
+            int maxInternalNo = deviceRepository
+                .findMaxProjectInternalNoIncludingDeletedByProjectId(projectId)
+                .orElse(0);
+
+            return maxInternalNo + 1;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new BadRequestException("获取项目锁定被中断，请稍后重试");
+        } finally {
+            // 仅在当前线程持有锁的情况下才释放锁
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
     }
 
     /**

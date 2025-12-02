@@ -81,11 +81,22 @@ public interface InspectionDeviceRepository extends JpaRepository<InspectionDevi
     List<InspectionDevice> findByStatusAndDeletedFalse(InspectionDeviceStatus status);
 
     /**
-     * 根据项目ID查询项目内最大序号
+     * 根据项目ID查询项目内最大序号（只包含未删除的设备）
+     * 注意：这个方法主要用于已有业务逻辑，序号生成应该使用包含已删除的方法
      *
      * @param projectId 项目ID
      * @return 项目内最大序号
      */
     @Query("SELECT MAX(d.projectInternalNo) FROM InspectionDevice d WHERE d.projectId = :projectId AND d.deleted = false")
     Optional<Integer> findMaxProjectInternalNoByProjectId(Long projectId);
+
+    /**
+     * 根据项目ID查询项目内最大序号（包含所有设备，包括已删除的）
+     * 用于生成新的项目内部序号，确保序号的连续性
+     *
+     * @param projectId 项目ID
+     * @return 项目内最大序号（包含已删除的设备）
+     */
+    @Query("SELECT MAX(d.projectInternalNo) FROM InspectionDevice d WHERE d.projectId = :projectId")
+    Optional<Integer> findMaxProjectInternalNoIncludingDeletedByProjectId(Long projectId);
 }

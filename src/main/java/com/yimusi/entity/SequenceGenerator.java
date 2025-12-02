@@ -2,8 +2,8 @@ package com.yimusi.entity;
 
 import com.yimusi.enums.ResetStrategy;
 import jakarta.persistence.*;
-import lombok.Data;
 import java.time.Instant;
+import lombok.Data;
 
 /**
  * 序列号生成器实体
@@ -13,12 +13,7 @@ import java.time.Instant;
 @Entity
 @Table(
     name = "sequence_generator",
-    uniqueConstraints = {
-        @UniqueConstraint(
-            name = "uk_biz_type",
-            columnNames = {"biz_type"}
-        )
-    }
+    uniqueConstraints = { @UniqueConstraint(name = "uk_biz_type", columnNames = { "biz_type" }) }
 )
 public class SequenceGenerator {
 

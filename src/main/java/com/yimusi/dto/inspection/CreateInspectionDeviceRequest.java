@@ -42,6 +42,7 @@ public class CreateInspectionDeviceRequest {
     /**
      * 所属项目ID。
      */
+    @NotNull(message = "项目ID不能为空")
     private Long projectId;
 
     /**

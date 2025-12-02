@@ -1,6 +1,7 @@
 package com.yimusi.service;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.digest.BCrypt;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.yimusi.common.exception.BadRequestException;
@@ -18,11 +19,10 @@ import com.yimusi.repository.UserRepository;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
-import cn.hutool.crypto.digest.BCrypt;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 用户服务实现类，处理所有与用户相关的业务逻辑。
@@ -43,26 +43,26 @@ public class UserServiceImpl implements UserService {
         validateUsernameUnique(createUserRequest.getUsername());
 
         User user = userMapper.toEntity(createUserRequest);
-        if (createUserRequest.getPassword() != null) {
-            user.setPassword(BCrypt.hashpw(createUserRequest.getPassword()));
-        }
-        User savedUser = userRepository.save(user);
-        return userMapper.toResponse(savedUser);
+        user.setPassword(BCrypt.hashpw(createUserRequest.getPassword()));
+
+        return userMapper.toResponse(userRepository.save(user));
     }
 
     /**
      * {@inheritDoc}
      */
+    @NonNull
     @Override
     public User getUserById(Long id) {
         if (id == null) {
             throw new BadRequestException("用户ID不能为空");
         }
 
-        // 查询用户，如果不存在则抛出业务异常
-        return userRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(String.format("ID 为 %s 的用户不存在", id)));
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            throw new ResourceNotFoundException(String.format("ID 为 %s 的用户不存在", id));
+        }
+        return user;
     }
 
     /**
@@ -129,9 +129,10 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("用户ID不能为空");
         }
 
-        User user = userRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(String.format("ID 为 %s 的用户不存在", id)));
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            throw new ResourceNotFoundException(String.format("ID 为 %s 的用户不存在", id));
+        }
         user.setDeleted(false);
         user.setDeletedAt(null);
         user.setDeletedBy(null);
@@ -187,8 +188,11 @@ public class UserServiceImpl implements UserService {
         if (username == null) {
             throw new BadRequestException("用户名不能为空");
         }
-        return userRepository.findByUsernameAndDeletedFalse(username)
-                .orElseThrow(() -> new ResourceNotFoundException(String.format("用户名 %s 不存在", username)));
+        User user = userRepository.findByUsernameAndDeletedFalse(username).orElse(null);
+        if (user == null) {
+            throw new ResourceNotFoundException(String.format("用户名 %s 不存在", username));
+        }
+        return user;
     }
 
     /**

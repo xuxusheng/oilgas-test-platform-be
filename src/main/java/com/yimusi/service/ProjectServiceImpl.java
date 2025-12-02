@@ -61,10 +61,11 @@ public class ProjectServiceImpl implements ProjectService {
             throw new BadRequestException("项目ID不能为空");
         }
 
-        // 查询项目，如果不存在则抛出业务异常
-        return projectRepository
-            .findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(String.format("ID 为 %s 的项目不存在", id)));
+        Project project = projectRepository.findById(id).orElse(null);
+        if (project == null) {
+            throw new ResourceNotFoundException(String.format("ID 为 %s 的项目不存在", id));
+        }
+        return project;
     }
 
     /**
@@ -76,9 +77,11 @@ public class ProjectServiceImpl implements ProjectService {
         if (projectNo == null) {
             throw new BadRequestException("项目编号不能为空");
         }
-        return projectRepository
-            .findByProjectNoAndDeletedFalse(projectNo)
-            .orElseThrow(() -> new ResourceNotFoundException(String.format("项目编号 %s 不存在", projectNo)));
+        Project project = projectRepository.findByProjectNoAndDeletedFalse(projectNo).orElse(null);
+        if (project == null) {
+            throw new ResourceNotFoundException(String.format("项目编号 %s 不存在", projectNo));
+        }
+        return project;
     }
 
     /**
@@ -119,7 +122,8 @@ public class ProjectServiceImpl implements ProjectService {
         projectMapper.updateEntityFromRequest(updateProjectRequest, project);
 
         Project savedProject = projectRepository.save(project);
-        return projectMapper.toResponse(savedProject);
+        ProjectResponse response = projectMapper.toResponse(savedProject);
+        return response;
     }
 
     /**
@@ -145,12 +149,12 @@ public class ProjectServiceImpl implements ProjectService {
         // 使用原生SQL查询，绕过 @SQLRestriction 限制
         // 这样可以查询到已删除的项目
         @SuppressWarnings("unchecked")
-        Project project = (Project) entityManager.createNativeQuery(
-                "SELECT * FROM projects WHERE id = :id", Project.class)
-                .setParameter("id", id)
-                .getResultStream()
-                .findFirst()
-                .orElse(null);
+        Project project = (Project) entityManager
+            .createNativeQuery("SELECT * FROM projects WHERE id = :id", Project.class)
+            .setParameter("id", id)
+            .getResultStream()
+            .findFirst()
+            .orElse(null);
 
         if (project == null) {
             throw new ResourceNotFoundException(String.format("ID 为 %s 的项目不存在", id));

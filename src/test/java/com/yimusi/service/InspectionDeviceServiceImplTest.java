@@ -16,6 +16,7 @@ import com.yimusi.repository.InspectionDeviceRepository;
 import com.yimusi.repository.ProjectRepository;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 
 @ExtendWith(MockitoExtension.class)
 class InspectionDeviceServiceImplTest {
@@ -40,6 +43,9 @@ class InspectionDeviceServiceImplTest {
 
     @Spy
     private InspectionDeviceMapper deviceMapper = Mappers.getMapper(InspectionDeviceMapper.class);
+
+    @Mock
+    private RedissonClient redissonClient;
 
     @InjectMocks
     private InspectionDeviceServiceImpl inspectionDeviceService;
@@ -60,12 +66,18 @@ class InspectionDeviceServiceImplTest {
 
     @Test
     @DisplayName("创建检测设备 - 生成分布式设备编号并计算项目序号")
-    void createDevice_WithProjectId_ShouldGenerateDeviceNoAndInternalNo() {
+    void createDevice_WithProjectId_ShouldGenerateDeviceNoAndInternalNo() throws InterruptedException {
+        // Mock Redisson 锁
+        RLock mockLock = mock(RLock.class);
+        when(redissonClient.getLock("inspection-device:project-internal-no:100")).thenReturn(mockLock);
+        when(mockLock.tryLock(5, 30, TimeUnit.SECONDS)).thenReturn(true);
+        when(mockLock.isHeldByCurrentThread()).thenReturn(true);
+
         when(deviceRepository.existsBySerialNumberAndDeletedFalse("SN-001")).thenReturn(false);
         when(deviceRepository.existsByIpAndDeletedFalse("192.168.1.10")).thenReturn(false);
         when(sequenceGeneratorService.nextId(SequenceBizType.INSPECTION_DEVICE)).thenReturn("IND202501010001");
-        when(projectRepository.lockById(100L)).thenReturn(Optional.of(mockProject(100L)));
-        when(deviceRepository.findMaxProjectInternalNoByProjectId(100L)).thenReturn(Optional.of(5));
+        when(projectRepository.findById(100L)).thenReturn(Optional.of(mockProject(100L)));
+        when(deviceRepository.findMaxProjectInternalNoIncludingDeletedByProjectId(100L)).thenReturn(Optional.of(5));
         when(deviceRepository.save(any(InspectionDevice.class))).thenAnswer(invocation -> {
             InspectionDevice saved = invocation.getArgument(0);
             saved.setId(1L);
@@ -79,7 +91,10 @@ class InspectionDeviceServiceImplTest {
         assertEquals("IND202501010001", response.getDeviceNo());
         assertEquals(6, response.getProjectInternalNo());
         verify(sequenceGeneratorService).nextId(SequenceBizType.INSPECTION_DEVICE);
-        verify(deviceRepository).findMaxProjectInternalNoByProjectId(100L);
+        verify(redissonClient).getLock("inspection-device:project-internal-no:100");
+        verify(mockLock).tryLock(5, 30, TimeUnit.SECONDS);
+        verify(deviceRepository).findMaxProjectInternalNoIncludingDeletedByProjectId(100L);
+        verify(mockLock).unlock();
     }
 
     @Test
@@ -101,12 +116,13 @@ class InspectionDeviceServiceImplTest {
         assertNotNull(response);
         assertEquals("IND202501010002", response.getDeviceNo());
         assertNull(response.getProjectInternalNo());
-        verify(deviceRepository, never()).findMaxProjectInternalNoByProjectId(anyLong());
+        verify(deviceRepository, never()).findMaxProjectInternalNoIncludingDeletedByProjectId(anyLong());
+        verify(redissonClient, never()).getLock(anyString());
     }
 
     @Test
     @DisplayName("更新检测设备 - 更换项目时重新计算项目序号")
-    void updateDevice_WhenProjectChanges_ShouldRecalculateInternalNo() {
+    void updateDevice_WhenProjectChanges_ShouldRecalculateInternalNo() throws InterruptedException {
         InspectionDevice existing = new InspectionDevice();
         existing.setId(10L);
         existing.setDeviceNo("IND202501010001");
@@ -121,16 +137,25 @@ class InspectionDeviceServiceImplTest {
         UpdateInspectionDeviceRequest request = new UpdateInspectionDeviceRequest();
         request.setProjectId(200L);
 
+        // Mock Redisson 锁
+        RLock mockLock = mock(RLock.class);
+        when(redissonClient.getLock("inspection-device:project-internal-no:200")).thenReturn(mockLock);
+        when(mockLock.tryLock(5, 30, TimeUnit.SECONDS)).thenReturn(true);
+        when(mockLock.isHeldByCurrentThread()).thenReturn(true);
+
         when(deviceRepository.findById(10L)).thenReturn(Optional.of(existing));
-        when(projectRepository.lockById(200L)).thenReturn(Optional.of(mockProject(200L)));
-        when(deviceRepository.findMaxProjectInternalNoByProjectId(200L)).thenReturn(Optional.of(8));
+        when(projectRepository.findById(200L)).thenReturn(Optional.of(mockProject(200L)));
+        when(deviceRepository.findMaxProjectInternalNoIncludingDeletedByProjectId(200L)).thenReturn(Optional.of(8));
         when(deviceRepository.save(any(InspectionDevice.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         InspectionDeviceResponse response = inspectionDeviceService.updateDevice(10L, request);
 
         assertEquals(200L, response.getProjectId());
         assertEquals(9, response.getProjectInternalNo());
-        verify(deviceRepository).findMaxProjectInternalNoByProjectId(200L);
+        verify(redissonClient).getLock("inspection-device:project-internal-no:200");
+        verify(mockLock).tryLock(5, 30, TimeUnit.SECONDS);
+        verify(deviceRepository).findMaxProjectInternalNoIncludingDeletedByProjectId(200L);
+        verify(mockLock).unlock();
     }
 
     private Project mockProject(Long id) {
