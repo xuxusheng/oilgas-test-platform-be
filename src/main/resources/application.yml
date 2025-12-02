@@ -80,4 +80,4 @@ yimusi:
     redisson:
       enabled: true
       wait-time: PT5S
-      lease-time: PT30S
+      lock-watchdog-timeout: PT30S

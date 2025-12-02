@@ -1,9 +1,11 @@
 package com.yimusi.config;
 
+import java.time.Duration;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
 import org.redisson.config.SingleServerConfig;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.context.annotation.Bean;
@@ -16,9 +18,13 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty(value = "yimusi.lock.redisson.enabled", havingValue = "true")
 public class RedissonConfig {
 
+    @Value("${yimusi.lock.redisson.lock-watchdog-timeout:PT30S}")
+    private Duration lockWatchdogTimeout;
+
     @Bean(destroyMethod = "shutdown")
     public RedissonClient redissonClient(RedisProperties redisProperties) {
         Config config = new Config();
+        config.setLockWatchdogTimeout(lockWatchdogTimeout.toMillis());
         SingleServerConfig singleServerConfig = config
             .useSingleServer()
             .setAddress(buildAddress(redisProperties))

@@ -42,9 +42,6 @@ public class SequenceGeneratorServiceImpl implements SequenceGeneratorService {
     @Value("${yimusi.lock.redisson.wait-time:PT5S}")
     private Duration waitTime;
 
-    @Value("${yimusi.lock.redisson.lease-time:PT30S}")
-    private Duration leaseTime;
-
     // ==================== 枚举便捷方法（推荐使用） ====================
 
     /**
@@ -116,7 +113,7 @@ public class SequenceGeneratorServiceImpl implements SequenceGeneratorService {
         RLock lock = redissonClient.getLock(lockName);
         boolean acquired = false;
         try {
-            acquired = lock.tryLock(waitTime.toMillis(), leaseTime.toMillis(), TimeUnit.MILLISECONDS);
+            acquired = lock.tryLock(waitTime.toMillis(), TimeUnit.MILLISECONDS);
             if (!acquired) {
                 throw new SequenceGenerationException(
                     ErrorCode.SEQUENCE_LOCK_TIMEOUT,

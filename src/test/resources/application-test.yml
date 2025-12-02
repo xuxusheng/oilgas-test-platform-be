@@ -50,7 +50,7 @@ yimusi:
     redisson:
       enabled: true
       wait-time: PT3S  # 测试环境短一点的等待时间
-      lease-time: PT10S # 测试环境短一点的锁持有时间
+      lock-watchdog-timeout: PT15S # 测试环境短一点的看门狗续约周期
 
 # 日志配置 - 测试时减少日志输出
 logging:

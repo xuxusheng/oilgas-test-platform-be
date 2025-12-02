@@ -15,9 +15,9 @@
 ## 二、方案概述
 
 1. 引入 Redisson 作为分布式锁组件（依赖 `org.redisson:redisson`，复用 Spring `spring.data.redis.*` 配置）。
-2. `SequenceGeneratorServiceImpl` 在生成序列前，通过 `RLock.tryLock(waitTime, leaseTime)` 获取分布式锁：
+2. `SequenceGeneratorServiceImpl` 在生成序列前，通过 `RLock.tryLock(waitTime)` 获取分布式锁：
    - `waitTime`：最长等待时间（默认 5s）；
-   - `leaseTime`：锁自动释放时间（默认 30s），防止线程异常退出导致锁悬挂。
+   - 锁持有时间交给 Redisson 看门狗续约（默认 30s，可通过 `lock-watchdog-timeout` 调整）。
 3. 锁获取成功后，在同一个方法内执行事务逻辑：
    - 查询或初始化 `SequenceGenerator`；
    - 执行重置策略、溢出校验；
@@ -35,9 +35,14 @@
 @Configuration
 @ConditionalOnProperty(value = "yimusi.lock.redisson.enabled", havingValue = "true")
 class RedissonConfig {
+
+    @Value("${yimusi.lock.redisson.lock-watchdog-timeout:PT30S}")
+    private Duration lockWatchdogTimeout;
+
     @Bean(destroyMethod = "shutdown")
     RedissonClient redissonClient(RedisProperties redis) {
         Config config = new Config();
+        config.setLockWatchdogTimeout(lockWatchdogTimeout.toMillis());
         SingleServerConfig single = config.useSingleServer()
             .setAddress((redis.isSsl() ? "rediss://" : "redis://") + redis.getHost() + ":" + redis.getPort())
             .setDatabase(redis.getDatabase())
@@ -59,7 +64,7 @@ private List<Long> generateSequences(String bizType, int count) {
     RLock lock = redissonClient.getLock("seq:lock:" + bizType);
     boolean acquired = false;
     try {
-        acquired = lock.tryLock(waitTime.toMillis(), leaseTime.toMillis(), TimeUnit.MILLISECONDS);
+        acquired = lock.tryLock(waitTime.toMillis(), TimeUnit.MILLISECONDS);
         if (!acquired) {
             throw new IllegalStateException("获取分布式锁超时: " + bizType);
         }
@@ -95,8 +100,8 @@ yimusi:
   lock:
     redisson:
       enabled: true
-      wait-time: PT5S     # 可选，ISO-8601 Duration
-      lease-time: PT30S
+      wait-time: PT5S                # 可选，ISO-8601 Duration
+      lock-watchdog-timeout: PT30S   # 看门狗续约周期
 ```
 
 部署时只需按需调整 Redis 地址和认证信息。
@@ -107,12 +112,12 @@ yimusi:
 
 **优势**
 - 支持多实例横向扩展，锁粒度仍按 `bizType` 控制。
-- 锁与业务逻辑完全解耦，可通过配置调整等待/租约时间。
+- 通过等待时间和看门狗续约周期的组合，可兼顾吞吐和容错。
 - 出现锁获取超时、中断等情况时，业务能快速感知并决定重试或上报。
 
 **风险/注意事项**
 - Redis 必须高可用，否则锁不可用会导致服务启动失败；必要时配合哨兵或 Redis Cluster。
-- `leaseTime` 需要足够覆盖单次事务执行时间；若超时会自动释放锁，需确保业务代码没有长时间阻塞。
+- 看门狗续约受限于客户端线程是否存活；若线程被长时间阻塞或挂起，仍可能导致锁提前释放。
 - 仍需对数据库的唯一键约束、重试等逻辑保持健壮，避免锁失效时产生数据不一致。
 
 ---
