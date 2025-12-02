@@ -65,8 +65,11 @@ management:
   endpoints:
     web:
       exposure:
-        # [安全警告] 开发时可设为 "*",生产环境强烈建议改为 ["health", "info", "prometheus"]
-        include: "*"
+        # 使用环境变量配置端点暴露,默认安全配置
+        # 生产环境: ["health", "info", "prometheus"]
+        # 开发环境: ["health", "info", "metrics", "prometheus"]
+        # 测试环境/调试: ["*"]
+        include: ${ACTUATOR_ENDPOINTS:health,info}
   endpoint:
     health:
       # 默认只显示基本信息,保护敏感数据

@@ -81,14 +81,6 @@ public interface InspectionDeviceRepository extends JpaRepository<InspectionDevi
     List<InspectionDevice> findByStatusAndDeletedFalse(InspectionDeviceStatus status);
 
     /**
-     * 查询最大的设备编号（用于初始化编号生成器）
-     *
-     * @return 最大设备编号
-     */
-    @Query("SELECT d.deviceNo FROM InspectionDevice d WHERE d.deleted = false ORDER BY d.deviceNo DESC LIMIT 1")
-    Optional<String> findMaxDeviceNo();
-
-    /**
      * 根据项目ID查询项目内最大序号
      *
      * @param projectId 项目ID
