@@ -7,8 +7,8 @@ import com.querydsl.core.types.Predicate;
 import com.yimusi.common.exception.BadRequestException;
 import com.yimusi.common.exception.ResourceNotFoundException;
 import com.yimusi.common.util.OperatorUtil;
-import com.yimusi.dto.user.CreateUserRequest;
 import com.yimusi.dto.common.PageResult;
+import com.yimusi.dto.user.CreateUserRequest;
 import com.yimusi.dto.user.UpdateUserRequest;
 import com.yimusi.dto.user.UserPageRequest;
 import com.yimusi.dto.user.UserResponse;
@@ -43,8 +43,9 @@ public class UserServiceImpl implements UserService {
         if (StrUtil.isBlank(username)) {
             throw new BadRequestException("用户名不能为空");
         }
-        return userRepository.findByUsernameAndDeletedFalse(username)
-                .orElseThrow(() -> new ResourceNotFoundException(String.format("用户名为 %s 的用户不存在", username)));
+        return userRepository
+            .findByUsernameAndDeletedFalse(username)
+            .orElseThrow(() -> new ResourceNotFoundException(String.format("用户名为 %s 的用户不存在", username)));
     }
 
     /**
@@ -59,8 +60,9 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("密码不能为空");
         }
 
-        User user = userRepository.findByUsernameAndDeletedFalse(username)
-                .orElseThrow(() -> new ResourceNotFoundException(String.format("用户名为 %s 的用户不存在", username)));
+        User user = userRepository
+            .findByUsernameAndDeletedFalse(username)
+            .orElseThrow(() -> new ResourceNotFoundException(String.format("用户名为 %s 的用户不存在", username)));
 
         if (!user.verifyPassword(password)) {
             throw new BadRequestException("用户名或密码错误");

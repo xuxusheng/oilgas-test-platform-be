@@ -1,19 +1,17 @@
 package com.yimusi.service;
 
-import com.yimusi.dto.project.CreateProjectRequest;
 import com.yimusi.dto.common.PageResult;
+import com.yimusi.dto.project.CreateProjectRequest;
 import com.yimusi.dto.project.ProjectPageRequest;
 import com.yimusi.dto.project.ProjectResponse;
 import com.yimusi.dto.project.UpdateProjectRequest;
 import com.yimusi.entity.Project;
-
 import java.util.List;
 
 /**
  * 项目服务接口，定义了项目相关的业务操作。
  */
 public interface ProjectService {
-
     /**
      * 根据项目 ID 获取项目信息。
      *

@@ -1,19 +1,17 @@
 package com.yimusi.service;
 
+import com.yimusi.dto.common.PageResult;
 import com.yimusi.dto.inspection.CreateInspectionDeviceRequest;
 import com.yimusi.dto.inspection.InspectionDevicePageRequest;
 import com.yimusi.dto.inspection.InspectionDeviceResponse;
-import com.yimusi.dto.common.PageResult;
 import com.yimusi.dto.inspection.UpdateInspectionDeviceRequest;
 import com.yimusi.entity.InspectionDevice;
-
 import java.util.List;
 
 /**
  * 检测设备服务接口，定义了检测设备相关的业务操作。
  */
 public interface InspectionDeviceService {
-
     /**
      * 获取所有检测设备列表。
      *

@@ -1,13 +1,12 @@
 package com.yimusi.service;
 
-import com.yimusi.dto.user.CreateUserRequest;
 import com.yimusi.dto.common.PageResult;
+import com.yimusi.dto.user.CreateUserRequest;
 import com.yimusi.dto.user.UpdateUserRequest;
 import com.yimusi.dto.user.UserPageRequest;
 import com.yimusi.dto.user.UserResponse;
 import com.yimusi.entity.User;
 import java.util.List;
-import org.springframework.lang.NonNull;
 
 /**
  * 用户服务接口，定义了用户相关的业务操作。

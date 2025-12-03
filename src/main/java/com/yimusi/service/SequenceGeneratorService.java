@@ -1,7 +1,6 @@
 package com.yimusi.service;
 
 import com.yimusi.enums.SequenceBizType;
-
 import java.util.List;
 
 /**
@@ -9,7 +8,6 @@ import java.util.List;
  * 提供分布式环境下的序列号生成功能
  */
 public interface SequenceGeneratorService {
-
     // ==================== 枚举便捷方法（推荐使用） ====================
 
     /**
