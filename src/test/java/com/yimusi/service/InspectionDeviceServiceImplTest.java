@@ -67,6 +67,9 @@ class InspectionDeviceServiceImplTest {
     @Test
     @DisplayName("创建检测设备 - 生成分布式设备编号并计算项目序号")
     void createDevice_WithProjectId_ShouldGenerateDeviceNoAndInternalNo() throws InterruptedException {
+        // Mock 项目存储库存在检查
+        when(projectRepository.existsByIdAndDeletedFalse(100L)).thenReturn(true);
+
         // Mock Redisson 锁
         RLock mockLock = mock(RLock.class);
         when(redissonClient.getLock("inspection-device:project-internal-no:100")).thenReturn(mockLock);
@@ -76,7 +79,6 @@ class InspectionDeviceServiceImplTest {
         when(deviceRepository.existsBySerialNumberAndDeletedFalse("SN-001")).thenReturn(false);
         when(deviceRepository.existsByIpAndDeletedFalse("192.168.1.10")).thenReturn(false);
         when(sequenceGeneratorService.nextId(SequenceBizType.INSPECTION_DEVICE)).thenReturn("IND202501010001");
-        when(projectRepository.findById(100L)).thenReturn(Optional.of(mockProject(100L)));
         when(deviceRepository.findMaxProjectInternalNoIncludingDeletedByProjectId(100L)).thenReturn(Optional.of(5));
         when(deviceRepository.save(any(InspectionDevice.class))).thenAnswer(invocation -> {
             InspectionDevice saved = invocation.getArgument(0);

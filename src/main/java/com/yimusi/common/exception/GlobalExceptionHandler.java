@@ -212,7 +212,7 @@ public class GlobalExceptionHandler {
         errorDetails.put("recommendation", "请清除本地Token后重新登录");
 
         String errorMessage = String.format(
-            "Token验证失败 - %s",
+            "Token 验证失败 - %s",
             ex.getMessage()
         );
 

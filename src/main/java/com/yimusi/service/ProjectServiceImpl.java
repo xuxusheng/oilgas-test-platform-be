@@ -39,21 +39,6 @@ public class ProjectServiceImpl implements ProjectService {
     /**
      * {@inheritDoc}
      */
-    @Override
-    public ProjectResponse createProject(CreateProjectRequest createProjectRequest) {
-        // 验证项目编号唯一性
-        if (!validateProjectNoUnique(createProjectRequest.getProjectNo())) {
-            throw new BadRequestException(String.format("项目编号 %s 已存在", createProjectRequest.getProjectNo()));
-        }
-
-        Project project = projectMapper.toEntity(createProjectRequest);
-        Project savedProject = projectRepository.save(project);
-        return projectMapper.toResponse(savedProject);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @NonNull
     @Override
     public Project getProjectById(Long id) {
@@ -105,6 +90,21 @@ public class ProjectServiceImpl implements ProjectService {
 
         // 转换并返回结果
         return PageResult.from(projectPage.map(projectMapper::toResponse));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ProjectResponse createProject(CreateProjectRequest createProjectRequest) {
+        // 验证项目编号唯一性
+        if (!validateProjectNoUnique(createProjectRequest.getProjectNo())) {
+            throw new BadRequestException(String.format("项目编号 %s 已存在", createProjectRequest.getProjectNo()));
+        }
+
+        Project project = projectMapper.toEntity(createProjectRequest);
+        Project savedProject = projectRepository.save(project);
+        return projectMapper.toResponse(savedProject);
     }
 
     /**
@@ -166,6 +166,18 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.save(project);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean validateProjectNoUnique(String projectNo) {
+        if (projectNo == null) {
+            return true;
+        }
+        // 返回是否唯一（不存在则唯一）
+        return !projectRepository.existsByProjectNoAndDeletedFalse(projectNo);
+    }
+
     private void markDeleted(Project project) {
         project.setDeleted(true);
         project.setDeletedAt(Instant.now());
@@ -200,17 +212,5 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         return builder;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean validateProjectNoUnique(String projectNo) {
-        if (projectNo == null) {
-            return true;
-        }
-        // 返回是否唯一（不存在则唯一）
-        return !projectRepository.existsByProjectNoAndDeletedFalse(projectNo);
     }
 }

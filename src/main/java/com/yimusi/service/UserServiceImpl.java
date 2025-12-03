@@ -39,6 +39,40 @@ public class UserServiceImpl implements UserService {
      * {@inheritDoc}
      */
     @Override
+    public User findByUsername(String username) {
+        if (StrUtil.isBlank(username)) {
+            throw new BadRequestException("用户名不能为空");
+        }
+        return userRepository.findByUsernameAndDeletedFalse(username)
+                .orElseThrow(() -> new ResourceNotFoundException(String.format("用户名为 %s 的用户不存在", username)));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public User validateUser(String username, String password) {
+        if (StrUtil.isBlank(username)) {
+            throw new BadRequestException("用户名不能为空");
+        }
+        if (StrUtil.isBlank(password)) {
+            throw new BadRequestException("密码不能为空");
+        }
+
+        User user = userRepository.findByUsernameAndDeletedFalse(username)
+                .orElseThrow(() -> new ResourceNotFoundException(String.format("用户名为 %s 的用户不存在", username)));
+
+        if (!user.verifyPassword(password)) {
+            throw new BadRequestException("用户名或密码错误");
+        }
+
+        return user;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public UserResponse createUser(CreateUserRequest createUserRequest) {
         validateUsernameUnique(createUserRequest.getUsername());
 
@@ -139,6 +173,12 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    private void validateUsernameUnique(String username) {
+        if (StrUtil.isNotBlank(username) && userRepository.existsByUsernameAndDeletedFalse(username)) {
+            throw new BadRequestException(String.format("用户名 %s 已存在", username));
+        }
+    }
+
     private void markDeleted(User user) {
         user.setDeleted(true);
         user.setDeletedAt(Instant.now());
@@ -168,42 +208,5 @@ public class UserServiceImpl implements UserService {
         }
 
         return builder;
-    }
-
-    private void validateUsernameUnique(String username) {
-        if (username == null) {
-            return;
-        }
-        boolean exists = userRepository.existsByUsernameAndDeletedFalse(username);
-        if (exists) {
-            throw new BadRequestException(String.format("用户名 %s 已存在", username));
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public User findByUsername(String username) {
-        if (username == null) {
-            throw new BadRequestException("用户名不能为空");
-        }
-        User user = userRepository.findByUsernameAndDeletedFalse(username).orElse(null);
-        if (user == null) {
-            throw new ResourceNotFoundException(String.format("用户名 %s 不存在", username));
-        }
-        return user;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public User validateUser(String username, String password) {
-        User user = findByUsername(username);
-        if (!user.verifyPassword(password)) {
-            throw new BadRequestException("用户名或密码错误");
-        }
-        return user;
     }
 }

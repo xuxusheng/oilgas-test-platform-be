@@ -115,8 +115,10 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
         // 生成设备编号
         device.setDeviceNo(sequenceGeneratorService.nextId(SequenceBizType.INSPECTION_DEVICE));
 
-        // 生成项目内部序号
-        device.setProjectInternalNo(generateProjectInternalNo(device.getProjectId()));
+        // 生成项目内部序号（仅当有项目时）
+        if (device.getProjectId() != null) {
+            device.setProjectInternalNo(generateProjectInternalNo(device.getProjectId()));
+        }
 
         InspectionDevice savedDevice = deviceRepository.save(device);
         log.info("创建待检设备: {}", savedDevice.getDeviceNo());

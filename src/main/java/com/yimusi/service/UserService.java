@@ -14,6 +14,14 @@ import org.springframework.lang.NonNull;
  */
 public interface UserService {
     /**
+     * 根据用户ID获取用户信息。
+     *
+     * @param id 要查找的用户ID
+     * @return 找到的用户实体
+     */
+    User getUserById(Long id);
+
+    /**
      * 获取所有用户列表。
      *
      * @return 包含所有用户的列表
@@ -29,12 +37,21 @@ public interface UserService {
     PageResult<UserResponse> getUsersPage(UserPageRequest request);
 
     /**
-     * 根据用户ID获取用户信息。
+     * 根据用户名查找用户。
      *
-     * @param id 要查找的用户ID
-     * @return 找到的用户实体
+     * @param username 用户名
+     * @return 用户实体
      */
-    User getUserById(Long id);
+    User findByUsername(String username);
+
+    /**
+     * 验证用户密码。
+     *
+     * @param username 用户名
+     * @param password 密码
+     * @return 验证成功的用户
+     */
+    User validateUser(String username, String password);
 
     /**
      * 创建一个新用户。
@@ -66,21 +83,4 @@ public interface UserService {
      * @param id 用户ID
      */
     void restoreUser(Long id);
-
-    /**
-     * 根据用户名查找用户。
-     *
-     * @param username 用户名
-     * @return 用户实体
-     */
-    User findByUsername(String username);
-
-    /**
-     * 验证用户密码。
-     *
-     * @param username 用户名
-     * @param password 密码
-     * @return 验证成功的用户
-     */
-    User validateUser(String username, String password);
 }

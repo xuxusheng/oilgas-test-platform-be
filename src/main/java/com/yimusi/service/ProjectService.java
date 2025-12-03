@@ -15,21 +15,6 @@ import java.util.List;
 public interface ProjectService {
 
     /**
-     * 获取所有项目列表。
-     *
-     * @return 包含所有项目的列表
-     */
-    List<Project> getAllProjects();
-
-    /**
-     * 分页查询项目列表，支持筛选。
-     *
-     * @param request 分页查询请求参数
-     * @return 分页结果，包含项目列表及分页信息
-     */
-    PageResult<ProjectResponse> getProjectsPage(ProjectPageRequest request);
-
-    /**
      * 根据项目 ID 获取项目信息。
      *
      * @param id 要查找的项目 ID
@@ -44,6 +29,21 @@ public interface ProjectService {
      * @return 找到的项目实体
      */
     Project getProjectByNo(String projectNo);
+
+    /**
+     * 获取所有项目列表。
+     *
+     * @return 包含所有项目的列表
+     */
+    List<Project> getAllProjects();
+
+    /**
+     * 分页查询项目列表，支持筛选。
+     *
+     * @param request 分页查询请求参数
+     * @return 分页结果，包含项目列表及分页信息
+     */
+    PageResult<ProjectResponse> getProjectsPage(ProjectPageRequest request);
 
     /**
      * 创建一个新项目。
