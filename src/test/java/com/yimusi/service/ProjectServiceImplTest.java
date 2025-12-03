@@ -6,11 +6,11 @@ import static org.mockito.Mockito.*;
 
 import com.yimusi.common.exception.BadRequestException;
 import com.yimusi.common.exception.ResourceNotFoundException;
-import com.yimusi.dto.CreateProjectRequest;
-import com.yimusi.dto.PageResult;
-import com.yimusi.dto.ProjectPageRequest;
-import com.yimusi.dto.ProjectResponse;
-import com.yimusi.dto.UpdateProjectRequest;
+import com.yimusi.dto.project.CreateProjectRequest;
+import com.yimusi.dto.common.PageResult;
+import com.yimusi.dto.project.ProjectPageRequest;
+import com.yimusi.dto.project.ProjectResponse;
+import com.yimusi.dto.project.UpdateProjectRequest;
 import com.yimusi.entity.Project;
 import com.yimusi.mapper.ProjectMapper;
 import com.yimusi.repository.ProjectRepository;

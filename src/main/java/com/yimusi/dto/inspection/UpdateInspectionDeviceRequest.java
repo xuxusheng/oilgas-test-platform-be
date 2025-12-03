@@ -35,11 +35,6 @@ public class UpdateInspectionDeviceRequest {
     private Integer port;
 
     /**
-     * 所属项目ID。
-     */
-    private Long projectId;
-
-    /**
      * 设备状态。
      */
     private InspectionDeviceStatus status;

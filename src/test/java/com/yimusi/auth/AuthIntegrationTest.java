@@ -4,9 +4,9 @@ import cn.hutool.crypto.digest.BCrypt;
 import com.yimusi.BaseIntegrationTest;
 import com.yimusi.controller.AuthController;
 import com.yimusi.controller.UserController;
-import com.yimusi.dto.CreateUserRequest;
-import com.yimusi.dto.LoginRequest;
-import com.yimusi.dto.LoginResponse;
+import com.yimusi.dto.user.CreateUserRequest;
+import com.yimusi.dto.auth.LoginRequest;
+import com.yimusi.dto.auth.LoginResponse;
 import com.yimusi.entity.User;
 import com.yimusi.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -119,7 +119,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
         createRequest.setPassword("mypassword");
         createRequest.setRole(com.yimusi.common.enums.UserRole.MEMBER);
 
-        com.yimusi.common.model.ApiResponse<com.yimusi.dto.UserResponse> apiResponse = userController.createUser(createRequest);
+        com.yimusi.common.model.ApiResponse<com.yimusi.dto.user.UserResponse> apiResponse = userController.createUser(createRequest);
         User savedUser = userRepository.findById(apiResponse.getData().getId()).orElseThrow();
 
         // 密码应该被加密，而不是明文

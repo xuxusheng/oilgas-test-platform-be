@@ -3,9 +3,9 @@ package com.yimusi.mapper;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.yimusi.common.enums.UserRole;
-import com.yimusi.dto.CreateUserRequest;
-import com.yimusi.dto.UpdateUserRequest;
-import com.yimusi.dto.UserResponse;
+import com.yimusi.dto.user.CreateUserRequest;
+import com.yimusi.dto.user.UpdateUserRequest;
+import com.yimusi.dto.user.UserResponse;
 import com.yimusi.entity.User;
 import java.time.Instant;
 import java.util.List;

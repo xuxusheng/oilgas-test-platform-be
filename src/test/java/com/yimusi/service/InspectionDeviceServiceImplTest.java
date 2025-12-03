@@ -121,8 +121,8 @@ class InspectionDeviceServiceImplTest {
     }
 
     @Test
-    @DisplayName("更新检测设备 - 更换项目时重新计算项目序号")
-    void updateDevice_WhenProjectChanges_ShouldRecalculateInternalNo() throws InterruptedException {
+    @DisplayName("更新检测设备 - 更新设备信息")
+    void updateDevice_ShouldUpdateDeviceInfo() throws InterruptedException {
         InspectionDevice existing = new InspectionDevice();
         existing.setId(10L);
         existing.setDeviceNo("IND202501010001");
@@ -135,27 +135,18 @@ class InspectionDeviceServiceImplTest {
         existing.setCreatedAt(Instant.now());
 
         UpdateInspectionDeviceRequest request = new UpdateInspectionDeviceRequest();
-        request.setProjectId(200L);
-
-        // Mock Redisson 锁
-        RLock mockLock = mock(RLock.class);
-        when(redissonClient.getLock("inspection-device:project-internal-no:200")).thenReturn(mockLock);
-        when(mockLock.tryLock(5, 30, TimeUnit.SECONDS)).thenReturn(true);
-        when(mockLock.isHeldByCurrentThread()).thenReturn(true);
+        request.setDeviceModel("新型号");
+        request.setPort(202);
+        request.setStatus(InspectionDeviceStatus.CALIBRATED);
 
         when(deviceRepository.findById(10L)).thenReturn(Optional.of(existing));
-        when(projectRepository.findById(200L)).thenReturn(Optional.of(mockProject(200L)));
-        when(deviceRepository.findMaxProjectInternalNoIncludingDeletedByProjectId(200L)).thenReturn(Optional.of(8));
         when(deviceRepository.save(any(InspectionDevice.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         InspectionDeviceResponse response = inspectionDeviceService.updateDevice(10L, request);
 
-        assertEquals(200L, response.getProjectId());
-        assertEquals(9, response.getProjectInternalNo());
-        verify(redissonClient).getLock("inspection-device:project-internal-no:200");
-        verify(mockLock).tryLock(5, 30, TimeUnit.SECONDS);
-        verify(deviceRepository).findMaxProjectInternalNoIncludingDeletedByProjectId(200L);
-        verify(mockLock).unlock();
+        assertEquals("新型号", response.getDeviceModel());
+        assertEquals(202, response.getPort());
+        assertEquals(InspectionDeviceStatus.CALIBRATED, response.getStatus());
     }
 
     private Project mockProject(Long id) {

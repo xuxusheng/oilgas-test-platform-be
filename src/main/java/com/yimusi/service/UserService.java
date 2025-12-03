@@ -1,10 +1,10 @@
 package com.yimusi.service;
 
-import com.yimusi.dto.CreateUserRequest;
-import com.yimusi.dto.PageResult;
-import com.yimusi.dto.UpdateUserRequest;
-import com.yimusi.dto.UserPageRequest;
-import com.yimusi.dto.UserResponse;
+import com.yimusi.dto.user.CreateUserRequest;
+import com.yimusi.dto.common.PageResult;
+import com.yimusi.dto.user.UpdateUserRequest;
+import com.yimusi.dto.user.UserPageRequest;
+import com.yimusi.dto.user.UserResponse;
 import com.yimusi.entity.User;
 import java.util.List;
 import org.springframework.lang.NonNull;

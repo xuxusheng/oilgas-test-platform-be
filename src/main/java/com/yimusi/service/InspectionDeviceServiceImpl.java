@@ -48,24 +48,23 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
      * {@inheritDoc}
      */
     @Override
-    public InspectionDeviceResponse createDevice(CreateInspectionDeviceRequest createRequest) {
-        // 验证唯一性约束
-        validateSerialNumberUnique(createRequest.getSerialNumber());
-        validateIpUnique(createRequest.getIp());
+    public List<InspectionDevice> getAllDevices() {
+        return deviceRepository.findAll();
+    }
 
-        // 转换为实体
-        InspectionDevice device = deviceMapper.toEntity(createRequest);
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public PageResult<InspectionDeviceResponse> getDevicesPage(InspectionDevicePageRequest request) {
+        // 构建 QueryDSL 查询条件
+        Predicate predicate = buildDevicePredicate(request);
 
-        // 生成设备编号
-        device.setDeviceNo(sequenceGeneratorService.nextId(SequenceBizType.INSPECTION_DEVICE));
+        // 执行分页查询
+        Page<InspectionDevice> devicePage = deviceRepository.findAll(predicate, request.toJpaPageRequest());
 
-        // 生成项目内部序号
-        device.setProjectInternalNo(generateProjectInternalNo(device.getProjectId()));
-
-        InspectionDevice savedDevice = deviceRepository.save(device);
-        log.info("创建待检设备: {}", savedDevice.getDeviceNo());
-
-        return deviceMapper.toResponse(savedDevice);
+        // 转换并返回结果
+        return PageResult.from(devicePage.map(deviceMapper::toResponse));
     }
 
     /**
@@ -105,23 +104,24 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
      * {@inheritDoc}
      */
     @Override
-    public List<InspectionDevice> getAllDevices() {
-        return deviceRepository.findAll();
-    }
+    public InspectionDeviceResponse createDevice(CreateInspectionDeviceRequest createRequest) {
+        // 验证唯一性约束
+        validateSerialNumberUnique(createRequest.getSerialNumber());
+        validateIpUnique(createRequest.getIp());
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public PageResult<InspectionDeviceResponse> getDevicesPage(InspectionDevicePageRequest request) {
-        // 构建 QueryDSL 查询条件
-        Predicate predicate = buildDevicePredicate(request);
+        // 转换为实体
+        InspectionDevice device = deviceMapper.toEntity(createRequest);
 
-        // 执行分页查询
-        Page<InspectionDevice> devicePage = deviceRepository.findAll(predicate, request.toJpaPageRequest());
+        // 生成设备编号
+        device.setDeviceNo(sequenceGeneratorService.nextId(SequenceBizType.INSPECTION_DEVICE));
 
-        // 转换并返回结果
-        return PageResult.from(devicePage.map(deviceMapper::toResponse));
+        // 生成项目内部序号
+        device.setProjectInternalNo(generateProjectInternalNo(device.getProjectId()));
+
+        InspectionDevice savedDevice = deviceRepository.save(device);
+        log.info("创建待检设备: {}", savedDevice.getDeviceNo());
+
+        return deviceMapper.toResponse(savedDevice);
     }
 
     /**
@@ -146,11 +146,6 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
         // 如果更新了 IP，需要验证唯一性
         if (StrUtil.isNotBlank(updateRequest.getIp()) && !updateRequest.getIp().equals(device.getIp())) {
             validateIpUnique(updateRequest.getIp());
-        }
-
-        // 如果更新了项目 ID，需要重新生成项目内部序号
-        if (updateRequest.getProjectId() != null && !updateRequest.getProjectId().equals(device.getProjectId())) {
-            device.setProjectInternalNo(generateProjectInternalNo(updateRequest.getProjectId()));
         }
 
         // 更新实体
@@ -197,6 +192,36 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean validateSerialNumberUnique(String serialNumber) {
+        if (serialNumber == null) {
+            return true;
+        }
+        boolean exists = deviceRepository.existsBySerialNumberAndDeletedFalse(serialNumber);
+        if (exists) {
+            throw new BadRequestException(String.format("出厂编号 %s 已存在", serialNumber));
+        }
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean validateIpUnique(String ip) {
+        if (ip == null) {
+            return true;
+        }
+        boolean exists = deviceRepository.existsByIpAndDeletedFalse(ip);
+        if (exists) {
+            throw new BadRequestException(String.format("IP 地址 %s 已存在", ip));
+        }
+        return true;
+    }
+
+    /**
      * 标记设备为已删除
      *
      * @param device 设备实体
@@ -207,6 +232,17 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
         device.setDeletedBy(OperatorUtil.getOperator());
     }
 
+    /**
+     * 生成项目内部序号
+     * <p>
+     * 使用Redisson分布式锁确保项目内部序号的唯一性，避免并发冲突。
+     * 序号从1开始递增，每个项目独立计算。
+     * </p>
+     *
+     * @param projectId 项目ID，不能为空
+     * @return 项目内部序号，从1开始递增
+     * @throws BadRequestException 当项目不存在或ID为空时，或者获取锁失败时
+     */
     private Integer generateProjectInternalNo(Long projectId) {
         if (projectId == null) {
             throw new BadRequestException("projectId cannot be null");
@@ -244,9 +280,13 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
     }
 
     /**
-     * 使用 QueryDSL 构建设备查询条件.
+     * 使用 QueryDSL 构建设备查询条件，支持多字段模糊查询和精确查询
+     * <p>
+     * 构建包含设备编号、出厂编号、设备型号的模糊查询，以及IP、项目ID、状态的精确查询。
+     * 默认只查询未删除的设备记录。
+     * </p>
      *
-     * @param request 分页查询请求
+     * @param request 分页查询请求对象
      * @return Predicate 查询条件
      */
     @NonNull
@@ -286,35 +326,5 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
         }
 
         return builder;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean validateSerialNumberUnique(String serialNumber) {
-        if (serialNumber == null) {
-            return true;
-        }
-        boolean exists = deviceRepository.existsBySerialNumberAndDeletedFalse(serialNumber);
-        if (exists) {
-            throw new BadRequestException(String.format("出厂编号 %s 已存在", serialNumber));
-        }
-        return true;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean validateIpUnique(String ip) {
-        if (ip == null) {
-            return true;
-        }
-        boolean exists = deviceRepository.existsByIpAndDeletedFalse(ip);
-        if (exists) {
-            throw new BadRequestException(String.format("IP 地址 %s 已存在", ip));
-        }
-        return true;
     }
 }

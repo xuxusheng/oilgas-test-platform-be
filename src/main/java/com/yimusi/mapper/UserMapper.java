@@ -1,8 +1,8 @@
 package com.yimusi.mapper;
 
-import com.yimusi.dto.CreateUserRequest;
-import com.yimusi.dto.UpdateUserRequest;
-import com.yimusi.dto.UserResponse;
+import com.yimusi.dto.user.CreateUserRequest;
+import com.yimusi.dto.user.UpdateUserRequest;
+import com.yimusi.dto.user.UserResponse;
 import com.yimusi.entity.User;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;

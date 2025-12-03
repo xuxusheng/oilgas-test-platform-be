@@ -1,8 +1,8 @@
 package com.yimusi.mapper;
 
-import com.yimusi.dto.CreateProjectRequest;
-import com.yimusi.dto.UpdateProjectRequest;
-import com.yimusi.dto.ProjectResponse;
+import com.yimusi.dto.project.CreateProjectRequest;
+import com.yimusi.dto.project.UpdateProjectRequest;
+import com.yimusi.dto.project.ProjectResponse;
 import com.yimusi.entity.Project;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;

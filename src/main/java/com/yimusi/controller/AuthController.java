@@ -2,9 +2,9 @@ package com.yimusi.controller;
 
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
-import com.yimusi.dto.LoginRequest;
-import com.yimusi.dto.LoginResponse;
-import com.yimusi.dto.UserResponse;
+import com.yimusi.dto.auth.LoginRequest;
+import com.yimusi.dto.auth.LoginResponse;
+import com.yimusi.dto.user.UserResponse;
 import com.yimusi.entity.User;
 import com.yimusi.mapper.UserMapper;
 import com.yimusi.service.UserService;
