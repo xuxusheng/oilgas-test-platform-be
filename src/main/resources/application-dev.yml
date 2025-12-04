@@ -1,0 +1,40 @@
+# 共享开发/测试环境配置 (dev)
+# ----------------------------------------------------------------
+# 这个环境用于团队成员共享的开发或测试服务器。
+# 配置应该比本地环境更严格,更接近生产环境。
+# 启动方式: java -jar app.jar --spring.profiles.active=dev
+
+spring:
+  # --- 数据库配置 (连接共享的开发数据库) ---
+  datasource:
+    url: jdbc:mysql://dev-db-host:3306/oilgas_test_dev?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
+    username: yimusi_dev
+    # 密码从环境变量读取,提供一个无害的默认值
+    password: ${DB_PASSWORD_DEV:change_me_dev}
+
+  # --- JPA/Hibernate 配置 ---
+  jpa:
+    hibernate:
+      # 在共享开发环境,建议设置为 validate,以确保实体和表结构一致,避免自动修改带来的混乱。
+      ddl-auto: validate
+    # 关闭 SQL 显示,保持日志干净。需要时可以临时开启。
+    show-sql: false
+
+# --- Sa-Token 配置 ---
+sa-token:
+  # 关闭控制台打印,统一由日志框架管理
+  is-print: false
+  # 在 dev 环境开启日志,方便排查问题
+  is-log: true
+
+# --- Actuator 监控端点 ---
+# 暴露基本的监控端点,同时可以加上指标和 Prometheus
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      # 可以显示部分详情,但不是全部
+      show-details: when_authorized

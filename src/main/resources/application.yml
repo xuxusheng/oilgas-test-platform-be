@@ -1,78 +1,81 @@
+# 通用基础配置 (application.yml)
+# ----------------------------------------------------------------
+# 该文件包含所有环境共享的通用配置。
+# 特定环境的配置(如数据库连接、日志级别)应在各自的 application-{profile}.yml 文件中定义。
+#
+# 激活特定环境的方式 (推荐):
+#   - 命令行参数: java -jar your-app.jar --spring.profiles.active=prod
+#   - 环境变量: export SPRING_PROFILES_ACTIVE=prod && java -jar your-app.jar
+
 # 服务器配置
 server:
   port: 8080
 
-# 应用配置
+# Spring Boot 应用配置
 spring:
+  # 默认激活 local 环境, 方便本地一键启动
   profiles:
-    active: dev # 激活 dev 环境
+    active: local
+
+  # 应用基础信息
   application:
     name: springboot-app
-  # Jackson 配置
+
+  # Jackson 全局配置
   jackson:
     serialization:
       write-dates-as-timestamps: false
       write-date-timestamps-as-nanoseconds: false
     deserialization:
       read-date-timestamps-as-nanoseconds: false
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      database: 0
-      password: redis123456
-  # --- 数据源配置 ---
+
+  # --- 数据源驱动 --- (具体的 URL、用户名、密码在各环境配置)
   datasource:
-    url: jdbc:mysql://localhost:3306/oilgas_test?useSSL=false&serverTimezone=UTC&characterEncoding=UTF-8
-    username: yimusi
-    password: yimusi123456
     driver-class-name: com.mysql.cj.jdbc.Driver
-  # --- JPA/Hibernate 配置 ---
+
+  # --- 通用 JPA/Hibernate 配置 ---
   jpa:
     open-in-view: false
-    hibernate:
-      # ddl-auto: [create | create-drop | update | validate | none]
-      #   - update: 启动时自动更新表结构(开发方便)
-      #   - validate: 启动时校验表结构
-      #   - none: 生产环境推荐,更安全
-      ddl-auto: update
-    # 在控制台显示执行的SQL语句
-    show-sql: true
     properties:
       hibernate:
-        format_sql: true
+        format_sql: true # SQL 格式化,方便日志查看
 
-# Sa-Token 配置
+  # --- 通用 Redis 配置 --- (具体的 host、密码在各环境配置)
+  data:
+    redis:
+      database: 0
+      port: 6379
+
+# --- 通用 Sa-Token 配置 ---
 sa-token:
   token-style: jwt
-  jwt-secret-key: yimusi-oilgas-platform-change-me-for-production
-  timeout: 2592000   # 30 天
+  # Token 永不手动续期
   active-timeout: -1
-  is-print: true
-  is-log: false
+  # 默认 Token 有效期: 30天 (可以在 prod 环境中覆盖此配置)
+  timeout: 2592000
 
 # --- 日志配置 ---
 logging:
   config: classpath:logback-spring.xml # 指定日志配置文件
 
-# --- Actuator 监控端点配置 ---
+# --- Actuator 监控端点配置 (安全默认值) ---
 management:
   endpoints:
     web:
       exposure:
-        # 使用环境变量配置端点暴露,默认安全配置
-        # 生产环境: ["health", "info", "prometheus"]
-        # 开发环境: ["health", "info", "metrics", "prometheus"]
-        # 测试环境/调试: ["*"]
-        include: ${ACTUATOR_ENDPOINTS:health,info}
+        # 默认只暴露最安全的端点,其它环境可按需覆盖
+        include: health,info
   endpoint:
     health:
-      # 默认只显示基本信息,保护敏感数据
+      # 默认不显示详细信息
       show-details: never
 
+# --- Yimusi 自定义配置 ---
 yimusi:
   lock:
     redisson:
       enabled: true
+      # 分布式锁等待时间
       wait-time: PT5S
+      # 看门狗超时时间
       lock-watchdog-timeout: PT30S

@@ -1,0 +1,58 @@
+# 生产环境配置 (prod)
+# ----------------------------------------------------------------
+# 这是最严格、最安全的生产环境配置。
+# 启动方式: java -jar app.jar --spring.profiles.active=prod
+
+spring:
+  # --- 数据库配置 (连接生产数据库) ---
+  datasource:
+    url: jdbc:mysql://prod-db-host:3306/oilgas_test_prod?useSSL=true&serverTimezone=UTC&characterEncoding=UTF-8
+    username: yimusi_prod
+    # 密码必须从环境变量中读取,不能有默认值!
+    password: ${DB_PASSWORD_PROD}
+
+  # --- JPA/Hibernate 配置 ---
+  jpa:
+    hibernate:
+      # 生产环境绝对不能让 Hibernate 自动修改表结构,必须设置为 none 或 validate。
+      # 数据库变更应通过 Flyway/Liquibase 等工具手动管理。
+      ddl-auto: none
+    # 关闭 SQL 显示,避免日志泛滥和性能损耗
+    show-sql: false
+
+  # --- Redis 配置 ---
+  data:
+    redis:
+      host: prod-redis-host
+      # 密码必须从环境变量读取
+      password: ${REDIS_PASSWORD_PROD}
+
+# --- Sa-Token 配置 ---
+sa-token:
+  # 关闭控制台打印
+  is-print: false
+  # 开启日志,记录关键操作
+  is-log: true
+  # 生产环境的 JWT 密钥必须从环境变量中获取,且应为一个复杂的长字符串
+  jwt-secret-key: ${JWT_SECRET_KEY_PROD}
+  # 建议缩短 Token 有效期,例如 7 天 (604800 秒),并使用续签机制
+  timeout: 604800
+
+# --- Actuator 监控端点 ---
+# 只暴露最基本且必要的信息,保护系统安全
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      # 生产环境绝不应显示详细的健康检查信息
+      show-details: never
+
+# --- 日志级别 ---
+# 生产环境通常将默认日志级别设为 INFO,减少日志量
+logging:
+  level:
+    root: INFO
+    com.yimusi: INFO # 可以为自己的项目包设置特定级别
