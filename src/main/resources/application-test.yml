@@ -16,6 +16,11 @@ sa-token:
   timeout: 2592000   # 30 天
   active-timeout: -1
 
+# SQL 初始化配置 - 测试环境
+  sql:
+    init:
+      mode: always  # 测试环境也执行核心数据
+
 # 关闭 actuator 以减少测试加载失败风险
 management:
   endpoints:
