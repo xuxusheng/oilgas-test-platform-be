@@ -26,18 +26,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
  * 用户控制器集成测试类
  * 验证用户管理相关REST API的完整业务流程，包括创建、更新、删除、查询等功能
- *
- * @author yimusi团队
- * @date 2025-11-25
  */
 @AutoConfigureMockMvc
-@TestPropertySource(locations = "classpath:application-test.yml")
 @DisplayName("用户控制器集成测试")
 public class UserControllerIntegrationTest extends BaseIntegrationTest {
 

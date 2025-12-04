@@ -5,7 +5,8 @@
          ======================================= -->
     <property name="APP_NAME" value="springboot-app"/>
     <property name="LOG_PATH" value="${LOG_PATH:-./logs}"/>
-    <property name="CONSOLE_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n"/>
+    <property name="CONSOLE_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n"/>
 
     <!-- =======================================
          通用 Appenders (Shared Appenders)
@@ -16,13 +17,6 @@
         <encoder>
             <pattern>${CONSOLE_PATTERN}</pattern>
             <charset>UTF-8</charset>
-        </encoder>
-    </appender>
-
-    <!-- 2. JSON 结构化日志到控制台 (用于非本地环境) -->
-    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <customFields>{"app_name":"${APP_NAME}"}</customFields>
         </encoder>
     </appender>
 
@@ -75,48 +69,17 @@
 
 
     <!-- =======================================
-         本地环境 (local) - 彩色控制台 + JSON 文件
+         通用日志配置
          ======================================= -->
-    <springProfile name="local">
-        <root level="INFO">
-            <appender-ref ref="COLORED_CONSOLE"/>
-            <appender-ref ref="ASYNC_JSON_FILE"/>
-            <appender-ref ref="ASYNC_JSON_ERROR_FILE"/>
-        </root>
-        <logger name="com.yimusi" level="DEBUG" additivity="false">
-            <appender-ref ref="COLORED_CONSOLE"/>
-            <appender-ref ref="ASYNC_JSON_FILE"/>
-            <appender-ref ref="ASYNC_JSON_ERROR_FILE"/>
-        </logger>
-    </springProfile>
-
-
-    <!-- =======================================
-         开发环境 (dev) - JSON 控制台 + JSON 文件
-         ======================================= -->
-    <springProfile name="dev">
-        <root level="INFO">
-            <appender-ref ref="JSON_CONSOLE"/>
-            <appender-ref ref="ASYNC_JSON_FILE"/>
-            <appender-ref ref="ASYNC_JSON_ERROR_FILE"/>
-        </root>
-        <logger name="com.yimusi" level="DEBUG" additivity="false">
-            <appender-ref ref="JSON_CONSOLE"/>
-            <appender-ref ref="ASYNC_JSON_FILE"/>
-            <appender-ref ref="ASYNC_JSON_ERROR_FILE"/>
-        </logger>
-    </springProfile>
-
-
-    <!-- =======================================
-         生产 & 测试环境 (prod, test) - JSON 控制台 + JSON 文件
-         ======================================= -->
-    <springProfile name="prod, test">
-        <root level="INFO">
-            <appender-ref ref="JSON_CONSOLE"/>
-            <appender-ref ref="ASYNC_JSON_FILE"/>
-            <appender-ref ref="ASYNC_JSON_ERROR_FILE"/>
-        </root>
-    </springProfile>
+    <root level="INFO">
+        <appender-ref ref="COLORED_CONSOLE"/>
+        <appender-ref ref="ASYNC_JSON_FILE"/>
+        <appender-ref ref="ASYNC_JSON_ERROR_FILE"/>
+    </root>
+    <logger name="com.yimusi" level="DEBUG" additivity="false">
+        <appender-ref ref="COLORED_CONSOLE"/>
+        <appender-ref ref="ASYNC_JSON_FILE"/>
+        <appender-ref ref="ASYNC_JSON_ERROR_FILE"/>
+    </logger>
 
 </configuration>

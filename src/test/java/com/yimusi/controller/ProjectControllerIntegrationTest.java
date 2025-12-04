@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
@@ -34,7 +33,6 @@ import java.util.List;
  * 验证项目管理相关REST API的完整业务流程，包括创建、更新、删除、查询等功能
  */
 @AutoConfigureMockMvc
-@TestPropertySource(locations = "classpath:application-test.yml")
 @DisplayName("项目控制器集成测试")
 public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
 
