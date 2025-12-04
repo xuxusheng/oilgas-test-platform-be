@@ -14,7 +14,7 @@ import org.springframework.lang.NonNull;
 /**
  * MapStruct映射器接口，用于在User实体和DTO之间进行转换。
  */
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", config = BaseMapperConfig.class)
 public interface UserMapper {
     /**
      * 将User实体转换为UserResponse DTO。
