@@ -53,6 +53,14 @@ public interface UserService {
     User validateUser(String username, String password);
 
     /**
+     * 用户注册。
+     *
+     * @param registerRequest 注册请求
+     * @return 注册成功的用户信息
+     */
+    UserResponse register(com.yimusi.dto.auth.UserRegisterRequest registerRequest);
+
+    /**
      * 创建一个新用户。
      *
      * @param createUserRequest 包含新用户信息的请求体

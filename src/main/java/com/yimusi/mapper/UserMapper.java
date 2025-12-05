@@ -36,6 +36,17 @@ public interface UserMapper {
     User toEntity(CreateUserRequest createUserRequest);
 
     /**
+     * 将UserRegisterRequest DTO转换为User实体。
+     *
+     * @param registerRequest 注册请求DTO
+     * @return 转换后的User实体
+     */
+    @NonNull
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "role", ignore = true) // 角色在Service层手动设置为MEMBER
+    User toEntity(com.yimusi.dto.auth.UserRegisterRequest registerRequest);
+
+    /**
      * 从UpdateUserRequest DTO更新一个已存在的User实体。
      * 在更新时，忽略ID字段的映射。
      *

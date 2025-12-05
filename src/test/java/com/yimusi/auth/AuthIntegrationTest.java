@@ -4,10 +4,13 @@ import cn.hutool.crypto.digest.BCrypt;
 import com.yimusi.BaseIntegrationTest;
 import com.yimusi.controller.AuthController;
 import com.yimusi.controller.UserController;
-import com.yimusi.dto.user.CreateUserRequest;
 import com.yimusi.dto.auth.LoginRequest;
 import com.yimusi.dto.auth.LoginResponse;
+import com.yimusi.dto.auth.UserRegisterRequest;
+import com.yimusi.dto.user.CreateUserRequest;
+import com.yimusi.dto.user.UserResponse;
 import com.yimusi.entity.User;
+import com.yimusi.enums.UserRole;
 import com.yimusi.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -125,5 +128,30 @@ class AuthIntegrationTest extends BaseIntegrationTest {
         // 密码应该被加密，而不是明文
         assertNotEquals("mypassword", savedUser.getPassword());
         assertTrue(savedUser.getPassword().startsWith("$2a$"));
+    }
+
+    /**
+     * 测试用户注册成功场景
+     * 验证用户可以通过注册接口成功注册，并且默认角色为MEMBER
+     */
+    @Test
+    @DisplayName("测试用户注册成功")
+    void shouldRegisterSuccessfully() {
+        UserRegisterRequest registerRequest = new UserRegisterRequest();
+        registerRequest.setUsername("registeruser");
+        registerRequest.setPassword("registerpass");
+
+        ResponseEntity<UserResponse> response = authController.register(registerRequest);
+
+        assertEquals(200, response.getStatusCode().value());
+        UserResponse userResponse = response.getBody();
+        assertNotNull(userResponse);
+        assertEquals("registeruser", userResponse.getUsername());
+        assertEquals(UserRole.MEMBER, userResponse.getRole());
+
+        // 验证数据库中存在
+        User savedUser = userRepository.findById(userResponse.getId()).orElseThrow();
+        assertEquals("registeruser", savedUser.getUsername());
+        assertTrue(BCrypt.checkpw("registerpass", savedUser.getPassword()));
     }
 }

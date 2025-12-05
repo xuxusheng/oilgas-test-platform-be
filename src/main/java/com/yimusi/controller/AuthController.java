@@ -9,6 +9,7 @@ import com.yimusi.entity.User;
 import com.yimusi.mapper.UserMapper;
 import com.yimusi.service.UserService;
 import jakarta.validation.Valid;
+import java.time.Instant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,8 +17,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.time.Instant;
 
 /**
  * 认证控制器，处理用户登录、登出等认证相关操作
@@ -50,17 +49,31 @@ public class AuthController {
         // 构建响应
         Instant now = Instant.now();
         LoginResponse response = LoginResponse.builder()
-                .accessToken(tokenInfo.tokenValue)
-                .tokenType("Bearer")
-                .expiresIn(tokenInfo.tokenTimeout)
-                .expiresAt(now.plusSeconds(tokenInfo.tokenTimeout))
-                .userId(user.getId())
-                .username(user.getUsername())
-                .role(user.getRole())
-                .loginTime(now)
-                .build();
+            .accessToken(tokenInfo.tokenValue)
+            .tokenType("Bearer")
+            .expiresIn(tokenInfo.tokenTimeout)
+            .expiresAt(now.plusSeconds(tokenInfo.tokenTimeout))
+            .userId(user.getId())
+            .username(user.getUsername())
+            .role(user.getRole())
+            .loginTime(now)
+            .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 用户注册
+     *
+     * @param registerRequest 注册请求
+     * @return 注册成功的用户信息
+     */
+    @PostMapping("/register")
+    public ResponseEntity<UserResponse> register(
+        @Valid @RequestBody com.yimusi.dto.auth.UserRegisterRequest registerRequest
+    ) {
+        UserResponse userResponse = userService.register(registerRequest);
+        return ResponseEntity.ok(userResponse);
     }
 
     /**

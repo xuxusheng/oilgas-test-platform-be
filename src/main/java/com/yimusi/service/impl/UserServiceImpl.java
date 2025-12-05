@@ -7,6 +7,7 @@ import com.querydsl.core.types.Predicate;
 import com.yimusi.common.exception.BadRequestException;
 import com.yimusi.common.exception.ResourceNotFoundException;
 import com.yimusi.common.util.OperatorUtil;
+import com.yimusi.dto.auth.UserRegisterRequest;
 import com.yimusi.dto.common.PageResult;
 import com.yimusi.dto.user.CreateUserRequest;
 import com.yimusi.dto.user.UpdateUserRequest;
@@ -14,6 +15,7 @@ import com.yimusi.dto.user.UserPageRequest;
 import com.yimusi.dto.user.UserResponse;
 import com.yimusi.entity.QUser;
 import com.yimusi.entity.User;
+import com.yimusi.enums.UserRole;
 import com.yimusi.mapper.UserMapper;
 import com.yimusi.repository.UserRepository;
 import com.yimusi.service.UserService;
@@ -70,6 +72,20 @@ public class UserServiceImpl implements UserService {
         }
 
         return user;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public UserResponse register(UserRegisterRequest registerRequest) {
+        validateUsernameUnique(registerRequest.getUsername());
+
+        User user = userMapper.toEntity(registerRequest);
+        user.setPassword(BCrypt.hashpw(registerRequest.getPassword()));
+        user.setRole(UserRole.MEMBER);
+
+        return userMapper.toResponse(userRepository.save(user));
     }
 
     /**
