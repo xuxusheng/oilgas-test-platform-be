@@ -6,8 +6,8 @@ import static org.mockito.Mockito.*;
 
 import com.yimusi.common.exception.BadRequestException;
 import com.yimusi.common.exception.ResourceNotFoundException;
-import com.yimusi.dto.user.CreateUserRequest;
 import com.yimusi.dto.common.PageResult;
+import com.yimusi.dto.user.CreateUserRequest;
 import com.yimusi.dto.user.UpdateUserRequest;
 import com.yimusi.dto.user.UserPageRequest;
 import com.yimusi.dto.user.UserResponse;
@@ -15,8 +15,7 @@ import com.yimusi.entity.User;
 import com.yimusi.enums.UserRole;
 import com.yimusi.mapper.UserMapper;
 import com.yimusi.repository.UserRepository;
-import com.yimusi.service.UserServiceImpl;
-import java.time.Instant;
+import com.yimusi.service.impl.UserServiceImpl;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,12 +29,11 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 
 /**
  * 用户业务逻辑服务单元测试类
  *
- * <p>该类对 {@link com.yimusi.service.UserServiceImpl} 进行全面的单元测试，
+ * <p>该类对 {@link UserServiceImpl} 进行全面的单元测试，
  * 覆盖用户操作的各个场景，包括用户创建、查询、更新、删除、恢复、分页查询等业务逻辑。
  * 使用 Mockito 框架进行依赖注入和模拟，确保测试的隔离性和可靠性。</p>
  *
@@ -50,7 +48,7 @@ import org.springframework.data.domain.PageRequest;
  *   <li>异常边界情况：空参数校验、资源不存在处理</li>
  * </ul>
  *
- * @see com.yimusi.service.UserServiceImpl
+ * @see UserServiceImpl
  */
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {

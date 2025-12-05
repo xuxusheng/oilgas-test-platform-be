@@ -6,17 +6,20 @@ import static org.mockito.Mockito.*;
 
 import com.yimusi.common.exception.BadRequestException;
 import com.yimusi.common.exception.ResourceNotFoundException;
-import com.yimusi.dto.project.CreateProjectRequest;
 import com.yimusi.dto.common.PageResult;
+import com.yimusi.dto.project.CreateProjectRequest;
 import com.yimusi.dto.project.ProjectPageRequest;
 import com.yimusi.dto.project.ProjectResponse;
 import com.yimusi.dto.project.UpdateProjectRequest;
 import com.yimusi.entity.Project;
 import com.yimusi.mapper.ProjectMapper;
 import com.yimusi.repository.ProjectRepository;
-import com.yimusi.service.ProjectServiceImpl;
+import com.yimusi.service.impl.ProjectServiceImpl;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,11 +32,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * 项目业务逻辑服务单元测试类
@@ -228,7 +226,7 @@ class ProjectServiceImplTest {
 
         // Act & Assert - 执行查询操作并验证抛出资源未找到异常，且异常信息包含项目ID
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-                projectService.getProjectById(999L)
+            projectService.getProjectById(999L)
         );
         assertTrue(exception.getMessage().contains("999"));
     }
@@ -249,7 +247,7 @@ class ProjectServiceImplTest {
 
         // Act & Assert - 执行查询操作并验证抛出资源未找到异常，且异常信息包含项目编号
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-                projectService.getProjectByNo("PRJ999")
+            projectService.getProjectByNo("PRJ999")
         );
         assertTrue(exception.getMessage().contains("PRJ999"));
     }
@@ -341,10 +339,10 @@ class ProjectServiceImplTest {
         List<Project> projects = List.of(project);
         Page<Project> projectPage = new PageImpl<>(projects, PageRequest.of(0, 10), 1);
         when(
-                projectRepository.findAll(
-                        any(com.querydsl.core.types.Predicate.class),
-                        any(org.springframework.data.domain.Pageable.class)
-                )
+            projectRepository.findAll(
+                any(com.querydsl.core.types.Predicate.class),
+                any(org.springframework.data.domain.Pageable.class)
+            )
         ).thenReturn(projectPage);
 
         // Act - 执行无过滤条件的分页查询
@@ -368,10 +366,10 @@ class ProjectServiceImplTest {
         List<Project> projects = List.of(project);
         Page<Project> projectPage = new PageImpl<>(projects, PageRequest.of(0, 10), 1);
         when(
-                projectRepository.findAll(
-                        any(com.querydsl.core.types.Predicate.class),
-                        any(org.springframework.data.domain.Pageable.class)
-                )
+            projectRepository.findAll(
+                any(com.querydsl.core.types.Predicate.class),
+                any(org.springframework.data.domain.Pageable.class)
+            )
         ).thenReturn(projectPage);
 
         // Act - 执行过滤分页查询操作
@@ -394,10 +392,10 @@ class ProjectServiceImplTest {
         List<Project> projects = List.of(project);
         Page<Project> projectPage = new PageImpl<>(projects, PageRequest.of(0, 10), 1);
         when(
-                projectRepository.findAll(
-                        any(com.querydsl.core.types.Predicate.class),
-                        any(org.springframework.data.domain.Pageable.class)
-                )
+            projectRepository.findAll(
+                any(com.querydsl.core.types.Predicate.class),
+                any(org.springframework.data.domain.Pageable.class)
+            )
         ).thenReturn(projectPage);
 
         // Act - 执行过滤分页查询操作

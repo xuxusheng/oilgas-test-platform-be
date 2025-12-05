@@ -1,4 +1,4 @@
-package com.yimusi.service;
+package com.yimusi.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.querydsl.core.BooleanBuilder;
@@ -17,6 +17,8 @@ import com.yimusi.enums.SequenceBizType;
 import com.yimusi.mapper.InspectionDeviceMapper;
 import com.yimusi.repository.InspectionDeviceRepository;
 import com.yimusi.repository.ProjectRepository;
+import com.yimusi.service.InspectionDeviceService;
+import com.yimusi.service.SequenceGeneratorService;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;

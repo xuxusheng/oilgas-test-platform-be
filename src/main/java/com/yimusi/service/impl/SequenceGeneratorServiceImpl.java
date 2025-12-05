@@ -1,4 +1,4 @@
-package com.yimusi.service;
+package com.yimusi.service.impl;
 
 import com.yimusi.common.exception.BadRequestException;
 import com.yimusi.common.exception.ErrorCode;
@@ -7,6 +7,7 @@ import com.yimusi.entity.SequenceGenerator;
 import com.yimusi.enums.ResetStrategy;
 import com.yimusi.enums.SequenceBizType;
 import com.yimusi.repository.SequenceGeneratorRepository;
+import com.yimusi.service.SequenceGeneratorService;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;

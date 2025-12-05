@@ -1,4 +1,4 @@
-package com.yimusi.service;
+package com.yimusi.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.querydsl.core.BooleanBuilder;
@@ -15,6 +15,7 @@ import com.yimusi.entity.Project;
 import com.yimusi.entity.QProject;
 import com.yimusi.mapper.ProjectMapper;
 import com.yimusi.repository.ProjectRepository;
+import com.yimusi.service.ProjectService;
 import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.util.List;

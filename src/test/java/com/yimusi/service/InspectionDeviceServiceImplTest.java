@@ -14,6 +14,7 @@ import com.yimusi.enums.SequenceBizType;
 import com.yimusi.mapper.InspectionDeviceMapper;
 import com.yimusi.repository.InspectionDeviceRepository;
 import com.yimusi.repository.ProjectRepository;
+import com.yimusi.service.impl.InspectionDeviceServiceImpl;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -156,5 +157,4 @@ class InspectionDeviceServiceImplTest {
         project.setId(id);
         return project;
     }
-
 }

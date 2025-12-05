@@ -1,4 +1,4 @@
-package com.yimusi.service;
+package com.yimusi.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.BCrypt;
@@ -16,6 +16,7 @@ import com.yimusi.entity.QUser;
 import com.yimusi.entity.User;
 import com.yimusi.mapper.UserMapper;
 import com.yimusi.repository.UserRepository;
+import com.yimusi.service.UserService;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

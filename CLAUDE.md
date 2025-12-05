@@ -1,139 +1,139 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+此文件为 Claude Code (claude.ai/code) 在处理此仓库代码时提供指导。
 
-## Project Overview
+## 项目概览
 
-This is a **Spring Boot backend application** for an oil and gas test platform (oilgas-test-platform-be). It implements a comprehensive enterprise system with authentication, project management, inspection device tracking, and a sophisticated distributed sequence generator. The application uses modern Java 21 with Spring Boot 3.4.1 and follows clean architecture patterns.
+这是一个用于油气测试平台 (oilgas-test-platform-be) 的 **Spring Boot 后端应用程序**。它实现了一个综合性的企业级系统，包括身份验证、项目管理、检测设备跟踪以及复杂的分布式序列生成器。该应用程序使用现代 Java 21 和 Spring Boot 3.4.1，并遵循整洁架构模式。
 
-## Build System and Development Commands
+## 构建系统和开发命令
 
-### Prerequisites
-- **Java 21** (LTS version)
-- **Maven 3.9+** with the Maven Wrapper included (`mvnw`)
-- **MySQL** for database
-- **Redis** for distributed locking
-- **pnpm** for code formatting (JavaScript/TypeScript optional)
+### 前置要求
+- **Java 21** (LTS 版本)
+- **Maven 3.9+** (包含 Maven Wrapper `mvnw`)
+- **MySQL** 用于数据库
+- **Redis** 用于分布式锁
+- **pnpm** 用于代码格式化 (JavaScript/TypeScript 可选)
 
-### Core Commands
+### 核心命令
 ```bash
-# Build the project
+# 构建项目
 ./mvnw clean compile
 
-# Run comprehensive tests (includes JaCoCo coverage validation)
+# 运行综合测试 (包含 JaCoCo 覆盖率验证)
 ./mvnw clean test
 
-# Run single test class
+# 运行单个测试类
 ./mvnw -Dtest=CategoryTest test
 
-# Run single test method
+# 运行单个测试方法
 ./mvnw -Dtest=UserRepositoryQueryDslTest#testFindAllByQueryDsl test
 
-# Start the application
+# 启动应用程序
 ./mvnw spring-boot:run
 
-# Build without tests (for faster iteration)
+# 不带测试构建 (用于快速迭代)
 ./mvnw clean compile -DskipTests
 
-# Format Java code using Prettier
+# 使用 Prettier 格式化 Java 代码
 pnpm run format
 ```
 
-### Test Coverage
-- **Line coverage target**: 80%
-- **Branch coverage target**: 70%
-- **Coverage reports**: Available at `target/site/jacoco/index.html`
-- **Validation**: Tests fail if coverage thresholds aren't met
+### 测试覆盖率
+- **行覆盖率目标**: 80%
+- **分支覆盖率目标**: 70%
+- **覆盖率报告**: 位于 `target/site/jacoco/index.html`
+- **验证**: 如果未达到覆盖率阈值，测试将失败
 
-## High-Level Architecture
+## 高层架构
 
-### Domain-Driven Design Structure
+### 领域驱动设计结构
 ```
 src/main/java/com/yimusi/
-├── Application.java                         # Spring Boot entry point
-├── common/                                 # Shared utilities and exceptions
-├── config/                                 # Spring configuration classes
-├── controller/                             # REST API endpoints (Spring MVC)
-├── dto/                                    # Data Transfer Objects
-│   ├── auth/                               # Authentication DTOs
-│   ├── user/                               # User management DTOs
-│   ├── project/                            # Project management DTOs
-│   ├── inspection/                         # Inspection device DTOs
-│   └── common/                             # Shared DTOs
-├── entity/                                 # JPA entities/ORM models
-├── enums/                                  # Enumeration types
-├── mapper/                                 # MapStruct mappers
-├── repository/                             # Spring Data JPA repositories
-└── service/                                # Business logic layer
+├── Application.java                         # Spring Boot 入口点
+├── common/                                 # 共享工具类和异常
+├── config/                                 # Spring 配置类
+├── controller/                             # REST API 端点 (Spring MVC)
+├── dto/                                    # 数据传输对象
+│   ├── auth/                               # 认证 DTO
+│   ├── user/                               # 用户管理 DTO
+│   ├── project/                            # 项目管理 DTO
+│   ├── inspection/                         # 检测设备 DTO
+│   └── common/                             # 共享 DTO
+├── entity/                                 # JPA 实体/ORM 模型
+├── enums/                                  # 枚举类型
+├── mapper/                                 # MapStruct 映射器
+├── repository/                             # Spring Data JPA 仓库
+└── service/                                # 业务逻辑层
 ```
 
-### Key Technical Stack
+### 关键技术栈
 
-#### Core Frameworks
-- **Spring Boot 3.4.1** with Jakarta EE 9+ migration
-- **Spring Data JPA** with Hibernate
-- **Spring Web** for REST API
-- **Sa-Token** for JWT authentication and authorization
-- **Redisson** for distributed locks
+#### 核心框架
+- **Spring Boot 3.4.1** 迁移至 Jakarta EE 9+
+- **Spring Data JPA** 使用 Hibernate
+- **Spring Web** 用于 REST API
+- **Sa-Token** 用于 JWT 认证和授权
+- **Redisson** 用于分布式锁
 
-#### Database & Persistence
-- **MySQL** with JPA/Hibernate ORM
-- **QueryDSL** for type-safe queries
-- **Testcontainers** for integration testing
-- **DDL auto-update** for development (table creation/update on startup)
+#### 数据库与持久化
+- **MySQL** 使用 JPA/Hibernate ORM
+- **QueryDSL** 用于类型安全的查询
+- **Testcontainers** 用于集成测试
+- **DDL 自动更新** 用于开发 (启动时创建/更新表)
 
-#### Development Tools
-- **Lombok** for reduced boilerplate
-- **MapStruct** for object mapping
-- **Hutool** for utility functions
-- **Mockito** for mocking
-- **JaCoCo** for code coverage analysis
+#### 开发工具
+- **Lombok** 减少样板代码
+- **MapStruct** 用于对象映射
+- **Hutool** 用于工具函数
+- **Mockito** 用于模拟
+- **JaCoCo** 用于代码覆盖率分析
 
-### Authentication System
+### 认证系统
 
-#### Sa-Token JWT Configuration
-- **Token format**: JWT
-- **Token lifespan**: 30 days (2,592,000 seconds)
-- **Secret key**: Configurable, currently using development key
-- **Endpoints**: `/api/auth/*` (login, logout, user info)
-- **Protected routes**: All `/api/**` endpoints require authentication
+#### Sa-Token JWT 配置
+- **令牌格式**: JWT
+- **令牌寿命**: 30 天 (2,592,000 秒)
+- **密钥**: 可配置，目前使用开发密钥
+- **端点**: `/api/auth/*` (登录, 登出, 用户信息)
+- **受保护路由**: 所有 `/api/**` 端点都需要认证
 
-#### Role-Based Access Control
-- **ADMIN**: Full access
-- **USER**: Restricted access
-- Custom permission annotations can be added per endpoint
+#### 基于角色的访问控制
+- **ADMIN**: 完全访问权限
+- **USER**: 受限访问权限
+- 每个端点可以添加自定义权限注解
 
-### Distributed Sequence Generator
+### 分布式序列生成器
 
-#### Overview
-A sophisticated distributed ID generation system similar to Twitter Snowflake, implemented for:
-- **Inspection device numbers**: `IND202501280001` (daily reset)
-- **Project internal sequences**: `1, 2, 3...` (monotonic, no reset)
-- **Custom business sequences** with configurable reset strategies
+#### 概览
+一个类似于 Twitter Snowflake 的复杂分布式 ID 生成系统，实现用于：
+- **检测设备编号**: `IND202501280001` (每日重置)
+- **项目内部序列**: `1, 2, 3...` (单调递增，不重置)
+- **自定义业务序列** 具有可配置的重置策略
 
-#### Key Features
-- **Distributed locking** using Redisson and MySQL row locks
-- **Multiple reset strategies**: DAILY, MONTHLY, YEARLY, NONE
-- **Batch ID generation** for performance optimization
-- **Format validation** and overflow protection
-- **Multi-tenancy support** through dynamic business types
+#### 关键特性
+- **分布式锁** 使用 Redisson 和 MySQL 行锁
+- **多种重置策略**: DAILY (每日), MONTHLY (每月), YEARLY (每年), NONE (不重置)
+- **批量 ID 生成** 用于性能优化
+- **格式验证** 和溢出保护
+- **多租户支持** 通过动态业务类型
 
-#### Implementation Details
-- `SequenceGeneratorService` - Core service with `nextId()` and `nextIds()` methods
-- `SequenceBizType` - Enum defining ID format and reset strategy
-- `SequenceGenerator` - JPA entity tracking ID state
-- Built-in semaphore pattern with Redis distributed locks
+#### 实现细节
+- `SequenceGeneratorService` - 核心服务，包含 `nextId()` 和 `nextIds()` 方法
+- `SequenceBizType` - 定义 ID 格式和重置策略的枚举
+- `SequenceGenerator` - 跟踪 ID 状态的 JPA 实体
+- 内置信号量模式与 Redis 分布式锁
 
-### API Design Patterns
+### API 设计模式
 
-#### RESTful Conventions
-- **Base path**: `/api/{version}/{resource}`
-- **HTTP methods**: Standard CRUD (GET, POST, PUT, DELETE)
-- **Response format**: Consistent JSON structure with success/error metadata
+#### RESTful 规范
+- **基础路径**: `/api/{version}/{resource}`
+- **HTTP 方法**: 标准 CRUD (GET, POST, PUT, DELETE)
+- **响应格式**: 包含成功/错误元数据的一致 JSON 结构
 
-#### Request/Response Patterns
+#### 请求/响应模式
 ```java
-// Request DTOs (validated with Bean Validation)
+// 请求 DTO (使用 Bean Validation 验证)
 @Data
 public class CreateUserRequest {
     @NotBlank String username;
@@ -141,7 +141,7 @@ public class CreateUserRequest {
     @Size(min=6) String password;
 }
 
-// Response DTOs (normalized API responses)
+// 响应 DTO (标准化的 API 响应)
 @Data
 public class UserResponse {
     Long id;
@@ -150,82 +150,87 @@ public class UserResponse {
 }
 ```
 
-#### Pagination and Filtering
-- Standardized pagination using `PageRequest`
-- QueryDSL for complex filtering and sorting
-- Spring Data JPA pageable responses
+#### 分页和过滤
+- 使用 `PageRequest` 进行标准化分页
+- QueryDSL 用于复杂的过滤和排序
+- Spring Data JPA 可分页响应
 
-### Testing Strategy
+#### 分页查询编码规范
+在 Service 层实现分页查询时，**禁止手动处理页码和封装结果**，应统一使用 DTO 基类提供的方法：
+1. **构建分页请求**：使用 `request.toJpaPageRequest("默认排序字段")` 自动生成 JPA `PageRequest`。
+2. **封装返回结果**：使用 `PageResult.from(page.map(mapper::toResponse))` 一步完成 DTO 转换和结果封装。
 
-#### Test Categories
-1. **Unit Tests**: Fast, isolated component testing
-2. **Repository Tests**: Database interaction testing
-3. **Service Tests**: Business logic testing with mocks
-4. **Integration Tests**: Full application flow with Testcontainers
-5. **DTO Validation Tests**: Bean validation verification
+### 测试策略
 
-#### Infrastructure
-- **Testcontainers**: MySQL and Redis containers for integration tests
-- **Transactional tests**: Automatic rollback after each test
-- **Database seeding**: `@BeforeEach` setup for test data
-- **MockMvc**: Web layer testing for controllers
+#### 测试类别
+1. **单元测试**: 快速、隔离的组件测试
+2. **仓库测试**: 数据库交互测试
+3. **服务测试**: 使用 Mock 的业务逻辑测试
+4. **集成测试**: 使用 Testcontainers 的完整应用流程测试
+5. **DTO 验证测试**: Bean 验证校验
 
-### Configuration Management
+#### 基础设施
+- **Testcontainers**: 用于集成测试的 MySQL 和 Redis 容器
+- **事务性测试**: 每次测试后自动回滚
+- **数据库播种**: `@BeforeEach` 设置测试数据
+- **MockMvc**: 控制器的 Web 层测试
 
-#### Application Profiles
-- **Default**: `application.yml` (development)
-- **Test**: `application-test.yml` (test-specific configs)
+### 配置管理
 
-#### Key Configuration Areas
-- **Database**: Connection pooling, JPA settings
-- **Redis**: Distributed locking configuration
-- **Logging**: Logback with JSON format for production
-- **JWT**: Token duration and security settings
-- **Actuator**: Health checks and monitoring endpoints
+#### 应用 Profile
+- **默认**: `application.yml` (开发环境)
+- **测试**: `application-test.yml` (测试专用配置)
 
-### Database Schema
+#### 关键配置区域
+- **数据库**: 连接池, JPA 设置
+- **Redis**: 分布式锁配置
+- **日志**: 生产环境使用 JSON 格式的 Logback
+- **JWT**: 令牌持续时间和安全设置
+- **Actuator**: 健康检查和监控端点
 
-#### Core Tables
-- **users**: User accounts and authentication
-- **projects**: Project management
-- **inspection_device**: Equipment tracking with auto-generated numbers
-- **sequence_generator**: ID generation state management
+### 数据库模式
 
-#### Entity Architecture
-- JPA实体统一继承 `AuditableEntity` 获取创建/更新人及时间字段
+#### 核心表
+- **users**: 用户账户和认证
+- **projects**: 项目管理
+- **inspection_device**: 带有自动生成编号的设备跟踪
+- **sequence_generator**: ID 生成状态管理
+
+#### 实体架构
+- JPA 实体统一继承 `AuditableEntity` 获取创建/更新人及时间字段
 - 需要软删除能力的实体额外继承 `SoftDeletableEntity`，自动带上 `deleted*` 字段并结合 `@SQLDelete`
 
-## Development Guidelines
+## 开发指南
 
-### Code Quality Standards
-- **Coverage minimums**: 80% lines, 70% branches
-- **Code formatting**: Prettier + prettier-plugin-java
-- **Null safety**: Defensive programming with Optional and null checks
-- **Logging**: Structured JSON logs, appropriate log levels
+### 代码质量标准
+- **最低覆盖率**: 80% 行覆盖率, 70% 分支覆盖率
+- **代码格式化**: Prettier + prettier-plugin-java
+- **空安全**: 使用 Optional 和空检查进行防御性编程
+- **日志**: 结构化 JSON 日志，适当的日志级别
 
-### Transaction Management
-- **Service methods**: Use `@Transactional` for atomic operations
-- **Sequence generation**: Must be in same transaction as entity persistence
-- **Read-only operations**: Use `@Transactional(readOnly = true)` when applicable
+### 事务管理
+- **服务方法**: 使用 `@Transactional` 进行原子操作
+- **序列生成**: 必须与实体持久化在同一事务中
+- **只读操作**: 适用时使用 `@Transactional(readOnly = true)`
 
-### Error Handling
-- **Global exception handler**: `@ControllerAdvice` for centralized error handling
-- **HTTP status codes**: Proper semantic status codes (200, 201, 400, 401, 403, 404, 500)
-- **Exception types**: Custom exceptions with meaningful error messages
+### 错误处理
+- **全局异常处理器**: `@ControllerAdvice` 用于集中式错误处理
+- **HTTP 状态码**: 正确的语义状态码 (200, 201, 400, 401, 403, 404, 500)
+- **异常类型**: 带有有意义错误消息的自定义异常
 
-### Performance Considerations
-- **Query optimization**: Use QueryDSL for complex queries
-- **Lazy loading**: JPA default lazy loading for associations
-- **Database indexing**: Automatic from unique constraints and foreign keys
-- **Connection pooling**: HikariCP configuration through Spring Boot
+### 性能考虑
+- **查询优化**: 使用 QueryDSL 进行复杂查询
+- **懒加载**: 关联关系默认使用 JPA 懒加载
+- **数据库索引**: 根据唯一约束和外键自动生成
+- **连接池**: 通过 Spring Boot 配置 HikariCP
 
-## Documentation
+## 文档
 
-Currently documented in `/docs/` directory:
-- **Authentication-API.md**: Complete JWT authentication guide
-- **distributed-sequence-generator.md**: Detailed architecture and usage
-- **sequence-generator-optimization.md**: Performance considerations
+目前在 `/docs/` 目录下的文档：
+- **Authentication-API.md**: 完整的 JWT 认证指南
+- **distributed-sequence-generator.md**: 详细的架构和用法
+- **sequence-generator-optimization.md**: 性能考虑
 
-Local development server runs on `http://localhost:8080` by default. All API endpoints include Swagger/OpenAPI documentation accessible through Actuator endpoints.
+本地开发服务器默认运行在 `http://localhost:8080`。所有 API 端点都包含 Swagger/OpenAPI 文档，可通过 Actuator 端点访问。
 
-For comprehensive sequence generator design details, see `/docs/distributed-sequence-generator.md` and `docs/sequence-generator-optimization.md`.
+有关序列生成器设计的详细信息，请参阅 `/docs/distributed-sequence-generator.md` 和 `docs/sequence-generator-optimization.md`。
