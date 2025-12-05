@@ -190,13 +190,10 @@ public class UserResponse {
 - **projects**: Project management
 - **inspection_device**: Equipment tracking with auto-generated numbers
 - **sequence_generator**: ID generation state management
-- **base_entity**: Auditing fields (created/updated timestamps)
 
 #### Entity Architecture
-All entities extend `BaseAuditEntity` for automatic:
-- Creation timestamps
-- Update timestamps
-- JPA auditing integration
+- JPA实体统一继承 `AuditableEntity` 获取创建/更新人及时间字段
+- 需要软删除能力的实体额外继承 `SoftDeletableEntity`，自动带上 `deleted*` 字段并结合 `@SQLDelete`
 
 ## Development Guidelines
 

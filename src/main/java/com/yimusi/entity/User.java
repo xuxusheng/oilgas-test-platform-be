@@ -2,7 +2,7 @@ package com.yimusi.entity;
 
 import cn.hutool.crypto.digest.BCrypt;
 import com.yimusi.common.enums.UserRole;
-import com.yimusi.entity.base.BaseAuditEntity;
+import com.yimusi.entity.base.SoftDeletableEntity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,7 +19,7 @@ import org.hibernate.annotations.SQLRestriction;
 @Table(name = "users", indexes = { @Index(name = "idx_users_username", columnList = "username") })
 @SQLDelete(sql = "UPDATE users SET deleted = true, deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("deleted = false")
-public class User extends BaseAuditEntity {
+public class User extends SoftDeletableEntity {
 
     /**
      * 用户的唯一标识符，主键，自增生成。

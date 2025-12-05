@@ -4,14 +4,13 @@ import cn.dev33.satoken.stp.StpUtil;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
-
-import java.io.IOException;
-import java.util.UUID;
 
 /**
  * MDC 过滤器 - 自动添加请求上下文到日志
@@ -43,8 +42,7 @@ public class MDCFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
-
+        throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
@@ -65,7 +63,6 @@ public class MDCFilter implements Filter {
 
             // 重要：将缓存的响应体写回到实际响应中
             responseWrapper.copyBodyToResponse();
-
         } catch (Exception e) {
             MDC.put("error", e.getMessage());
             throw e;
@@ -113,24 +110,42 @@ public class MDCFilter implements Filter {
         MDC.remove("error");
     }
 
-    private void logRequestCompletion(ContentCachingRequestWrapper request,
-                                      ContentCachingResponseWrapper response,
-                                      long startTime) {
+    private void logRequestCompletion(
+        ContentCachingRequestWrapper request,
+        ContentCachingResponseWrapper response,
+        long startTime
+    ) {
         long duration = System.currentTimeMillis() - startTime;
         int status = response.getStatus();
 
         // 根据状态码选择日志级别
         if (status >= 400 && status < 500) {
-            log.warn("Request completed - Status: {} | Duration: {}ms | Method: {} | URI: {}",
-                    status, duration, MDC.get(REQUEST_METHOD), MDC.get(REQUEST_URI));
+            log.warn(
+                "Request completed - Status: {} | Duration: {}ms | Method: {} | URI: {}",
+                status,
+                duration,
+                MDC.get(REQUEST_METHOD),
+                MDC.get(REQUEST_URI)
+            );
         } else if (status >= 500) {
             String error = MDC.get("error");
             if (error == null) error = "Unknown";
-            log.error("Request failed - Status: {} | Duration: {}ms | Method: {} | URI: {} | Error: {}",
-                    status, duration, MDC.get(REQUEST_METHOD), MDC.get(REQUEST_URI), error);
+            log.error(
+                "Request failed - Status: {} | Duration: {}ms | Method: {} | URI: {} | Error: {}",
+                status,
+                duration,
+                MDC.get(REQUEST_METHOD),
+                MDC.get(REQUEST_URI),
+                error
+            );
         } else {
-            log.info("Request completed - Status: {} | Duration: {}ms | Method: {} | URI: {}",
-                    status, duration, MDC.get(REQUEST_METHOD), MDC.get(REQUEST_URI));
+            log.info(
+                "Request completed - Status: {} | Duration: {}ms | Method: {} | URI: {}",
+                status,
+                duration,
+                MDC.get(REQUEST_METHOD),
+                MDC.get(REQUEST_URI)
+            );
         }
     }
 
@@ -157,17 +172,17 @@ public class MDCFilter implements Filter {
      */
     private String getClientIpAddress(HttpServletRequest request) {
         String[] ipHeaders = {
-                "X-Forwarded-For",
-                "Proxy-Client-IP",
-                "WL-Proxy-Client-IP",
-                "HTTP_X_FORWARDED_FOR",
-                "HTTP_X_FORWARDED",
-                "HTTP_X_CLUSTER_CLIENT_IP",
-                "HTTP_CLIENT_IP",
-                "HTTP_FORWARDED_FOR",
-                "HTTP_FORWARDED",
-                "HTTP_VIA",
-                "REMOTE_ADDR"
+            "X-Forwarded-For",
+            "Proxy-Client-IP",
+            "WL-Proxy-Client-IP",
+            "HTTP_X_FORWARDED_FOR",
+            "HTTP_X_FORWARDED",
+            "HTTP_X_CLUSTER_CLIENT_IP",
+            "HTTP_CLIENT_IP",
+            "HTTP_FORWARDED_FOR",
+            "HTTP_FORWARDED",
+            "HTTP_VIA",
+            "REMOTE_ADDR"
         };
 
         for (String header : ipHeaders) {

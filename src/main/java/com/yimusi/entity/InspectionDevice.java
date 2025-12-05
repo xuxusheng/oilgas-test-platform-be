@@ -1,6 +1,6 @@
 package com.yimusi.entity;
 
-import com.yimusi.entity.base.BaseAuditEntity;
+import com.yimusi.entity.base.SoftDeletableEntity;
 import com.yimusi.enums.InspectionDeviceStatus;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -25,7 +25,7 @@ import org.hibernate.annotations.SQLRestriction;
 )
 @SQLDelete(sql = "UPDATE inspection_devices SET deleted = true, deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("deleted = false")
-public class InspectionDevice extends BaseAuditEntity {
+public class InspectionDevice extends SoftDeletableEntity {
 
     /**
      * 设备的唯一标识符，主键，自增生成。

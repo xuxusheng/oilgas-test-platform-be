@@ -1,6 +1,6 @@
 package com.yimusi.entity;
 
-import com.yimusi.entity.base.BaseAuditEntity;
+import com.yimusi.entity.base.SoftDeletableEntity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,7 +17,7 @@ import org.hibernate.annotations.SQLRestriction;
 @Table(name = "projects", indexes = { @Index(name = "idx_projects_project_no", columnList = "projectNo") })
 @SQLDelete(sql = "UPDATE projects SET deleted = true, deleted_at = NOW() WHERE id = ?")
 @SQLRestriction("deleted = false")
-public class Project extends BaseAuditEntity {
+public class Project extends SoftDeletableEntity {
 
     /**
      * 项目的唯一标识符，主键，自增生成。

@@ -58,7 +58,7 @@ class ProjectTest {
     }
 
     @Test
-    @DisplayName("项目实体 - 继承自BaseAuditEntity")
+    @DisplayName("项目实体 - 继承自SoftDeletableEntity")
     void testInheritance() {
         // 测试继承的审计字段
         project.setCreatedBy("admin");

@@ -13,13 +13,13 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /**
- * 抽象审计基类，统一维护创建、更新以及软删除字段。
+ * 审计基类，统一追踪创建人与更新人信息。
  */
 @Getter
 @Setter
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
-public abstract class BaseAuditEntity {
+public abstract class AuditableEntity {
 
     @CreatedBy
     @Column(name = "created_by", length = 50, updatable = false)
@@ -36,13 +36,4 @@ public abstract class BaseAuditEntity {
     @LastModifiedDate
     @Column(name = "updated_at")
     private Instant updatedAt;
-
-    @Column(name = "deleted", nullable = false)
-    private Boolean deleted = false;
-
-    @Column(name = "deleted_at")
-    private Instant deletedAt;
-
-    @Column(name = "deleted_by", length = 50)
-    private String deletedBy;
 }
