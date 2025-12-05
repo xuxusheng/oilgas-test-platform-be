@@ -1,6 +1,6 @@
 package com.yimusi.entity;
 
-import com.yimusi.entity.base.AuditableEntity;
+import com.yimusi.entity.base.SoftDeletableEntity;
 import com.yimusi.enums.OilSampleStatus;
 import com.yimusi.enums.OilSampleUsage;
 import jakarta.persistence.Column;
@@ -16,6 +16,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -34,7 +36,9 @@ import java.util.List;
         @Index(name = "idx_oil_samples_usage_status", columnList = "usage_type,status")
     }
 )
-public class OilSample extends AuditableEntity {
+@SQLDelete(sql = "UPDATE oil_samples SET deleted = true, deleted_at = NOW() WHERE id = ?")
+@SQLRestriction("deleted = false")
+public class OilSample extends SoftDeletableEntity {
 
     /** 主键ID */
     @Id
