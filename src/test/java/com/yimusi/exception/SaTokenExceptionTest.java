@@ -32,7 +32,7 @@ public class SaTokenExceptionTest {
         // 模拟 NotLoginException
         NotLoginException ex = new NotLoginException("token 已过期", "user", NotLoginException.TOKEN_TIMEOUT);
 
-        ResponseEntity<ApiResponse<Map<String, Object>>> response = exceptionHandler.handleNotLoginException(ex);
+        ResponseEntity<ApiResponse<Void>> response = exceptionHandler.handleNotLoginException(ex);
 
         assertEquals(40102, response.getBody().getCode());
         assertTrue(response.getBody().getMessage().contains("用户未登录或登录已过期"));
@@ -44,7 +44,7 @@ public class SaTokenExceptionTest {
         // 模拟 NotPermissionException
         NotPermissionException ex = new NotPermissionException("user:delete", "user");
 
-        ResponseEntity<ApiResponse<Map<String, Object>>> response = exceptionHandler.handleNotPermissionException(ex);
+        ResponseEntity<ApiResponse<Void>> response = exceptionHandler.handleNotPermissionException(ex);
 
         assertEquals(40301, response.getBody().getCode());
         assertTrue(response.getBody().getMessage().contains("用户权限不足"));
@@ -52,7 +52,7 @@ public class SaTokenExceptionTest {
         assertEquals(403, response.getStatusCode().value());
 
         // 验证 details 中包含权限信息
-        Map<String, Object> details = (Map<String, Object>) response.getBody().getData();
+        Map<String, Object> details = (Map<String, Object>) response.getBody().getErrors();
         assertEquals("user:delete", details.get("requiredPermission"));
         assertEquals("请联系管理员申请相关权限", details.get("recommendation"));
     }
@@ -62,7 +62,7 @@ public class SaTokenExceptionTest {
         // 模拟 NotRoleException
         NotRoleException ex = new NotRoleException("admin", "user");
 
-        ResponseEntity<ApiResponse<Map<String, Object>>> response = exceptionHandler.handleNotRoleException(ex);
+        ResponseEntity<ApiResponse<Void>> response = exceptionHandler.handleNotRoleException(ex);
 
         assertEquals(40302, response.getBody().getCode());
         assertTrue(response.getBody().getMessage().contains("用户角色不符"));
@@ -70,7 +70,7 @@ public class SaTokenExceptionTest {
         assertEquals(403, response.getStatusCode().value());
 
         // 验证details中包含角色信息
-        Map<String, Object> details = (Map<String, Object>) response.getBody().getData();
+        Map<String, Object> details = (Map<String, Object>) response.getBody().getErrors();
         assertEquals("admin", details.get("requiredRole"));
         assertEquals("您的角色权限不足，请联系管理员", details.get("recommendation"));
     }
@@ -80,14 +80,14 @@ public class SaTokenExceptionTest {
         // 模拟账号被顶下线的情况
         NotLoginException ex = new NotLoginException("账号已被其他设备登录", "user", NotLoginException.BE_REPLACED);
 
-        ResponseEntity<ApiResponse<Map<String, Object>>> response = exceptionHandler.handleNotLoginException(ex);
+        ResponseEntity<ApiResponse<Void>> response = exceptionHandler.handleNotLoginException(ex);
 
         assertEquals(40106, response.getBody().getCode());
         assertTrue(response.getBody().getMessage().contains("账号在其他设备登录"));
         assertEquals(401, response.getStatusCode().value());
 
         // 验证details中包含并发登录信息
-        Map<String, Object> details = (Map<String, Object>) response.getBody().getData();
+        Map<String, Object> details = (Map<String, Object>) response.getBody().getErrors();
         assertEquals("其他设备", details.get("concurrentDevice"));
         assertEquals("您的账号已在其他设备登录，如非本人操作请注意账号安全", details.get("recommendation"));
     }
@@ -97,7 +97,7 @@ public class SaTokenExceptionTest {
         // 模拟通用token异常
         SaTokenException ex = new SaTokenException("无效的 token 格式");
 
-        ResponseEntity<ApiResponse<Map<String, Object>>> response = exceptionHandler.handleSaTokenException(ex);
+        ResponseEntity<ApiResponse<Void>> response = exceptionHandler.handleSaTokenException(ex);
 
         assertEquals(40103, response.getBody().getCode());
         assertTrue(response.getBody().getMessage().contains("Token 验证失败"));
@@ -105,7 +105,7 @@ public class SaTokenExceptionTest {
         assertEquals(401, response.getStatusCode().value());
 
         // 验证details中包含错误信息
-        Map<String, Object> details = (Map<String, Object>) response.getBody().getData();
+        Map<String, Object> details = (Map<String, Object>) response.getBody().getErrors();
         assertEquals("未知的Token异常", details.get("type"));
         assertEquals("请清除本地Token后重新登录", details.get("recommendation"));
     }
@@ -114,15 +114,15 @@ public class SaTokenExceptionTest {
     void testErrorResponseStructure() {
         // 验证所有sa-token异常都返回统一的错误响应结构
         NotLoginException notLoginEx = new NotLoginException("未登录", "user", NotLoginException.NOT_TOKEN);
-        ResponseEntity<ApiResponse<Map<String, Object>>> response = exceptionHandler.handleNotLoginException(notLoginEx);
+        ResponseEntity<ApiResponse<Void>> response = exceptionHandler.handleNotLoginException(notLoginEx);
 
-        ApiResponse<Map<String, Object>> body = response.getBody();
+        ApiResponse<Void> body = response.getBody();
         assertNotNull(body);
         assertTrue(body.getCode() > 0);
         assertNotNull(body.getMessage());
-        assertNotNull(body.getData());
+        assertNotNull(body.getErrors());
 
-        Map<String, Object> errorDetails = body.getData();
+        Map<String, Object> errorDetails = (Map<String, Object>) body.getErrors();
         assertTrue(errorDetails.containsKey("type"));
         assertTrue(errorDetails.containsKey("message"));
         assertTrue(errorDetails.containsKey("timestamp"));

@@ -78,7 +78,7 @@ class GlobalExceptionHandlerTest {
         when(bindingResult.getFieldErrors()).thenReturn(Arrays.asList(fieldError1, fieldError2));
 
         // 当
-        ResponseEntity<ApiResponse<Map<String, String>>> response =
+        ResponseEntity<ApiResponse<Void>> response =
             exceptionHandler.handleValidationException(exception);
 
         // 那么
@@ -87,7 +87,7 @@ class GlobalExceptionHandlerTest {
         assertNotNull(response.getBody());
         assertEquals(ErrorCode.VALIDATION_ERROR.getCode(), response.getBody().getCode());
 
-        Map<String, String> errors = response.getBody().getData();
+        Map<String, String> errors = (Map<String, String>) response.getBody().getErrors();
         assertNotNull(errors);
         assertEquals(2, errors.size());
         assertEquals("用户名不能为空", errors.get("username"));
@@ -118,7 +118,7 @@ class GlobalExceptionHandlerTest {
         ConstraintViolationException exception = new ConstraintViolationException(violations);
 
         // 当
-        ResponseEntity<ApiResponse<Map<String, String>>> response =
+        ResponseEntity<ApiResponse<Void>> response =
             exceptionHandler.handleConstraintViolationException(exception);
 
         // 那么
@@ -127,7 +127,7 @@ class GlobalExceptionHandlerTest {
         assertNotNull(response.getBody());
         assertEquals(ErrorCode.VALIDATION_ERROR.getCode(), response.getBody().getCode());
 
-        Map<String, String> errors = response.getBody().getData();
+        Map<String, String> errors = (Map<String, String>) response.getBody().getErrors();
         assertNotNull(errors);
         assertEquals(2, errors.size());
         assertTrue(errors.containsKey("id"));

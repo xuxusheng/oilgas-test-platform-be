@@ -36,7 +36,7 @@ public class GlobalExceptionHandler {
      * 处理未登录异常 (排除账号在其他设备登录的情况)
      */
     @ExceptionHandler(NotLoginException.class)
-    public ResponseEntity<ApiResponse<Map<String, Object>>> handleNotLoginException(NotLoginException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleNotLoginException(NotLoginException ex) {
         // 如果是账号被顶下线的情况，交给并发登录异常处理器处理
         if (NotLoginException.BE_REPLACED.equals(ex.getType())) {
             return handleConcurrentLoginException(ex);
@@ -57,10 +57,9 @@ public class GlobalExceptionHandler {
             ex.getMessage()
         );
 
-        log.warn("用户未登录异常 - 类型: {}, 账号类型: {} | {}",
-                 ex.getType(), ex.getLoginType(), ex.getMessage());
+        log.warn("用户未登录异常 - 类型: {}, 账号类型: {} | {}", ex.getType(), ex.getLoginType(), ex.getMessage());
 
-        ApiResponse<Map<String, Object>> apiResponse = ApiResponse.error(
+        ApiResponse<Void> apiResponse = ApiResponse.error(
             errorCode.getCode(),
             errorMessage,
             errorDetails
@@ -72,7 +71,7 @@ public class GlobalExceptionHandler {
      * 处理权限不足异常
      */
     @ExceptionHandler(NotPermissionException.class)
-    public ResponseEntity<ApiResponse<Map<String, Object>>> handleNotPermissionException(NotPermissionException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleNotPermissionException(NotPermissionException ex) {
         ErrorCode errorCode = ErrorCode.NO_PERMISSION;
 
         Map<String, Object> errorDetails = new LinkedHashMap<>();
@@ -89,10 +88,14 @@ public class GlobalExceptionHandler {
             ex.getMessage()
         );
 
-        log.warn("用户权限不足 - 需要权限: {}, 账号类型: {} | {}",
-                 ex.getPermission(), ex.getLoginType(), ex.getMessage());
+        log.warn(
+            "用户权限不足 - 需要权限: {}, 账号类型: {} | {}",
+            ex.getPermission(),
+            ex.getLoginType(),
+            ex.getMessage()
+        );
 
-        ApiResponse<Map<String, Object>> apiResponse = ApiResponse.error(
+        ApiResponse<Void> apiResponse = ApiResponse.error(
             errorCode.getCode(),
             errorMessage,
             errorDetails
@@ -104,7 +107,7 @@ public class GlobalExceptionHandler {
      * 处理角色不符异常
      */
     @ExceptionHandler(NotRoleException.class)
-    public ResponseEntity<ApiResponse<Map<String, Object>>> handleNotRoleException(NotRoleException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleNotRoleException(NotRoleException ex) {
         ErrorCode errorCode = ErrorCode.NO_ROLE;
 
         Map<String, Object> errorDetails = new LinkedHashMap<>();
@@ -121,10 +124,9 @@ public class GlobalExceptionHandler {
             ex.getMessage()
         );
 
-        log.warn("用户角色不符 - 需要角色: {}, 账号类型: {} | {}",
-                 ex.getRole(), ex.getLoginType(), ex.getMessage());
+        log.warn("用户角色不符 - 需要角色: {}, 账号类型: {} | {}", ex.getRole(), ex.getLoginType(), ex.getMessage());
 
-        ApiResponse<Map<String, Object>> apiResponse = ApiResponse.error(
+        ApiResponse<Void> apiResponse = ApiResponse.error(
             errorCode.getCode(),
             errorMessage,
             errorDetails
@@ -136,7 +138,7 @@ public class GlobalExceptionHandler {
      * 处理Token过期异常
      */
     @ExceptionHandler(NotSafeException.class)
-    public ResponseEntity<ApiResponse<Map<String, Object>>> handleNotSafeException(NotSafeException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleNotSafeException(NotSafeException ex) {
         ErrorCode errorCode = ErrorCode.TOKEN_EXPIRED;
 
         Map<String, Object> errorDetails = new LinkedHashMap<>();
@@ -155,10 +157,15 @@ public class GlobalExceptionHandler {
             ex.getMessage()
         );
 
-        log.warn("Token安全异常 - Token值: {}, 服务: {}, 账号类型: {} | {}",
-                 ex.getTokenValue(), ex.getService(), ex.getLoginType(), ex.getMessage());
+        log.warn(
+            "Token安全异常 - Token值: {}, 服务: {}, 账号类型: {} | {}",
+            ex.getTokenValue(),
+            ex.getService(),
+            ex.getLoginType(),
+            ex.getMessage()
+        );
 
-        ApiResponse<Map<String, Object>> apiResponse = ApiResponse.error(
+        ApiResponse<Void> apiResponse = ApiResponse.error(
             errorCode.getCode(),
             errorMessage,
             errorDetails
@@ -169,7 +176,7 @@ public class GlobalExceptionHandler {
     /**
      * 处理账号在其他设备登录异常
      */
-    public ResponseEntity<ApiResponse<Map<String, Object>>> handleConcurrentLoginException(NotLoginException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleConcurrentLoginException(NotLoginException ex) {
         ErrorCode errorCode = ErrorCode.CONCURRENT_LOGIN;
 
         Map<String, Object> errorDetails = new LinkedHashMap<>();
@@ -187,10 +194,14 @@ public class GlobalExceptionHandler {
             ex.getMessage()
         );
 
-        log.warn("账号并发登录异常 - Token类型: {}, 账号类型: {} | {}",
-                 ex.getType(), ex.getLoginType(), ex.getMessage());
+        log.warn(
+            "账号并发登录异常 - Token类型: {}, 账号类型: {} | {}",
+            ex.getType(),
+            ex.getLoginType(),
+            ex.getMessage()
+        );
 
-        ApiResponse<Map<String, Object>> apiResponse = ApiResponse.error(
+        ApiResponse<Void> apiResponse = ApiResponse.error(
             errorCode.getCode(),
             errorMessage,
             errorDetails
@@ -202,7 +213,7 @@ public class GlobalExceptionHandler {
      * 处理通用Token异常
      */
     @ExceptionHandler(SaTokenException.class)
-    public ResponseEntity<ApiResponse<Map<String, Object>>> handleSaTokenException(SaTokenException ex) {
+    public ResponseEntity<ApiResponse<Void>> handleSaTokenException(SaTokenException ex) {
         ErrorCode errorCode = ErrorCode.INVALID_TOKEN;
 
         Map<String, Object> errorDetails = new LinkedHashMap<>();
@@ -211,14 +222,11 @@ public class GlobalExceptionHandler {
         errorDetails.put("timestamp", new Date());
         errorDetails.put("recommendation", "请清除本地Token后重新登录");
 
-        String errorMessage = String.format(
-            "Token 验证失败 - %s",
-            ex.getMessage()
-        );
+        String errorMessage = String.format("Token 验证失败 - %s", ex.getMessage());
 
         log.error("Sa-Token通用异常", ex);
 
-        ApiResponse<Map<String, Object>> apiResponse = ApiResponse.error(
+        ApiResponse<Void> apiResponse = ApiResponse.error(
             errorCode.getCode(),
             errorMessage,
             errorDetails
@@ -230,7 +238,7 @@ public class GlobalExceptionHandler {
      * 处理 @RequestBody 参数校验异常 (返回结构化的错误信息)
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationException(
+    public ResponseEntity<ApiResponse<Void>> handleValidationException(
         MethodArgumentNotValidException ex
     ) {
         Map<String, String> errors = new HashMap<>();
@@ -241,7 +249,7 @@ public class GlobalExceptionHandler {
 
         ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
         log.warn("Validation failed for @RequestBody: {}", errors);
-        ApiResponse<Map<String, String>> apiResponse = ApiResponse.error(
+        ApiResponse<Void> apiResponse = ApiResponse.error(
             errorCode.getCode(),
             errorCode.getMessage(),
             errors
@@ -253,7 +261,7 @@ public class GlobalExceptionHandler {
      * 处理 @RequestParam 和 @PathVariable 参数校验异常 (返回结构化的错误信息)
      */
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiResponse<Map<String, String>>> handleConstraintViolationException(
+    public ResponseEntity<ApiResponse<Void>> handleConstraintViolationException(
         ConstraintViolationException ex
     ) {
         Map<String, String> errors = ex
@@ -274,7 +282,7 @@ public class GlobalExceptionHandler {
 
         ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
         log.warn("Validation failed for @RequestParam/@PathVariable: {}", errors);
-        ApiResponse<Map<String, String>> apiResponse = ApiResponse.error(
+        ApiResponse<Void> apiResponse = ApiResponse.error(
             errorCode.getCode(),
             errorCode.getMessage(),
             errors
