@@ -3,7 +3,7 @@
     <!-- =======================================
          基础属性 (Global Properties)
          ======================================= -->
-    <property name="APP_NAME" value="springboot-app"/>
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="springboot-app"/>
     <property name="LOG_PATH" value="${LOG_PATH:-./logs}"/>
     <property name="CONSOLE_PATTERN"
               value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %highlight(%-5level) %cyan(%logger{36}) - %msg%n"/>
