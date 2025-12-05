@@ -24,6 +24,6 @@ public class SecurityConfig implements WebMvcConfigurer {
         registry
             .addInterceptor(new SaInterceptor(handle -> StpUtil.checkLogin()))
             .addPathPatterns("/api/**")
-            .excludePathPatterns("/api/auth/login");
+            .excludePathPatterns("/api/auth/login", "/api/auth/register");
     }
 }
