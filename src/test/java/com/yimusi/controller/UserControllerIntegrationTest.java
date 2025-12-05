@@ -10,13 +10,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yimusi.BaseIntegrationTest;
-import com.yimusi.common.enums.UserRole;
 import com.yimusi.common.model.ApiResponse;
 import com.yimusi.config.TestAuditorConfig;
 import com.yimusi.dto.user.CreateUserRequest;
 import com.yimusi.dto.user.UpdateUserRequest;
 import com.yimusi.dto.user.UserResponse;
 import com.yimusi.entity.User;
+import com.yimusi.enums.UserRole;
 import com.yimusi.repository.UserRepository;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;

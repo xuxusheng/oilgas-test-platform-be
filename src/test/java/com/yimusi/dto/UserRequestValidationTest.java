@@ -2,9 +2,10 @@ package com.yimusi.dto;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.yimusi.common.enums.UserRole;
 import com.yimusi.dto.user.CreateUserRequest;
 import com.yimusi.dto.user.UpdateUserRequest;
+import com.yimusi.enums.UserRole;
+
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;

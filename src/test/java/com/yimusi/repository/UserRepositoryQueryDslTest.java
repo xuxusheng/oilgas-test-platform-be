@@ -4,9 +4,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.yimusi.BaseIntegrationTest;
-import com.yimusi.common.enums.UserRole;
 import com.yimusi.entity.QUser;
 import com.yimusi.entity.User;
+import com.yimusi.enums.UserRole;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;

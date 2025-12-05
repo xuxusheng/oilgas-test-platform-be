@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.yimusi.common.enums.UserRole;
 import com.yimusi.common.exception.BadRequestException;
 import com.yimusi.common.exception.ResourceNotFoundException;
 import com.yimusi.dto.user.CreateUserRequest;
@@ -13,6 +12,7 @@ import com.yimusi.dto.user.UpdateUserRequest;
 import com.yimusi.dto.user.UserPageRequest;
 import com.yimusi.dto.user.UserResponse;
 import com.yimusi.entity.User;
+import com.yimusi.enums.UserRole;
 import com.yimusi.mapper.UserMapper;
 import com.yimusi.repository.UserRepository;
 import com.yimusi.service.UserServiceImpl;

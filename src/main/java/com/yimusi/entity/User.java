@@ -1,8 +1,10 @@
 package com.yimusi.entity;
 
 import cn.hutool.crypto.digest.BCrypt;
-import com.yimusi.common.enums.UserRole;
+
 import com.yimusi.entity.base.SoftDeletableEntity;
+import com.yimusi.enums.UserRole;
+
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

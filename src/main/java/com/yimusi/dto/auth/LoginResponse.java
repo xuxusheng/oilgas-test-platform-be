@@ -1,7 +1,9 @@
 package com.yimusi.dto.auth;
 
-import com.yimusi.common.enums.UserRole;
 import java.time.Instant;
+
+import com.yimusi.enums.UserRole;
+
 import lombok.Builder;
 import lombok.Data;
 

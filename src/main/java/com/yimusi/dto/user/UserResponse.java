@@ -1,6 +1,7 @@
 package com.yimusi.dto.user;
 
-import com.yimusi.common.enums.UserRole;
+import com.yimusi.enums.UserRole;
+
 import lombok.Data;
 
 /**

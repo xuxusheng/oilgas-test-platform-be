@@ -44,7 +44,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
         User testUser = new User();
         testUser.setUsername("testuser");
         testUser.setPassword(BCrypt.hashpw("password123"));
-        testUser.setRole(com.yimusi.common.enums.UserRole.MEMBER);
+        testUser.setRole(com.yimusi.enums.UserRole.MEMBER);
 
         userRepository.save(testUser);
     }
@@ -117,7 +117,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
         CreateUserRequest createRequest = new CreateUserRequest();
         createRequest.setUsername("newuser");
         createRequest.setPassword("mypassword");
-        createRequest.setRole(com.yimusi.common.enums.UserRole.MEMBER);
+        createRequest.setRole(com.yimusi.enums.UserRole.MEMBER);
 
         com.yimusi.common.model.ApiResponse<com.yimusi.dto.user.UserResponse> apiResponse = userController.createUser(createRequest);
         User savedUser = userRepository.findById(apiResponse.getData().getId()).orElseThrow();
