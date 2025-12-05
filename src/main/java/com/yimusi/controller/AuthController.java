@@ -40,7 +40,8 @@ public class AuthController {
         // 验证用户
         User user = userService.validateUser(loginRequest.getUsername(), loginRequest.getPassword());
 
-        // 使用 Sa-Token 登录
+        // 使用 Sa-Token 登录 - 每次登录生成新的JWT token
+        // 在纯JWT模式下，登录ID不同会生成不同的token
         StpUtil.login(user.getId());
 
         // 获取 token 信息

@@ -48,11 +48,10 @@ spring:
 
 # --- 通用 Sa-Token 配置 ---
 sa-token:
-  token-style: jwt
-  # Token 永不手动续期
-  active-timeout: -1
-  # 默认 Token 有效期: 30天 (可以在 prod 环境中覆盖此配置)
-  timeout: 2592000
+  # JWT 密钥
+  jwt-secret-key: "your-secret-key-change-in-production"
+  # 不输出控制台日志，由日志框架接管
+  is-print: false
 
 # --- 日志配置 ---
 logging:
