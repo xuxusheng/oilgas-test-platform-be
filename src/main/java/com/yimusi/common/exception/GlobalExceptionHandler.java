@@ -59,11 +59,7 @@ public class GlobalExceptionHandler {
 
         log.warn("用户未登录异常 - 类型: {}, 账号类型: {} | {}", ex.getType(), ex.getLoginType(), ex.getMessage());
 
-        ApiResponse<Void> apiResponse = ApiResponse.error(
-            errorCode.getCode(),
-            errorMessage,
-            errorDetails
-        );
+        ApiResponse<Void> apiResponse = ApiResponse.error(errorCode.getCode(), errorMessage, errorDetails);
         return new ResponseEntity<>(apiResponse, errorCode.getHttpStatus());
     }
 
@@ -95,11 +91,7 @@ public class GlobalExceptionHandler {
             ex.getMessage()
         );
 
-        ApiResponse<Void> apiResponse = ApiResponse.error(
-            errorCode.getCode(),
-            errorMessage,
-            errorDetails
-        );
+        ApiResponse<Void> apiResponse = ApiResponse.error(errorCode.getCode(), errorMessage, errorDetails);
         return new ResponseEntity<>(apiResponse, errorCode.getHttpStatus());
     }
 
@@ -126,11 +118,7 @@ public class GlobalExceptionHandler {
 
         log.warn("用户角色不符 - 需要角色: {}, 账号类型: {} | {}", ex.getRole(), ex.getLoginType(), ex.getMessage());
 
-        ApiResponse<Void> apiResponse = ApiResponse.error(
-            errorCode.getCode(),
-            errorMessage,
-            errorDetails
-        );
+        ApiResponse<Void> apiResponse = ApiResponse.error(errorCode.getCode(), errorMessage, errorDetails);
         return new ResponseEntity<>(apiResponse, errorCode.getHttpStatus());
     }
 
@@ -165,11 +153,7 @@ public class GlobalExceptionHandler {
             ex.getMessage()
         );
 
-        ApiResponse<Void> apiResponse = ApiResponse.error(
-            errorCode.getCode(),
-            errorMessage,
-            errorDetails
-        );
+        ApiResponse<Void> apiResponse = ApiResponse.error(errorCode.getCode(), errorMessage, errorDetails);
         return new ResponseEntity<>(apiResponse, errorCode.getHttpStatus());
     }
 
@@ -201,11 +185,7 @@ public class GlobalExceptionHandler {
             ex.getMessage()
         );
 
-        ApiResponse<Void> apiResponse = ApiResponse.error(
-            errorCode.getCode(),
-            errorMessage,
-            errorDetails
-        );
+        ApiResponse<Void> apiResponse = ApiResponse.error(errorCode.getCode(), errorMessage, errorDetails);
         return new ResponseEntity<>(apiResponse, errorCode.getHttpStatus());
     }
 
@@ -226,11 +206,7 @@ public class GlobalExceptionHandler {
 
         log.error("Sa-Token通用异常", ex);
 
-        ApiResponse<Void> apiResponse = ApiResponse.error(
-            errorCode.getCode(),
-            errorMessage,
-            errorDetails
-        );
+        ApiResponse<Void> apiResponse = ApiResponse.error(errorCode.getCode(), errorMessage, errorDetails);
         return new ResponseEntity<>(apiResponse, errorCode.getHttpStatus());
     }
 
@@ -238,9 +214,7 @@ public class GlobalExceptionHandler {
      * 处理 @RequestBody 参数校验异常 (返回结构化的错误信息)
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> handleValidationException(
-        MethodArgumentNotValidException ex
-    ) {
+    public ResponseEntity<ApiResponse<Void>> handleValidationException(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex
             .getBindingResult()
@@ -249,11 +223,7 @@ public class GlobalExceptionHandler {
 
         ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
         log.warn("Validation failed for @RequestBody: {}", errors);
-        ApiResponse<Void> apiResponse = ApiResponse.error(
-            errorCode.getCode(),
-            errorCode.getMessage(),
-            errors
-        );
+        ApiResponse<Void> apiResponse = ApiResponse.error(errorCode.getCode(), errorCode.getMessage(), errors);
         return new ResponseEntity<>(apiResponse, errorCode.getHttpStatus());
     }
 
@@ -261,9 +231,7 @@ public class GlobalExceptionHandler {
      * 处理 @RequestParam 和 @PathVariable 参数校验异常 (返回结构化的错误信息)
      */
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiResponse<Void>> handleConstraintViolationException(
-        ConstraintViolationException ex
-    ) {
+    public ResponseEntity<ApiResponse<Void>> handleConstraintViolationException(ConstraintViolationException ex) {
         Map<String, String> errors = ex
             .getConstraintViolations()
             .stream()
@@ -282,11 +250,7 @@ public class GlobalExceptionHandler {
 
         ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
         log.warn("Validation failed for @RequestParam/@PathVariable: {}", errors);
-        ApiResponse<Void> apiResponse = ApiResponse.error(
-            errorCode.getCode(),
-            errorCode.getMessage(),
-            errors
-        );
+        ApiResponse<Void> apiResponse = ApiResponse.error(errorCode.getCode(), errorCode.getMessage(), errors);
         return new ResponseEntity<>(apiResponse, errorCode.getHttpStatus());
     }
 

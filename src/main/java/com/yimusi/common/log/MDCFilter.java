@@ -6,11 +6,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.UUID;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.ContentCachingRequestWrapper;
-import org.springframework.web.util.ContentCachingResponseWrapper;
 
 /**
  * MDC 过滤器 - 自动添加请求上下文到日志
@@ -19,17 +16,14 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
  * 1. 生成唯一追踪 ID (traceId)，用于分布式链路追踪
  * 2. 记录用户信息 (userId) - 如果已登录
  * 3. 记录客户端 IP 地址和请求方法
- * 4. 记录请求耗时并自动选择日志级别
- * 5. 支持通过 HTTP 头传播 traceId (X-Trace-ID)
- * 6. 自动清理 MDC 上下文，避免内存泄漏
+ * 4. 支持通过 HTTP 头传播 traceId (X-Trace-ID)
+ * 5. 自动清理 MDC 上下文，避免内存泄漏
  *
  * 最佳实践：
  * - 与 logback-spring.xml 中的 MDC 字段保持一致
- * - 使用异步日志避免性能影响
- * - 支持分布式追踪系统集成（如 Zipkin, Jaeger）
+ * - 仅负责上下文注入，日志记录由 WebLogAspect 处理
  */
 @Component
-@Slf4j
 public class MDCFilter implements Filter {
 
     // MDC 字段名称（与 logback-spring.xml 保持一致）
@@ -46,26 +40,10 @@ public class MDCFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        long startTime = System.currentTimeMillis();
-
         try {
             // 设置请求信息到 MDC
             setupMDC(httpRequest, httpResponse);
-
-            // 包装响应以支持多次读取（用于日志记录）
-            ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(httpRequest);
-            ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(httpResponse);
-
-            chain.doFilter(requestWrapper, responseWrapper);
-
-            // 记录请求完成日志
-            logRequestCompletion(requestWrapper, responseWrapper, startTime);
-
-            // 重要：将缓存的响应体写回到实际响应中
-            responseWrapper.copyBodyToResponse();
-        } catch (Exception e) {
-            MDC.put("error", e.getMessage());
-            throw e;
+            chain.doFilter(request, response);
         } finally {
             // 清理 MDC
             clearMDC();
@@ -88,8 +66,13 @@ public class MDCFilter implements Filter {
         MDC.put(REQUEST_URI, request.getRequestURI());
 
         // 设置用户信息（如果已登录）
-        if (StpUtil.isLogin()) {
-            MDC.put(USER_ID, StpUtil.getLoginIdAsString());
+        // 注意：Sa-Token 需要在 Filter 链中正确初始化才能获取到 LoginId
+        try {
+            if (StpUtil.isLogin()) {
+                MDC.put(USER_ID, StpUtil.getLoginIdAsString());
+            }
+        } catch (Exception ignored) {
+            // 忽略 Sa-Token 未初始化等异常，避免影响主流程
         }
 
         // 设置开始时间
@@ -107,46 +90,6 @@ public class MDCFilter implements Filter {
         MDC.remove(REQUEST_METHOD);
         MDC.remove(REQUEST_URI);
         MDC.remove(REQUEST_START_TIME);
-        MDC.remove("error");
-    }
-
-    private void logRequestCompletion(
-        ContentCachingRequestWrapper request,
-        ContentCachingResponseWrapper response,
-        long startTime
-    ) {
-        long duration = System.currentTimeMillis() - startTime;
-        int status = response.getStatus();
-
-        // 根据状态码选择日志级别
-        if (status >= 400 && status < 500) {
-            log.warn(
-                "Request completed - Status: {} | Duration: {}ms | Method: {} | URI: {}",
-                status,
-                duration,
-                MDC.get(REQUEST_METHOD),
-                MDC.get(REQUEST_URI)
-            );
-        } else if (status >= 500) {
-            String error = MDC.get("error");
-            if (error == null) error = "Unknown";
-            log.error(
-                "Request failed - Status: {} | Duration: {}ms | Method: {} | URI: {} | Error: {}",
-                status,
-                duration,
-                MDC.get(REQUEST_METHOD),
-                MDC.get(REQUEST_URI),
-                error
-            );
-        } else {
-            log.info(
-                "Request completed - Status: {} | Duration: {}ms | Method: {} | URI: {}",
-                status,
-                duration,
-                MDC.get(REQUEST_METHOD),
-                MDC.get(REQUEST_URI)
-            );
-        }
     }
 
     /**
