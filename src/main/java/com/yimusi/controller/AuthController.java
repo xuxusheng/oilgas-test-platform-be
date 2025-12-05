@@ -2,6 +2,7 @@ package com.yimusi.controller;
 
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
+import com.yimusi.common.model.ApiResponse;
 import com.yimusi.dto.auth.LoginRequest;
 import com.yimusi.dto.auth.LoginResponse;
 import com.yimusi.dto.user.UserResponse;
@@ -11,7 +12,6 @@ import com.yimusi.service.UserService;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,7 +36,7 @@ public class AuthController {
      * @return 登录响应，包含token信息
      */
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
+    public ApiResponse<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         // 验证用户
         User user = userService.validateUser(loginRequest.getUsername(), loginRequest.getPassword());
 
@@ -60,7 +60,7 @@ public class AuthController {
             .loginTime(now)
             .build();
 
-        return ResponseEntity.ok(response);
+        return ApiResponse.success(response);
     }
 
     /**
@@ -70,11 +70,11 @@ public class AuthController {
      * @return 注册成功的用户信息
      */
     @PostMapping("/register")
-    public ResponseEntity<UserResponse> register(
+    public ApiResponse<UserResponse> register(
         @Valid @RequestBody com.yimusi.dto.auth.UserRegisterRequest registerRequest
     ) {
         UserResponse userResponse = userService.register(registerRequest);
-        return ResponseEntity.ok(userResponse);
+        return ApiResponse.success(userResponse);
     }
 
     /**
@@ -83,9 +83,9 @@ public class AuthController {
      * @return 响应结果
      */
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
+    public ApiResponse<Void> logout() {
         StpUtil.logout();
-        return ResponseEntity.noContent().build();
+        return ApiResponse.success();
     }
 
     /**
@@ -94,9 +94,9 @@ public class AuthController {
      * @return 当前登录用户的信息
      */
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> getCurrentUser() {
+    public ApiResponse<UserResponse> getCurrentUser() {
         Long userId = Long.parseLong(StpUtil.getLoginIdAsString());
         User user = userService.getUserById(userId);
-        return ResponseEntity.ok(userMapper.toResponse(user));
+        return ApiResponse.success(userMapper.toResponse(user));
     }
 }

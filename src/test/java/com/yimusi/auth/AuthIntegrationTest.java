@@ -15,8 +15,8 @@ import com.yimusi.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import com.yimusi.common.model.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -63,10 +63,10 @@ class AuthIntegrationTest extends BaseIntegrationTest {
         loginRequest.setUsername("testuser");
         loginRequest.setPassword("password123");
 
-        ResponseEntity<LoginResponse> response = authController.login(loginRequest);
+        ApiResponse<LoginResponse> response = authController.login(loginRequest);
 
-        assertEquals(200, response.getStatusCode().value());
-        LoginResponse loginResponse = response.getBody();
+        assertEquals(200, response.getCode());
+        LoginResponse loginResponse = response.getData();
         assertNotNull(loginResponse);
         assertEquals("testuser", loginResponse.getUsername());
         assertNotNull(loginResponse.getAccessToken());
@@ -105,9 +105,9 @@ class AuthIntegrationTest extends BaseIntegrationTest {
         authController.login(loginRequest);
 
         // 登出
-        ResponseEntity<Void> response = authController.logout();
+        ApiResponse<Void> response = authController.logout();
 
-        assertEquals(204, response.getStatusCode().value());
+        assertEquals(200, response.getCode());
     }
 
     /**
@@ -141,10 +141,10 @@ class AuthIntegrationTest extends BaseIntegrationTest {
         registerRequest.setUsername("registeruser");
         registerRequest.setPassword("registerpass");
 
-        ResponseEntity<UserResponse> response = authController.register(registerRequest);
+        ApiResponse<UserResponse> response = authController.register(registerRequest);
 
-        assertEquals(200, response.getStatusCode().value());
-        UserResponse userResponse = response.getBody();
+        assertEquals(200, response.getCode());
+        UserResponse userResponse = response.getData();
         assertNotNull(userResponse);
         assertEquals("registeruser", userResponse.getUsername());
         assertEquals(UserRole.MEMBER, userResponse.getRole());
