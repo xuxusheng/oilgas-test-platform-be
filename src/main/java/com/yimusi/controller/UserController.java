@@ -27,7 +27,7 @@ public class UserController {
     private final UserMapper userMapper;
 
     /**
-     * 获取所有用户并映射为响应 DTO。
+     * 获取所有用户列表
      *
      * @return {@link UserResponse} 列表
      */
@@ -42,7 +42,7 @@ public class UserController {
     }
 
     /**
-     * 分页查询用户列表，支持按用户名和角色筛选。
+     * 分页查询用户列表
      *
      * @param request 分页查询请求参数
      * @return 分页结果，包含用户列表及分页信息
@@ -54,7 +54,7 @@ public class UserController {
     }
 
     /**
-     * 根据 ID 查询单个用户。
+     * 根据ID查询用户详情
      *
      * @param id 用户 ID
      * @return 查询到的 {@link UserResponse}
@@ -66,7 +66,7 @@ public class UserController {
     }
 
     /**
-     * 根据请求体创建新用户。
+     * 创建新用户
      *
      * @param createUserRequest 包含用户信息的请求体
      * @return 新增的 {@link UserResponse}
@@ -78,7 +78,7 @@ public class UserController {
     }
 
     /**
-     * 使用提交的数据更新已有用户。
+     * 更新用户信息
      *
      * @param id 需要更新的用户 ID
      * @param updateUserRequest 更新字段的请求体
@@ -94,7 +94,7 @@ public class UserController {
     }
 
     /**
-     * 根据 ID 删除用户，成功后返回 200。
+     * 删除用户
      *
      * @param id 待删除的用户 ID
      */
@@ -104,6 +104,11 @@ public class UserController {
         return ApiResponse.success();
     }
 
+    /**
+     * 恢复已删除用户
+     *
+     * @param id 待恢复的用户 ID
+     */
     @PostMapping("/{id}/restore")
     public ApiResponse<Void> restoreUser(@PathVariable Long id) {
         userService.restoreUser(id);

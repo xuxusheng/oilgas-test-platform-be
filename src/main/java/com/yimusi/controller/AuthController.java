@@ -19,7 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 认证管理接口
+ * 认证管理
+ * 提供用户登录、注册和当前用户信息查询功能
  */
 @RestController
 @RequestMapping("/api/auth")

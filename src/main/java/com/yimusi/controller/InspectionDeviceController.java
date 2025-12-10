@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 待检设备管理接口
+ * 检测设备管理
  * 提供检测设备的增删改查及分页查询功能
  */
 @RestController
@@ -26,7 +26,7 @@ public class InspectionDeviceController {
     private final InspectionDeviceMapper deviceMapper;
 
     /**
-     * 获取所有检测设备并映射为响应 DTO。
+     * 获取所有检测设备列表
      *
      * @return {@link InspectionDeviceResponse} 列表
      */
@@ -41,7 +41,7 @@ public class InspectionDeviceController {
     }
 
     /**
-     * 分页查询检测设备列表，支持筛选。
+     * 分页查询检测设备列表
      *
      * @param request 分页查询请求参数
      * @return 分页结果，包含检测设备列表及分页信息
@@ -55,7 +55,7 @@ public class InspectionDeviceController {
     }
 
     /**
-     * 根据 ID 查询单个检测设备。
+     * 根据ID查询检测设备详情
      *
      * @param id 设备 ID
      * @return 查询到的 {@link InspectionDeviceResponse}
@@ -67,7 +67,7 @@ public class InspectionDeviceController {
     }
 
     /**
-     * 根据设备编号查询单个检测设备。
+     * 根据设备编号查询检测设备
      *
      * @param deviceNo 设备编号
      * @return 查询到的 {@link InspectionDeviceResponse}
@@ -79,7 +79,7 @@ public class InspectionDeviceController {
     }
 
     /**
-     * 根据请求体创建新检测设备。
+     * 创建检测设备
      *
      * @param createRequest 包含设备信息的请求体
      * @return 新增的 {@link InspectionDeviceResponse}
@@ -93,7 +93,7 @@ public class InspectionDeviceController {
     }
 
     /**
-     * 使用提交的数据更新已有检测设备。
+     * 更新检测设备信息
      *
      * @param id            需要更新的设备 ID
      * @param updateRequest 更新字段的请求体
@@ -109,7 +109,7 @@ public class InspectionDeviceController {
     }
 
     /**
-     * 根据 ID 删除检测设备，成功后返回 200。
+     * 删除检测设备
      *
      * @param id 待删除的设备 ID
      */
@@ -120,7 +120,7 @@ public class InspectionDeviceController {
     }
 
     /**
-     * 恢复已软删除的检测设备。
+     * 恢复已删除检测设备
      *
      * @param id 设备 ID
      */
@@ -131,7 +131,7 @@ public class InspectionDeviceController {
     }
 
     /**
-     * 验证出厂编号的唯一性。
+     * 验证出厂编号唯一性
      *
      * @param serialNumber 出厂编号
      * @return 是否唯一
@@ -143,7 +143,7 @@ public class InspectionDeviceController {
     }
 
     /**
-     * 验证 IP 地址的唯一性。
+     * 验证IP地址唯一性
      *
      * @param ip IP 地址
      * @return 是否唯一
