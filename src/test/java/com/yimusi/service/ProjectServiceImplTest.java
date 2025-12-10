@@ -71,7 +71,7 @@ class ProjectServiceImplTest {
         project.setProjectLeader("张三");
         project.setRemark("这是一个测试项目");
         project.setDeleted(false);
-        project.setCreatedBy("test-user");
+        project.setCreatedBy(1L);
         project.setCreatedAt(Instant.now());
     }
 

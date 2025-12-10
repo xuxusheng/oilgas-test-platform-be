@@ -61,12 +61,12 @@ class ProjectTest {
     @DisplayName("项目实体 - 继承自SoftDeletableEntity")
     void testInheritance() {
         // 测试继承的审计字段
-        project.setCreatedBy("admin");
-        project.setUpdatedBy("admin");
+        project.setCreatedBy(1L);
+        project.setUpdatedBy(1L);
         project.setDeleted(false);
 
-        assertEquals("admin", project.getCreatedBy());
-        assertEquals("admin", project.getUpdatedBy());
+        assertEquals(1L, project.getCreatedBy());
+        assertEquals(1L, project.getUpdatedBy());
         assertFalse(project.getDeleted());
     }
 

@@ -71,7 +71,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("测试创建用户并填充审计信息")
     void shouldCreateUserAndFillAudit() throws Exception {
-        TestAuditorConfig.setAuditor("creator");
+        TestAuditorConfig.setAuditor(1L);
 
         CreateUserRequest request = new CreateUserRequest();
         request.setUsername("alice");
@@ -93,7 +93,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             objectMapper.readValue(response, new TypeReference<>() {});
         User saved = userRepository.findById(apiResponse.getData().getId()).orElseThrow();
 
-        assertThat(saved.getCreatedBy()).isEqualTo("creator");
+        assertThat(saved.getCreatedBy()).isEqualTo(1L);
         assertThat(saved.getDeleted()).isFalse();
     }
 
@@ -104,7 +104,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("测试更新用户并刷新审计信息")
     void shouldUpdateUserAndRefreshAuditor() throws Exception {
-        TestAuditorConfig.setAuditor("updater");
+        TestAuditorConfig.setAuditor(2L);
         User user = seedUser("bob", UserRole.MEMBER);
 
         UpdateUserRequest request = new UpdateUserRequest();
@@ -120,7 +120,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             .andExpect(status().isOk());
 
         User updated = userRepository.findById(user.getId()).orElseThrow();
-        assertThat(updated.getUpdatedBy()).isEqualTo("updater");
+        assertThat(updated.getUpdatedBy()).isEqualTo(2L);
         assertThat(updated.getUsername()).isEqualTo("bob-new");
     }
 
@@ -131,7 +131,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("测试用户软删除和恢复")
     void shouldSoftDeleteAndRestoreUser() throws Exception {
-        TestAuditorConfig.setAuditor("operator");
+        TestAuditorConfig.setAuditor(3L);
         User user = seedUser("charlie", UserRole.MEMBER);
 
         mockMvc.perform(delete("/api/users/" + user.getId())).andExpect(status().isOk());
@@ -148,7 +148,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("测试拒绝重复用户名")
     void shouldRejectDuplicateUsernameWhenActive() throws Exception {
-        TestAuditorConfig.setAuditor("creator");
+        TestAuditorConfig.setAuditor(1L);
         seedUser("daisy", UserRole.ADMIN);
 
         CreateUserRequest request = new CreateUserRequest();
@@ -168,7 +168,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("测试只查询激活用户")
     void shouldListOnlyActiveUsers() throws Exception {
-        TestAuditorConfig.setAuditor("creator");
+        TestAuditorConfig.setAuditor(1L);
         seedUser("eve", UserRole.MEMBER);
         User deleted = seedUser("frank", UserRole.MEMBER);
         userRepository.deleteById(deleted.getId());

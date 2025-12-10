@@ -9,13 +9,13 @@ import org.springframework.data.domain.AuditorAware;
 @TestConfiguration
 public class TestAuditorConfig {
 
-    private static final ThreadLocal<String> CURRENT_AUDITOR = new ThreadLocal<>();
+    private static final ThreadLocal<Long> CURRENT_AUDITOR = new ThreadLocal<>();
 
-    public static void setAuditor(String auditor) {
+    public static void setAuditor(Long auditor) {
         CURRENT_AUDITOR.set(auditor);
     }
 
-    public static Optional<String> getCurrentAuditor() {
+    public static Optional<Long> getCurrentAuditor() {
         return Optional.ofNullable(CURRENT_AUDITOR.get());
     }
 
@@ -25,7 +25,7 @@ public class TestAuditorConfig {
 
     @Bean
     @Primary
-    public AuditorAware<String> testAuditorAware() {
-        return () -> getCurrentAuditor().or(() -> Optional.of("test-system"));
+    public AuditorAware<Long> testAuditorAware() {
+        return () -> getCurrentAuditor().or(() -> Optional.of(1L));
     }
 }

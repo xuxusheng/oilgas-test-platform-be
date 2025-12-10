@@ -42,7 +42,7 @@ class ProjectRepositoryIntegrationTest extends BaseIntegrationTest {
         project1.setProjectName("测试项目1");
         project1.setProjectLeader("张三");
         project1.setRemark("这是第一个测试项目");
-        project1.setCreatedBy("test-user");
+        project1.setCreatedBy(1L);
         project1.setCreatedAt(Instant.now());
 
         project2 = new Project();
@@ -50,7 +50,7 @@ class ProjectRepositoryIntegrationTest extends BaseIntegrationTest {
         project2.setProjectName("测试项目2");
         project2.setProjectLeader("李四");
         project2.setRemark("这是第二个测试项目");
-        project2.setCreatedBy("test-user");
+        project2.setCreatedBy(1L);
         project2.setCreatedAt(Instant.now());
 
         deletedProject = new Project();
@@ -58,7 +58,7 @@ class ProjectRepositoryIntegrationTest extends BaseIntegrationTest {
         deletedProject.setProjectName("已删除项目");
         deletedProject.setProjectLeader("王五");
         deletedProject.setRemark("这个项目应该被软删除");
-        deletedProject.setCreatedBy("test-user");
+        deletedProject.setCreatedBy(1L);
         deletedProject.setCreatedAt(Instant.now());
         deletedProject.setDeleted(true);
         deletedProject.setDeletedAt(Instant.now());
@@ -174,7 +174,7 @@ class ProjectRepositoryIntegrationTest extends BaseIntegrationTest {
         newProject.setProjectName("新项目");
         newProject.setProjectLeader("新负责人");
         newProject.setRemark("新项目备注");
-        newProject.setCreatedBy("test-user");
+        newProject.setCreatedBy(1L);
         newProject.setCreatedAt(Instant.now());
 
         Project saved = projectRepository.save(newProject);
@@ -193,7 +193,7 @@ class ProjectRepositoryIntegrationTest extends BaseIntegrationTest {
         Project project = found.get();
         project.setProjectName("更新后的项目名称");
         project.setProjectLeader("新负责人");
-        project.setUpdatedBy("test-user");
+        project.setUpdatedBy(1L);
         project.setUpdatedAt(Instant.now());
 
         Project updated = projectRepository.save(project);
@@ -211,7 +211,7 @@ class ProjectRepositoryIntegrationTest extends BaseIntegrationTest {
         Project project = found.get();
         project.setDeleted(true);
         project.setDeletedAt(Instant.now());
-        project.setDeletedBy("test-user");
+        project.setDeletedBy(1L);
 
         Project deleted = projectRepository.save(project);
 
@@ -252,7 +252,7 @@ class ProjectRepositoryIntegrationTest extends BaseIntegrationTest {
 
         Project project = found.get();
         project.setProjectNo("PRJ001_UPDATED");
-        project.setUpdatedBy("test-user");
+        project.setUpdatedBy(1L);
         project.setUpdatedAt(Instant.now());
 
         Project updated = projectRepository.save(project);
@@ -271,14 +271,14 @@ class ProjectRepositoryIntegrationTest extends BaseIntegrationTest {
         project3.setProjectNo("PRJ005");
         project3.setProjectName("批量项目3");
         project3.setProjectLeader("批量负责人3");
-        project3.setCreatedBy("test-user");
+        project3.setCreatedBy(1L);
         project3.setCreatedAt(Instant.now());
 
         Project project4 = new Project();
         project4.setProjectNo("PRJ006");
         project4.setProjectName("批量项目4");
         project4.setProjectLeader("批量负责人4");
-        project4.setCreatedBy("test-user");
+        project4.setCreatedBy(1L);
         project4.setCreatedAt(Instant.now());
 
         List<Project> newProjects = List.of(project3, project4);

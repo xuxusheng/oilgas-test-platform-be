@@ -58,9 +58,9 @@ class UserMapperTest {
         user.setUsername("testuser");
         user.setRole(UserRole.MEMBER);
         user.setDeleted(false);
-        user.setCreatedBy("admin");
+        user.setCreatedBy(1L);
         user.setCreatedAt(Instant.now());
-        user.setUpdatedBy("admin");
+        user.setUpdatedBy(1L);
         user.setUpdatedAt(Instant.now());
 
         // Act
@@ -212,7 +212,7 @@ class UserMapperTest {
         deletedUser.setPassword("password");
         deletedUser.setRole(UserRole.MEMBER);
         deletedUser.setDeleted(true); // 已删除状态
-        deletedUser.setCreatedBy("admin");
+        deletedUser.setCreatedBy(1L);
         deletedUser.setCreatedAt(Instant.now());
 
         // Act & Assert - 应该能够映射已删除的用户

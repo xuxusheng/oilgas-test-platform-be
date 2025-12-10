@@ -45,7 +45,7 @@ class UserRepositoryQueryDslTest extends BaseIntegrationTest {
         adminUser.setPassword("adminpassword");
         adminUser.setRole(UserRole.ADMIN);
         adminUser.setDeleted(false);
-        adminUser.setCreatedBy("system");
+        adminUser.setCreatedBy(1L);
         adminUser.setCreatedAt(Instant.now());
 
         memberUser = new User();
@@ -53,7 +53,7 @@ class UserRepositoryQueryDslTest extends BaseIntegrationTest {
         memberUser.setPassword("memberpassword");
         memberUser.setRole(UserRole.MEMBER);
         memberUser.setDeleted(false);
-        memberUser.setCreatedBy("system");
+        memberUser.setCreatedBy(1L);
         memberUser.setCreatedAt(Instant.now());
 
         anotherMember = new User();
@@ -61,7 +61,7 @@ class UserRepositoryQueryDslTest extends BaseIntegrationTest {
         anotherMember.setPassword("userpassword");
         anotherMember.setRole(UserRole.MEMBER);
         anotherMember.setDeleted(false);
-        anotherMember.setCreatedBy("system");
+        anotherMember.setCreatedBy(1L);
         anotherMember.setCreatedAt(Instant.now());
 
         deletedUser = new User();
@@ -69,10 +69,10 @@ class UserRepositoryQueryDslTest extends BaseIntegrationTest {
         deletedUser.setPassword("deletedpassword");
         deletedUser.setRole(UserRole.MEMBER);
         deletedUser.setDeleted(true);
-        deletedUser.setCreatedBy("system");
+        deletedUser.setCreatedBy(1L);
         deletedUser.setCreatedAt(Instant.now());
         deletedUser.setDeletedAt(Instant.now());
-        deletedUser.setDeletedBy("admin");
+        deletedUser.setDeletedBy(1L);
 
         // 保存所有测试数据
         userRepository.save(adminUser);

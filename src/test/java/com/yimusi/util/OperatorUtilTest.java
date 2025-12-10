@@ -48,16 +48,16 @@ class OperatorUtilTest {
     void getOperator_WhenLoggedIn_ShouldReturnUserId() {
         // Arrange - 设置测试环境：用户已登录，返回登录用户ID
         mockedStpUtil.when(StpUtil::isLogin).thenReturn(true);
-        mockedStpUtil.when(StpUtil::getLoginIdAsString).thenReturn("user123");
+        mockedStpUtil.when(StpUtil::getLoginIdAsLong).thenReturn(123L);
 
         // Act - 执行获取操作者ID操作
-        String result = OperatorUtil.getOperator();
+        Long result = OperatorUtil.getOperator();
 
         // Assert - 验证返回正确的登录用户ID
         assertNotNull(result);
-        assertEquals("user123", result);
+        assertEquals(123L, result);
         mockedStpUtil.verify(StpUtil::isLogin);
-        mockedStpUtil.verify(StpUtil::getLoginIdAsString);
+        mockedStpUtil.verify(StpUtil::getLoginIdAsLong);
     }
 
     @Test
@@ -67,13 +67,13 @@ class OperatorUtilTest {
         mockedStpUtil.when(StpUtil::isLogin).thenReturn(false);
 
         // Act - 执行获取操作者ID操作
-        String result = OperatorUtil.getOperator();
+        Long result = OperatorUtil.getOperator();
 
         // Assert - 验证返回系统标识
         assertNotNull(result);
-        assertEquals("system", result);
+        assertEquals(0L, result);
         mockedStpUtil.verify(StpUtil::isLogin);
-        mockedStpUtil.verify(StpUtil::getLoginIdAsString, never());
+        mockedStpUtil.verify(StpUtil::getLoginIdAsLong, never());
     }
 
     @Test
@@ -83,29 +83,29 @@ class OperatorUtilTest {
         mockedStpUtil.when(StpUtil::isLogin).thenThrow(new RuntimeException("SaToken context not available"));
 
         // Act - 执行获取操作者ID操作
-        String result = OperatorUtil.getOperator();
+        Long result = OperatorUtil.getOperator();
 
         // Assert - 验证异常处理后返回系统标识
         assertNotNull(result);
-        assertEquals("system", result);
+        assertEquals(0L, result);
         mockedStpUtil.verify(StpUtil::isLogin);
     }
 
     @Test
-    @DisplayName("获取操作者ID - getLoginIdAsString方法异常时返回系统标识")
-    void getOperator_WhenGetLoginIdAsStringThrowsException_ShouldReturnSystem() {
-        // Arrange - 设置测试环境：getLoginIdAsString方法抛出异常，但isLogin返回true
+    @DisplayName("获取操作者ID - getLoginIdAsLong方法异常时返回系统标识")
+    void getOperator_WhenGetLoginIdAsLongThrowsException_ShouldReturnSystem() {
+        // Arrange - 设置测试环境：getLoginIdAsLong方法抛出异常，但isLogin返回true
         mockedStpUtil.when(StpUtil::isLogin).thenReturn(true);
-        mockedStpUtil.when(StpUtil::getLoginIdAsString).thenThrow(new RuntimeException("Token expired"));
+        mockedStpUtil.when(StpUtil::getLoginIdAsLong).thenThrow(new RuntimeException("Token expired"));
 
         // Act - 执行获取操作者ID操作
-        String result = OperatorUtil.getOperator();
+        Long result = OperatorUtil.getOperator();
 
         // Assert - 验证异常处理后返回系统标识
         assertNotNull(result);
-        assertEquals("system", result);
+        assertEquals(0L, result);
         mockedStpUtil.verify(StpUtil::isLogin);
-        mockedStpUtil.verify(StpUtil::getLoginIdAsString);
+        mockedStpUtil.verify(StpUtil::getLoginIdAsLong);
     }
 
     @Test
@@ -127,35 +127,35 @@ class OperatorUtilTest {
             mockExceptionBasedOnType(exceptionType);
 
             // Act
-            String result = OperatorUtil.getOperator();
+            Long result = OperatorUtil.getOperator();
 
             // Assert
             assertNotNull(result, "Should return system for " + exceptionType);
-            assertEquals("system", result, "Should return system for " + exceptionType);
+            assertEquals(0L, result, "Should return system for " + exceptionType);
         }
     }
 
     @Test
     @DisplayName("获取操作者ID - 测试不同长度的用户ID")
     void getOperator_WithVariousUserIdLengths_ShouldReturnCorrectResult() {
-        // 测试不同长度的用户ID
-        String[] testUserIds = {
-            "a",                    // 单字符
-            "user123",             // 普通长度
-            "user_abc_123_test_456", // 长用户名
-            "12345678901234567890_long_user_id" // 超长ID
+        // 测试不同长度的用户ID (Long类型)
+        Long[] testUserIds = {
+            1L,                    // 单数字
+            123456789L,             // 普通长度
+            1234567890123456789L,   // 长ID
+            999999999999999999L     // 超长ID
         };
 
-        for (String userId : testUserIds) {
+        for (Long userId : testUserIds) {
             // 为每次测试重置mock
             mockedStpUtil.close();
             mockedStpUtil = mockStatic(StpUtil.class);
 
             mockedStpUtil.when(StpUtil::isLogin).thenReturn(true);
-            mockedStpUtil.when(StpUtil::getLoginIdAsString).thenReturn(userId);
+            mockedStpUtil.when(StpUtil::getLoginIdAsLong).thenReturn(userId);
 
             // Act
-            String result = OperatorUtil.getOperator();
+            Long result = OperatorUtil.getOperator();
 
             // Assert
             assertNotNull(result);
@@ -168,13 +168,13 @@ class OperatorUtilTest {
     void getOperator_MultipleCalls_ShouldReturnConsistentResults() {
         // Arrange - 设置已登录状态
         mockedStpUtil.when(StpUtil::isLogin).thenReturn(true);
-        mockedStpUtil.when(StpUtil::getLoginIdAsString).thenReturn("consistent-user");
+        mockedStpUtil.when(StpUtil::getLoginIdAsLong).thenReturn(123L);
 
         // Act & Assert - 多次调用应返回一致结果
         for (int i = 0; i < 10; i++) {
-            String result = OperatorUtil.getOperator();
+            Long result = OperatorUtil.getOperator();
             assertNotNull(result);
-            assertEquals("consistent-user", result, "Call " + (i + 1) + " should return consistent result");
+            assertEquals(123L, result, "Call " + (i + 1) + " should return consistent result");
         }
 
         // 验证确实只调用了一次登录检查方法（由于静态mock的特性）

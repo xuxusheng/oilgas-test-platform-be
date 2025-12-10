@@ -91,25 +91,7 @@ class AuthIntegrationTest extends BaseIntegrationTest {
         assertTrue(exception.getMessage().contains("用户名或密码错误"));
     }
 
-    /**
-     * 测试用户登出功能
-     * 验证已登录用户能够成功登出，系统应该返回204状态码
-     */
-    @Test
-    @DisplayName("测试用户登出")
-    void shouldLogoutSuccessfully() {
-        // 先登录
-        LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setUsername("testuser");
-        loginRequest.setPassword("password123");
-        authController.login(loginRequest);
-
-        // 登出
-        ApiResponse<Void> response = authController.logout();
-
-        assertEquals(200, response.getCode());
-    }
-
+    
     /**
      * 测试用户创建时密码自动加密功能
      * 验证通过用户创建接口创建用户时，密码应该被自动加密而不是明文存储

@@ -71,7 +71,7 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("测试创建项目并填充审计信息")
     void shouldCreateProjectAndFillAudit() throws Exception {
-        TestAuditorConfig.setAuditor("creator");
+        TestAuditorConfig.setAuditor(1L);
 
         CreateProjectRequest createRequest = new CreateProjectRequest();
         createRequest.setProjectNo("PRJ001");
@@ -104,7 +104,7 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("测试创建项目 - 项目编号重复")
     void shouldReturnErrorWhenProjectNoExists() throws Exception {
-        TestAuditorConfig.setAuditor("creator");
+        TestAuditorConfig.setAuditor(1L);
 
         // 先创建一个项目
         CreateProjectRequest createRequest1 = new CreateProjectRequest();
@@ -147,7 +147,7 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("测试查询单个项目")
     void getProjectById() throws Exception {
-        TestAuditorConfig.setAuditor("creator");
+        TestAuditorConfig.setAuditor(1L);
 
         // 创建测试项目
         CreateProjectRequest createRequest = new CreateProjectRequest();
@@ -191,7 +191,7 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("测试根据项目编号查询项目")
     void getProjectByNo() throws Exception {
-        TestAuditorConfig.setAuditor("creator");
+        TestAuditorConfig.setAuditor(1L);
 
         // 创建测试项目
         CreateProjectRequest createRequest = new CreateProjectRequest();
@@ -228,7 +228,7 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("测试更新项目信息")
     void updateProject() throws Exception {
-        TestAuditorConfig.setAuditor("creator");
+        TestAuditorConfig.setAuditor(1L);
 
         // 创建测试项目
         CreateProjectRequest createRequest = new CreateProjectRequest();
@@ -281,7 +281,7 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("测试删除项目")
     void deleteProject() throws Exception {
-        TestAuditorConfig.setAuditor("creator");
+        TestAuditorConfig.setAuditor(1L);
 
         // 创建测试项目
         CreateProjectRequest createRequest = new CreateProjectRequest();
@@ -326,7 +326,7 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("测试恢复已删除的项目")
     void restoreProject() throws Exception {
-        TestAuditorConfig.setAuditor("creator");
+        TestAuditorConfig.setAuditor(1L);
 
         // 创建测试项目并删除
         CreateProjectRequest createRequest = new CreateProjectRequest();
@@ -375,7 +375,7 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("测试验证项目编号唯一性")
     void validateProjectNoUnique() throws Exception {
-        TestAuditorConfig.setAuditor("creator");
+        TestAuditorConfig.setAuditor(1L);
 
         // 验证未使用的项目编号是唯一的
         String responseJson1 = mockMvc.perform(get("/api/projects/validate-unique/PRJ001"))
@@ -420,7 +420,7 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("测试获取所有项目")
     void getAllProjects() throws Exception {
-        TestAuditorConfig.setAuditor("creator");
+        TestAuditorConfig.setAuditor(1L);
 
         // 创建多个测试项目
         for (int i = 1; i <= 3; i++) {
@@ -458,7 +458,7 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("测试分页查询项目")
     void getProjectsPage() throws Exception {
-        TestAuditorConfig.setAuditor("creator");
+        TestAuditorConfig.setAuditor(1L);
 
         // 创建多个测试项目
         for (int i = 1; i <= 5; i++) {
@@ -503,7 +503,7 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("测试验证项目编号唯一性 - 已删除项目不应影响")
     void validateProjectNoUnique_DeletedProjectShouldNotAffect() throws Exception {
-        TestAuditorConfig.setAuditor("creator");
+        TestAuditorConfig.setAuditor(1L);
 
         // 创建项目
         CreateProjectRequest createRequest = new CreateProjectRequest();
