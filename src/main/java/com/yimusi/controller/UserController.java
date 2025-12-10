@@ -14,6 +14,10 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 用户管理接口
+ * 提供用户的增删改查及分页查询功能
+ */
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor

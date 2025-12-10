@@ -1,22 +1,21 @@
 package com.yimusi.controller;
 
 import com.yimusi.common.model.ApiResponse;
+import com.yimusi.dto.common.PageResult;
 import com.yimusi.dto.inspection.CreateInspectionDeviceRequest;
 import com.yimusi.dto.inspection.InspectionDevicePageRequest;
 import com.yimusi.dto.inspection.InspectionDeviceResponse;
-import com.yimusi.dto.common.PageResult;
 import com.yimusi.dto.inspection.UpdateInspectionDeviceRequest;
 import com.yimusi.mapper.InspectionDeviceMapper;
 import com.yimusi.service.InspectionDeviceService;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
- * 检测设备控制器
- * 提供检测设备的增删改查接口
+ * 待检设备管理接口
+ * 提供检测设备的增删改查及分页查询功能
  */
 @RestController
 @RequestMapping("/api/inspection-devices")
@@ -48,7 +47,9 @@ public class InspectionDeviceController {
      * @return 分页结果，包含检测设备列表及分页信息
      */
     @GetMapping("/page")
-    public ApiResponse<PageResult<InspectionDeviceResponse>> getDevicesPage(@Valid InspectionDevicePageRequest request) {
+    public ApiResponse<PageResult<InspectionDeviceResponse>> getDevicesPage(
+        @Valid InspectionDevicePageRequest request
+    ) {
         PageResult<InspectionDeviceResponse> pageResult = deviceService.getDevicesPage(request);
         return ApiResponse.success(pageResult);
     }
@@ -84,7 +85,9 @@ public class InspectionDeviceController {
      * @return 新增的 {@link InspectionDeviceResponse}
      */
     @PostMapping
-    public ApiResponse<InspectionDeviceResponse> createDevice(@Valid @RequestBody CreateInspectionDeviceRequest createRequest) {
+    public ApiResponse<InspectionDeviceResponse> createDevice(
+        @Valid @RequestBody CreateInspectionDeviceRequest createRequest
+    ) {
         InspectionDeviceResponse deviceResponse = deviceService.createDevice(createRequest);
         return ApiResponse.success(deviceResponse);
     }

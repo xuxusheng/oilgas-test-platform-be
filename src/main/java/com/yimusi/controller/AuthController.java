@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 认证控制器，处理用户登录、登出等认证相关操作
+ * 认证管理接口
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -75,17 +75,6 @@ public class AuthController {
     ) {
         UserResponse userResponse = userService.register(registerRequest);
         return ApiResponse.success(userResponse);
-    }
-
-    /**
-     * 用户登出
-     *
-     * @return 响应结果
-     */
-    @PostMapping("/logout")
-    public ApiResponse<Void> logout() {
-        StpUtil.logout();
-        return ApiResponse.success();
     }
 
     /**

@@ -13,6 +13,10 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * 项目管理接口
+ * 提供项目的增删改查及分页查询功能
+ */
 @RestController
 @RequestMapping("/api/projects")
 @RequiredArgsConstructor
