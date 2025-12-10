@@ -64,9 +64,9 @@ public class InspectionDeviceResponse {
     private String remark;
 
     /**
-     * 创建者。
+     * 创建者用户ID。
      */
-    private String createdBy;
+    private Long createdBy;
 
     /**
      * 创建时间。
@@ -74,9 +74,9 @@ public class InspectionDeviceResponse {
     private Instant createdAt;
 
     /**
-     * 更新者。
+     * 更新者用户ID。
      */
-    private String updatedBy;
+    private Long updatedBy;
 
     /**
      * 更新时间。

@@ -1,8 +1,8 @@
 package com.yimusi.controller;
 
 import com.yimusi.common.model.ApiResponse;
-import com.yimusi.dto.user.CreateUserRequest;
 import com.yimusi.dto.common.PageResult;
+import com.yimusi.dto.user.CreateUserRequest;
 import com.yimusi.dto.user.UpdateUserRequest;
 import com.yimusi.dto.user.UserPageRequest;
 import com.yimusi.dto.user.UserResponse;
@@ -33,11 +33,7 @@ public class UserController {
      */
     @GetMapping
     public ApiResponse<List<UserResponse>> getAllUsers() {
-        List<UserResponse> responses = userService
-            .getAllUsers()
-            .stream()
-            .map(userMapper::toResponse)
-            .collect(Collectors.toList());
+        List<UserResponse> responses = userService.getAllUsers().stream().map(userMapper::toResponse).toList();
         return ApiResponse.success(responses);
     }
 

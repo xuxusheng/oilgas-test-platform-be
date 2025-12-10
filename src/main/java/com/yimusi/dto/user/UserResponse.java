@@ -4,6 +4,8 @@ import com.yimusi.enums.UserRole;
 
 import lombok.Data;
 
+import java.time.Instant;
+
 /**
  * 用于返回用户公开信息的数据传输对象 (DTO)。
  * 不包含密码等敏感信息。
@@ -25,4 +27,24 @@ public class UserResponse {
      * 用户的角色。
      */
     private UserRole role;
+
+    /**
+     * 创建时间。
+     */
+    private Instant createdAt;
+
+    /**
+     * 最后更新时间。
+     */
+    private Instant updatedAt;
+
+    /**
+     * 创建者用户ID。
+     */
+    private Long createdBy;
+
+    /**
+     * 最后更新者用户ID。
+     */
+    private Long updatedBy;
 }

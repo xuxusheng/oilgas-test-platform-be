@@ -20,6 +20,6 @@ public abstract class SoftDeletableEntity extends AuditableEntity {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
-    @Column(name = "deleted_by", length = 50)
-    private String deletedBy;
+    @Column(name = "deleted_by")
+    private Long deletedBy;
 }

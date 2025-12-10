@@ -22,16 +22,16 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 public abstract class AuditableEntity {
 
     @CreatedBy
-    @Column(name = "created_by", length = 50, updatable = false)
-    private String createdBy;
+    @Column(name = "created_by", updatable = false)
+    private Long createdBy;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
 
     @LastModifiedBy
-    @Column(name = "updated_by", length = 50)
-    private String updatedBy;
+    @Column(name = "updated_by")
+    private Long updatedBy;
 
     @LastModifiedDate
     @Column(name = "updated_at")
