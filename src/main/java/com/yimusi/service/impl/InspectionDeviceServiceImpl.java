@@ -186,7 +186,7 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
         }
 
         InspectionDevice device = deviceRepository
-            .findById(id)
+            .findByIdIncludingDeleted(id)
             .orElseThrow(() -> new ResourceNotFoundException(String.format("ID 为 %s 的设备不存在", id)));
         device.setDeleted(false);
         device.setDeletedAt(null);

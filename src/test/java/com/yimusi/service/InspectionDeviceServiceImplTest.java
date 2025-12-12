@@ -4,7 +4,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import com.querydsl.core.types.Predicate;
+import com.yimusi.common.exception.BadRequestException;
+import com.yimusi.common.exception.ResourceNotFoundException;
+import com.yimusi.dto.common.PageResult;
 import com.yimusi.dto.inspection.CreateInspectionDeviceRequest;
+import com.yimusi.dto.inspection.InspectionDevicePageRequest;
 import com.yimusi.dto.inspection.InspectionDeviceResponse;
 import com.yimusi.dto.inspection.UpdateInspectionDeviceRequest;
 import com.yimusi.entity.InspectionDevice;
@@ -16,6 +21,7 @@ import com.yimusi.repository.InspectionDeviceRepository;
 import com.yimusi.repository.ProjectRepository;
 import com.yimusi.service.impl.InspectionDeviceServiceImpl;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +35,10 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class InspectionDeviceServiceImplTest {
@@ -52,6 +62,7 @@ class InspectionDeviceServiceImplTest {
     private InspectionDeviceServiceImpl inspectionDeviceService;
 
     private CreateInspectionDeviceRequest createRequest;
+    private InspectionDevice device;
 
     @BeforeEach
     void setUp() {
@@ -63,6 +74,75 @@ class InspectionDeviceServiceImplTest {
         createRequest.setProjectId(100L);
         createRequest.setStatus(InspectionDeviceStatus.PENDING_INSPECTION);
         createRequest.setRemark("测试");
+
+        device = new InspectionDevice();
+        device.setId(1L);
+        device.setDeviceNo("IND202501010001");
+        device.setSerialNumber("SN-001");
+        device.setIp("192.168.1.10");
+        device.setPort(102);
+        device.setProjectId(100L);
+        device.setProjectInternalNo(5);
+        device.setStatus(InspectionDeviceStatus.PENDING_INSPECTION);
+        device.setCreatedAt(Instant.now());
+        device.setDeleted(false);
+    }
+
+    @Test
+    @DisplayName("分页查询检测设备")
+    void getDevicesPage_ShouldReturnPageResult() {
+        InspectionDevicePageRequest request = new InspectionDevicePageRequest();
+        request.setPage(1);
+        request.setSize(10);
+        request.setDeviceNo("IND");
+
+        Page<InspectionDevice> page = new PageImpl<>(List.of(device));
+        when(deviceRepository.findAll(any(Predicate.class), any(Pageable.class))).thenReturn(page);
+
+        PageResult<InspectionDeviceResponse> result = inspectionDeviceService.getDevicesPage(request);
+
+        assertNotNull(result);
+        assertEquals(1, result.getTotal());
+        assertEquals(1, result.getContent().size());
+        assertEquals("IND202501010001", result.getContent().get(0).getDeviceNo());
+    }
+
+    @Test
+    @DisplayName("获取单条设备详情 - 存在")
+    void getDeviceById_WhenExists_ShouldReturnDevice() {
+        when(deviceRepository.findById(1L)).thenReturn(Optional.of(device));
+
+        InspectionDevice result = inspectionDeviceService.getDeviceById(1L);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+    }
+
+    @Test
+    @DisplayName("获取单条设备详情 - 不存在")
+    void getDeviceById_WhenNotExists_ShouldThrowException() {
+        when(deviceRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> inspectionDeviceService.getDeviceById(1L));
+    }
+
+    @Test
+    @DisplayName("根据编号获取设备 - 存在")
+    void getDeviceByNo_WhenExists_ShouldReturnDevice() {
+        when(deviceRepository.findByDeviceNoAndDeletedFalse("IND202501010001")).thenReturn(Optional.of(device));
+
+        InspectionDevice result = inspectionDeviceService.getDeviceByNo("IND202501010001");
+
+        assertNotNull(result);
+        assertEquals("IND202501010001", result.getDeviceNo());
+    }
+
+    @Test
+    @DisplayName("根据编号获取设备 - 不存在")
+    void getDeviceByNo_WhenNotExists_ShouldThrowException() {
+        when(deviceRepository.findByDeviceNoAndDeletedFalse("IND202501010001")).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> inspectionDeviceService.getDeviceByNo("IND202501010001"));
     }
 
     @Test
@@ -125,36 +205,73 @@ class InspectionDeviceServiceImplTest {
 
     @Test
     @DisplayName("更新检测设备 - 更新设备信息")
-    void updateDevice_ShouldUpdateDeviceInfo() throws InterruptedException {
-        InspectionDevice existing = new InspectionDevice();
-        existing.setId(10L);
-        existing.setDeviceNo("IND202501010001");
-        existing.setSerialNumber("SN-001");
-        existing.setIp("192.168.1.10");
-        existing.setPort(102);
-        existing.setProjectId(100L);
-        existing.setProjectInternalNo(3);
-        existing.setStatus(InspectionDeviceStatus.PENDING_INSPECTION);
-        existing.setCreatedAt(Instant.now());
-
+    void updateDevice_ShouldUpdateDeviceInfo() {
         UpdateInspectionDeviceRequest request = new UpdateInspectionDeviceRequest();
         request.setDeviceModel("新型号");
         request.setPort(202);
         request.setStatus(InspectionDeviceStatus.CALIBRATED);
+        request.setSerialNumber("SN-001-UPDATED");
+        request.setIp("192.168.1.20");
 
-        when(deviceRepository.findById(10L)).thenReturn(Optional.of(existing));
+        when(deviceRepository.findById(1L)).thenReturn(Optional.of(device));
+        when(deviceRepository.existsBySerialNumberAndDeletedFalse("SN-001-UPDATED")).thenReturn(false);
+        when(deviceRepository.existsByIpAndDeletedFalse("192.168.1.20")).thenReturn(false);
         when(deviceRepository.save(any(InspectionDevice.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        InspectionDeviceResponse response = inspectionDeviceService.updateDevice(10L, request);
+        InspectionDeviceResponse response = inspectionDeviceService.updateDevice(1L, request);
 
         assertEquals("新型号", response.getDeviceModel());
         assertEquals(202, response.getPort());
         assertEquals(InspectionDeviceStatus.CALIBRATED, response.getStatus());
+        assertEquals("SN-001-UPDATED", response.getSerialNumber());
+        assertEquals("192.168.1.20", response.getIp());
     }
 
-    private Project mockProject(Long id) {
-        Project project = new Project();
-        project.setId(id);
-        return project;
+    @Test
+    @DisplayName("删除检测设备")
+    void deleteDevice_ShouldMarkAsDeleted() {
+        when(deviceRepository.findById(1L)).thenReturn(Optional.of(device));
+        when(deviceRepository.save(any(InspectionDevice.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        inspectionDeviceService.deleteDevice(1L);
+
+        assertTrue(device.getDeleted());
+        assertNotNull(device.getDeletedAt());
+        verify(deviceRepository).save(device);
+    }
+
+    @Test
+    @DisplayName("恢复检测设备")
+    void restoreDevice_ShouldMarkAsNotDeleted() {
+        device.setDeleted(true);
+        device.setDeletedAt(Instant.now());
+        when(deviceRepository.findByIdIncludingDeleted(1L)).thenReturn(Optional.of(device));
+        when(deviceRepository.save(any(InspectionDevice.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        inspectionDeviceService.restoreDevice(1L);
+
+        assertFalse(device.getDeleted());
+        assertNull(device.getDeletedAt());
+        verify(deviceRepository).save(device);
+    }
+
+    @Test
+    @DisplayName("校验出厂编号唯一性")
+    void validateSerialNumberUnique_ShouldReturnCorrectResult() {
+        when(deviceRepository.existsBySerialNumberAndDeletedFalse("SN-001")).thenReturn(true);
+        when(deviceRepository.existsBySerialNumberAndDeletedFalse("SN-NEW")).thenReturn(false);
+
+        assertThrows(BadRequestException.class, () -> inspectionDeviceService.validateSerialNumberUnique("SN-001"));
+        assertTrue(inspectionDeviceService.validateSerialNumberUnique("SN-NEW"));
+    }
+
+    @Test
+    @DisplayName("校验IP唯一性")
+    void validateIpUnique_ShouldReturnCorrectResult() {
+        when(deviceRepository.existsByIpAndDeletedFalse("192.168.1.10")).thenReturn(true);
+        when(deviceRepository.existsByIpAndDeletedFalse("192.168.1.30")).thenReturn(false);
+
+        assertThrows(BadRequestException.class, () -> inspectionDeviceService.validateIpUnique("192.168.1.10"));
+        assertTrue(inspectionDeviceService.validateIpUnique("192.168.1.30"));
     }
 }

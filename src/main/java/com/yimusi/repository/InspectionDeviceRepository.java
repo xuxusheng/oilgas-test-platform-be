@@ -100,4 +100,14 @@ public interface InspectionDeviceRepository extends JpaRepository<InspectionDevi
      */
     @Query(value = "SELECT MAX(d.project_internal_no) FROM inspection_devices d WHERE d.project_id = :projectId", nativeQuery = true)
     Optional<Integer> findMaxProjectInternalNoIncludingDeletedByProjectId(Long projectId);
+
+    /**
+     * 根据 ID 查找设备（包含已删除的）
+     * 注意：使用原生SQL绕过Hibernate的软删除限制
+     *
+     * @param id 设备 ID
+     * @return 设备实体（如果存在）
+     */
+    @Query(value = "SELECT * FROM inspection_devices WHERE id = :id", nativeQuery = true)
+    Optional<InspectionDevice> findByIdIncludingDeleted(Long id);
 }

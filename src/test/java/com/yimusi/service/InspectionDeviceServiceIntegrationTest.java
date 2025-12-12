@@ -95,6 +95,44 @@ class InspectionDeviceServiceIntegrationTest extends BaseIntegrationTest {
         assertEquals(4, resp4.getProjectInternalNo(), "删除中间设备不应影响最大序号的计算");
     }
 
+    @Test
+    @DisplayName("分页查询 - 组合条件")
+    void testGetDevicesPage_Combined() {
+        CreateInspectionDeviceRequest req1 = createRequest("SN-001", "192.168.1.1");
+        req1.setDeviceModel("MODEL-A");
+        inspectionDeviceService.createDevice(req1);
+
+        CreateInspectionDeviceRequest req2 = createRequest("SN-002", "192.168.1.2");
+        req2.setDeviceModel("MODEL-B");
+        inspectionDeviceService.createDevice(req2);
+
+        com.yimusi.dto.inspection.InspectionDevicePageRequest pageRequest = new com.yimusi.dto.inspection.InspectionDevicePageRequest();
+        pageRequest.setPage(1);
+        pageRequest.setSize(10);
+        pageRequest.setDeviceModel("MODEL-A");
+        pageRequest.setProjectId(projectId);
+
+        com.yimusi.dto.common.PageResult<InspectionDeviceResponse> result = inspectionDeviceService.getDevicesPage(pageRequest);
+        assertEquals(1, result.getTotal());
+        assertEquals("SN-001", result.getContent().get(0).getSerialNumber());
+    }
+
+    @Test
+    @DisplayName("分页查询 - 按IP查询")
+    void testGetDevicesPage_ByIp() {
+        inspectionDeviceService.createDevice(createRequest("SN-001", "192.168.1.1"));
+        inspectionDeviceService.createDevice(createRequest("SN-002", "192.168.1.2"));
+
+        com.yimusi.dto.inspection.InspectionDevicePageRequest pageRequest = new com.yimusi.dto.inspection.InspectionDevicePageRequest();
+        pageRequest.setPage(1);
+        pageRequest.setSize(10);
+        pageRequest.setIp("192.168.1.2");
+
+        com.yimusi.dto.common.PageResult<InspectionDeviceResponse> result = inspectionDeviceService.getDevicesPage(pageRequest);
+        assertEquals(1, result.getTotal());
+        assertEquals("SN-002", result.getContent().get(0).getSerialNumber());
+    }
+
     private CreateInspectionDeviceRequest createRequest(String sn, String ip) {
         CreateInspectionDeviceRequest request = new CreateInspectionDeviceRequest();
         request.setProjectId(projectId);
