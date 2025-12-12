@@ -93,10 +93,11 @@ public interface InspectionDeviceRepository extends JpaRepository<InspectionDevi
     /**
      * 根据项目 ID 查询项目内最大序号（包含所有设备，包括已删除的）
      * 用于生成新的项目内部序号，确保序号的连续性
+     * 注意：使用原生SQL绕过Hibernate的软删除限制，确保包含已删除设备的序号
      *
      * @param projectId 项目 ID
      * @return 项目内最大序号（包含已删除的设备）
      */
-    @Query("SELECT MAX(d.projectInternalNo) FROM InspectionDevice d WHERE d.projectId = :projectId")
+    @Query(value = "SELECT MAX(d.project_internal_no) FROM inspection_devices d WHERE d.project_id = :projectId", nativeQuery = true)
     Optional<Integer> findMaxProjectInternalNoIncludingDeletedByProjectId(Long projectId);
 }
