@@ -1,7 +1,6 @@
 package com.yimusi.entity;
 
 import com.yimusi.entity.base.SoftDeletableEntity;
-import com.yimusi.enums.TestStationStatus;
 import com.yimusi.enums.TestStationUsage;
 import com.yimusi.enums.ValveCommType;
 import jakarta.persistence.*;
@@ -75,8 +74,11 @@ public class TestStation extends SoftDeletableEntity {
     @Column(name = "responsible_person", nullable = false, length = 50)
     private String responsiblePerson;
 
-    /** 工位状态枚举（启用/禁用） */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    private TestStationStatus status = TestStationStatus.ENABLED;
+    /**
+     * 工位是否启用
+     * true - 启用（正常可用）
+     * false - 禁用（不可使用，但数据可见）
+     */
+    @Column(name = "enabled", nullable = false)
+    private Boolean enabled = true;
 }
