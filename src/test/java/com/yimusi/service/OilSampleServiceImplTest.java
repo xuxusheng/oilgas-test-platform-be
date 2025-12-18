@@ -18,7 +18,6 @@ import com.yimusi.mapper.OilSampleMapper;
 import com.yimusi.repository.OilSampleRepository;
 import com.yimusi.service.impl.OilSampleServiceImpl;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +25,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -130,6 +130,27 @@ class OilSampleServiceImplTest {
     }
 
     @Test
+    @DisplayName("创建油样 - parameters 为 null 时保存为空列表")
+    void createOilSample_WhenParametersNull_ShouldPersistEmptyList() {
+        createRequest.setStatus(OilSampleStatus.ENABLED);
+        createRequest.setParameters(null);
+
+        when(oilSampleRepository.existsBySampleNo(createRequest.getSampleNo())).thenReturn(false);
+        when(oilSampleRepository.save(any(OilSample.class))).thenAnswer(invocation -> {
+            OilSample saved = invocation.getArgument(0);
+            saved.setId(1L);
+            return saved;
+        });
+
+        oilSampleService.createOilSample(createRequest);
+
+        ArgumentCaptor<OilSample> captor = ArgumentCaptor.forClass(OilSample.class);
+        verify(oilSampleRepository).save(captor.capture());
+        assertNotNull(captor.getValue().getParameters());
+        assertTrue(captor.getValue().getParameters().isEmpty());
+    }
+
+    @Test
     @DisplayName("创建油样 - 编号已存在")
     void createOilSample_WhenSampleNoExists_ShouldThrowException() {
         when(oilSampleRepository.existsBySampleNo(createRequest.getSampleNo())).thenReturn(true);
@@ -176,22 +197,6 @@ class OilSampleServiceImplTest {
         when(oilSampleRepository.existsById(1L)).thenReturn(false);
 
         assertThrows(ResourceNotFoundException.class, () -> oilSampleService.deleteOilSample(1L));
-    }
-
-    @Test
-    @DisplayName("批量删除油样")
-    void batchDeleteOilSamples_ShouldDeleteAll() {
-        List<Long> ids = Arrays.asList(1L, 2L);
-        oilSampleService.batchDeleteOilSamples(ids);
-
-        verify(oilSampleRepository).deleteAllById(ids);
-    }
-
-    @Test
-    @DisplayName("批量删除油样 - 空列表")
-    void batchDeleteOilSamples_WhenEmpty_ShouldDoNothing() {
-        oilSampleService.batchDeleteOilSamples(null);
-        verify(oilSampleRepository, never()).deleteAllById(any());
     }
 
     @Test

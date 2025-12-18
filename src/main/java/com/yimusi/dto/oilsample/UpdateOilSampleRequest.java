@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,8 +26,9 @@ public class UpdateOilSampleRequest {
     @NotNull(message = "用途不能为空")
     private OilSampleUsage usage;
 
+    @NotNull(message = "参数列表不能为空")
     @Valid
-    private List<CreateOilSampleRequest.ParameterItem> parameters;
+    private List<CreateOilSampleRequest.ParameterItem> parameters = new ArrayList<>();
 
     @NotNull(message = "油缸编号不能为空")
     private Integer cylinderNo;

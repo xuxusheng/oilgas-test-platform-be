@@ -18,8 +18,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -147,21 +145,6 @@ public class OilSampleServiceImpl implements OilSampleService {
             throw new ResourceNotFoundException("OilSample not found with id: " + id);
         }
         oilSampleRepository.deleteById(id);
-    }
-
-    /**
-     * 批量删除油样（软删除）
-     *
-     * @param ids 油样 ID 列表
-     */
-    @Override
-    @Transactional
-    public void batchDeleteOilSamples(List<Long> ids) {
-        if (ids == null || ids.isEmpty()) {
-            return;
-        }
-        // 批量删除，Hibernate 会处理 @SQLDelete
-        oilSampleRepository.deleteAllById(ids);
     }
 
     /**

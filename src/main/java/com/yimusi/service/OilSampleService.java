@@ -6,8 +6,6 @@ import com.yimusi.dto.oilsample.OilSamplePageRequest;
 import com.yimusi.dto.oilsample.OilSampleResponse;
 import com.yimusi.dto.oilsample.UpdateOilSampleRequest;
 
-import java.util.List;
-
 /**
  * 油样管理服务接口
  */
@@ -52,13 +50,6 @@ public interface OilSampleService {
      * @param id 油样 ID
      */
     void deleteOilSample(Long id);
-
-    /**
-     * 批量删除油样（软删除）
-     *
-     * @param ids 油样 ID 列表
-     */
-    void batchDeleteOilSamples(List<Long> ids);
 
     /**
      * 校验编号唯一性接口

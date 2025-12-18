@@ -5,6 +5,8 @@ import com.yimusi.dto.oilsample.OilSampleResponse;
 import com.yimusi.dto.oilsample.UpdateOilSampleRequest;
 import com.yimusi.entity.OilSample;
 import com.yimusi.entity.OilSampleParameter;
+import java.util.ArrayList;
+import org.mapstruct.AfterMapping;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -42,6 +44,13 @@ public interface OilSampleMapper {
     @Mapping(target = "deleted", ignore = true)
     @Mapping(target = "deletedAt", ignore = true)
     void updateEntityFromRequest(UpdateOilSampleRequest request, @MappingTarget OilSample oilSample);
+
+    @AfterMapping
+    default void ensureNonNullCollections(@MappingTarget OilSample oilSample) {
+        if (oilSample.getParameters() == null) {
+            oilSample.setParameters(new ArrayList<>());
+        }
+    }
 
     /**
      * ParameterItem 转 OilSampleParameter

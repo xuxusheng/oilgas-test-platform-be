@@ -10,6 +10,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -27,8 +28,9 @@ public class CreateOilSampleRequest {
     @NotNull(message = "用途不能为空")
     private OilSampleUsage usage;
 
+    @NotNull(message = "参数列表不能为空")
     @Valid
-    private List<ParameterItem> parameters;
+    private List<ParameterItem> parameters = new ArrayList<>();
 
     @NotNull(message = "油缸编号不能为空")
     private Integer cylinderNo;
