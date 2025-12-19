@@ -7,7 +7,6 @@ import com.yimusi.dto.common.PageResult;
 import com.yimusi.dto.oilsample.CreateOilSampleRequest;
 import com.yimusi.dto.oilsample.OilSamplePageRequest;
 import com.yimusi.dto.oilsample.OilSampleResponse;
-import com.yimusi.enums.OilSampleStatus;
 import com.yimusi.enums.OilSampleUsage;
 import com.yimusi.repository.OilSampleRepository;
 import java.util.ArrayList;
@@ -30,9 +29,9 @@ class OilSampleServiceIntegrationTest extends BaseIntegrationTest {
     void setUp() {
         oilSampleRepository.deleteAll();
 
-        createOilSample("SAMPLE-001", "Sample A", OilSampleUsage.CLEANING, OilSampleStatus.ENABLED, 1001);
-        createOilSample("SAMPLE-002", "Sample B", OilSampleUsage.CALIBRATION, OilSampleStatus.DISABLED, 1002);
-        createOilSample("SAMPLE-003", "Sample C", OilSampleUsage.CLEANING, OilSampleStatus.ENABLED, 1001);
+        createOilSample("SAMPLE-001", "Sample A", OilSampleUsage.CLEANING, true, 1001);
+        createOilSample("SAMPLE-002", "Sample B", OilSampleUsage.CALIBRATION, false, 1002);
+        createOilSample("SAMPLE-003", "Sample C", OilSampleUsage.CLEANING, true, 1001);
     }
 
     @AfterEach
@@ -89,12 +88,12 @@ class OilSampleServiceIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("分页查询 - 按状态查询")
-    void testGetOilSamplesPage_ByStatus() {
+    @DisplayName("分页查询 - 按启用状态查询")
+    void testGetOilSamplesPage_ByEnabled() {
         OilSamplePageRequest request = new OilSamplePageRequest();
         request.setPage(1);
         request.setSize(10);
-        request.setStatus(OilSampleStatus.DISABLED);
+        request.setEnabled(false);
 
         PageResult<OilSampleResponse> result = oilSampleService.getOilSamplesPage(request);
         assertEquals(1, result.getTotal());
@@ -126,13 +125,13 @@ class OilSampleServiceIntegrationTest extends BaseIntegrationTest {
         assertEquals(2, result.getTotal());
     }
 
-    private void createOilSample(String no, String name, OilSampleUsage usage, OilSampleStatus status, Integer cylinderNo) {
+    private void createOilSample(String no, String name, OilSampleUsage usage, Boolean enabled, Integer cylinderNo) {
         CreateOilSampleRequest request = new CreateOilSampleRequest();
         request.setSampleNo(no);
         request.setSampleName(name);
         request.setUsage(usage);
         request.setCylinderNo(cylinderNo);
-        request.setStatus(status);
+        request.setEnabled(enabled);
         request.setParameters(new ArrayList<>());
 
         oilSampleService.createOilSample(request);

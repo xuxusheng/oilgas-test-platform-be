@@ -108,8 +108,12 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
     @Override
     public InspectionDeviceResponse createDevice(CreateInspectionDeviceRequest createRequest) {
         // 验证唯一性约束
-        validateSerialNumberUnique(createRequest.getSerialNumber());
-        validateIpUnique(createRequest.getIp());
+        if (!isSerialNumberUnique(createRequest.getSerialNumber())) {
+            throw new BadRequestException(String.format("出厂编号 %s 已存在", createRequest.getSerialNumber()));
+        }
+        if (!isIpUnique(createRequest.getIp())) {
+            throw new BadRequestException(String.format("IP 地址 %s 已存在", createRequest.getIp()));
+        }
 
         // 转换为实体
         InspectionDevice device = deviceMapper.toEntity(createRequest);
@@ -144,12 +148,16 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
             StrUtil.isNotBlank(updateRequest.getSerialNumber()) &&
             !updateRequest.getSerialNumber().equals(device.getSerialNumber())
         ) {
-            validateSerialNumberUnique(updateRequest.getSerialNumber());
+            if (!isSerialNumberUnique(updateRequest.getSerialNumber())) {
+                throw new BadRequestException(String.format("出厂编号 %s 已存在", updateRequest.getSerialNumber()));
+            }
         }
 
         // 如果更新了 IP，需要验证唯一性
         if (StrUtil.isNotBlank(updateRequest.getIp()) && !updateRequest.getIp().equals(device.getIp())) {
-            validateIpUnique(updateRequest.getIp());
+            if (!isIpUnique(updateRequest.getIp())) {
+                throw new BadRequestException(String.format("IP 地址 %s 已存在", updateRequest.getIp()));
+            }
         }
 
         // 更新实体
@@ -180,30 +188,22 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
      * {@inheritDoc}
      */
     @Override
-    public boolean validateSerialNumberUnique(String serialNumber) {
+    public boolean isSerialNumberUnique(String serialNumber) {
         if (serialNumber == null) {
             return true;
         }
-        boolean exists = deviceRepository.existsBySerialNumberAndDeletedFalse(serialNumber);
-        if (exists) {
-            throw new BadRequestException(String.format("出厂编号 %s 已存在", serialNumber));
-        }
-        return true;
+        return !deviceRepository.existsBySerialNumberAndDeletedFalse(serialNumber);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean validateIpUnique(String ip) {
+    public boolean isIpUnique(String ip) {
         if (ip == null) {
             return true;
         }
-        boolean exists = deviceRepository.existsByIpAndDeletedFalse(ip);
-        if (exists) {
-            throw new BadRequestException(String.format("IP 地址 %s 已存在", ip));
-        }
-        return true;
+        return !deviceRepository.existsByIpAndDeletedFalse(ip);
     }
 
     /**

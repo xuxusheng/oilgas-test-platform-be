@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -93,15 +94,51 @@ public class OilSampleController {
     }
 
     /**
-     * 校验油样编号唯一性接口
+     * 判断油样编号是否唯一
      *
      * @param sampleNo 油样编号
      * @return true 如果唯一，false 如果已存在
      */
     @GetMapping("/validate-unique/{sampleNo}")
     public ApiResponse<Boolean> validateSampleNoUnique(@PathVariable String sampleNo) {
-        boolean isUnique = oilSampleService.validateSampleNoUnique(sampleNo);
+        boolean isUnique = oilSampleService.isSampleNoUnique(sampleNo);
         return ApiResponse.success(isUnique);
+    }
+
+    /**
+     * 启用油样
+     *
+     * @param id 油样 ID
+     * @return 更新后的油样信息
+     */
+    @PatchMapping("/{id}/enable")
+    public ApiResponse<OilSampleResponse> enableOilSample(@PathVariable Long id) {
+        OilSampleResponse response = oilSampleService.setOilSampleEnabled(id, true);
+        return ApiResponse.success(response);
+    }
+
+    /**
+     * 禁用油样
+     *
+     * @param id 油样 ID
+     * @return 更新后的油样信息
+     */
+    @PatchMapping("/{id}/disable")
+    public ApiResponse<OilSampleResponse> disableOilSample(@PathVariable Long id) {
+        OilSampleResponse response = oilSampleService.setOilSampleEnabled(id, false);
+        return ApiResponse.success(response);
+    }
+
+    /**
+     * 切换油样启用状态（启用↔禁用）
+     *
+     * @param id 油样 ID
+     * @return 更新后的油样信息
+     */
+    @PatchMapping("/{id}/toggle")
+    public ApiResponse<OilSampleResponse> toggleOilSample(@PathVariable Long id) {
+        OilSampleResponse response = oilSampleService.toggleOilSampleEnabled(id);
+        return ApiResponse.success(response);
     }
 }
 

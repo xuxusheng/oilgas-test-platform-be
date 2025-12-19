@@ -16,10 +16,8 @@ import com.yimusi.dto.common.PageResult;
 import com.yimusi.dto.oilsample.CreateOilSampleRequest;
 import com.yimusi.dto.oilsample.OilSampleResponse;
 import com.yimusi.dto.oilsample.UpdateOilSampleRequest;
-import com.yimusi.enums.OilSampleStatus;
 import com.yimusi.enums.OilSampleUsage;
 import com.yimusi.repository.OilSampleRepository;
-import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -63,7 +61,7 @@ public class OilSampleControllerIntegrationTest extends BaseIntegrationTest {
         request.setSampleName("Sample A");
         request.setUsage(OilSampleUsage.CLEANING);
         request.setCylinderNo(1001);
-        request.setStatus(OilSampleStatus.ENABLED);
+        request.setEnabled(true);
 
         String response = mockMvc
             .perform(
@@ -96,7 +94,7 @@ public class OilSampleControllerIntegrationTest extends BaseIntegrationTest {
         request.setSampleName("Sample A Updated");
         request.setUsage(OilSampleUsage.CALIBRATION);
         request.setCylinderNo(1002);
-        request.setStatus(OilSampleStatus.DISABLED);
+        request.setEnabled(false);
 
         mockMvc
             .perform(
@@ -116,7 +114,7 @@ public class OilSampleControllerIntegrationTest extends BaseIntegrationTest {
         ApiResponse<OilSampleResponse> apiResponse = objectMapper.readValue(getResponse, new TypeReference<>() {});
         assertThat(apiResponse.getData().getSampleNo()).isEqualTo("SAMPLE-001-UPDATED");
         assertThat(apiResponse.getData().getCylinderNo()).isEqualTo(1002);
-        assertThat(apiResponse.getData().getStatus()).isEqualTo(OilSampleStatus.DISABLED);
+        assertThat(apiResponse.getData().getEnabled()).isEqualTo(false);
         assertThat(apiResponse.getData().getUsage()).isEqualTo(OilSampleUsage.CALIBRATION);
     }
 
@@ -180,7 +178,7 @@ public class OilSampleControllerIntegrationTest extends BaseIntegrationTest {
         request.setSampleName("Sample");
         request.setUsage(OilSampleUsage.CLEANING);
         request.setCylinderNo(1001);
-        request.setStatus(OilSampleStatus.ENABLED);
+        request.setEnabled(true);
 
         String response = mockMvc
             .perform(

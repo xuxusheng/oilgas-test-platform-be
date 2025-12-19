@@ -68,10 +68,10 @@ public interface ProjectService {
     void deleteProject(Long id);
 
     /**
-     * 验证项目编号的唯一性。
+     * 判断项目编号是否唯一。
      *
      * @param projectNo 项目编号
-     * @return true 如果不存在，false 如果已存在
+     * @return true 如果唯一（不存在），false 如果已存在
      */
-    boolean validateProjectNoUnique(String projectNo);
+    boolean isProjectNoUnique(String projectNo);
 }

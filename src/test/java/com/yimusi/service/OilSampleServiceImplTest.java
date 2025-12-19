@@ -12,11 +12,11 @@ import com.yimusi.dto.oilsample.OilSamplePageRequest;
 import com.yimusi.dto.oilsample.OilSampleResponse;
 import com.yimusi.dto.oilsample.UpdateOilSampleRequest;
 import com.yimusi.entity.OilSample;
-import com.yimusi.enums.OilSampleStatus;
 import com.yimusi.enums.OilSampleUsage;
 import com.yimusi.mapper.OilSampleMapper;
 import com.yimusi.repository.OilSampleRepository;
 import com.yimusi.service.impl.OilSampleServiceImpl;
+import com.querydsl.core.types.Predicate;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +33,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
 class OilSampleServiceImplTest {
@@ -58,7 +57,7 @@ class OilSampleServiceImplTest {
         oilSample.setSampleNo("SAMPLE-001");
         oilSample.setSampleName("Test Sample");
         oilSample.setUsage(OilSampleUsage.FACTORY_TEST);
-        oilSample.setStatus(OilSampleStatus.ENABLED);
+        oilSample.setEnabled(true);
         oilSample.setCylinderNo(1001);
         oilSample.setCreatedAt(Instant.now());
 
@@ -67,10 +66,12 @@ class OilSampleServiceImplTest {
         createRequest.setSampleName("Test Sample");
         createRequest.setUsage(OilSampleUsage.FACTORY_TEST);
         createRequest.setCylinderNo(1001);
+        createRequest.setEnabled(true);
 
         updateRequest = new UpdateOilSampleRequest();
         updateRequest.setSampleNo("SAMPLE-001-UPDATED");
         updateRequest.setSampleName("Updated Sample");
+        updateRequest.setEnabled(true);
     }
 
     @Test
@@ -82,7 +83,8 @@ class OilSampleServiceImplTest {
         request.setSampleNo("SAMPLE");
 
         Page<OilSample> page = new PageImpl<>(List.of(oilSample));
-        when(oilSampleRepository.findAll(any(Specification.class), any(PageRequest.class))).thenReturn(page);
+        // 现在使用 Predicate 而不是 Specification
+        when(oilSampleRepository.findAll(any(Predicate.class), any(PageRequest.class))).thenReturn(page);
 
         PageResult<OilSampleResponse> result = oilSampleService.getOilSamplesPage(request);
 
@@ -132,7 +134,7 @@ class OilSampleServiceImplTest {
     @Test
     @DisplayName("创建油样 - parameters 为 null 时保存为空列表")
     void createOilSample_WhenParametersNull_ShouldPersistEmptyList() {
-        createRequest.setStatus(OilSampleStatus.ENABLED);
+        createRequest.setEnabled(true);
         createRequest.setParameters(null);
 
         when(oilSampleRepository.existsBySampleNo(createRequest.getSampleNo())).thenReturn(false);
@@ -201,11 +203,125 @@ class OilSampleServiceImplTest {
 
     @Test
     @DisplayName("校验编号唯一性")
-    void validateSampleNoUnique_ShouldReturnCorrectResult() {
+    void isSampleNoUnique_ShouldReturnCorrectResult() {
         when(oilSampleRepository.existsBySampleNo("SAMPLE-001")).thenReturn(true);
         when(oilSampleRepository.existsBySampleNo("SAMPLE-NEW")).thenReturn(false);
 
-        assertFalse(oilSampleService.validateSampleNoUnique("SAMPLE-001"));
-        assertTrue(oilSampleService.validateSampleNoUnique("SAMPLE-NEW"));
+        assertFalse(oilSampleService.isSampleNoUnique("SAMPLE-001"));
+        assertTrue(oilSampleService.isSampleNoUnique("SAMPLE-NEW"));
+    }
+
+    @Test
+    @DisplayName("启用油样 - 成功")
+    void setOilSampleEnabled_Enable_Success() {
+        // Given
+        when(oilSampleRepository.findById(1L)).thenReturn(Optional.of(oilSample));
+        oilSample.setEnabled(false); // 初始为禁用
+        when(oilSampleRepository.save(any(OilSample.class))).thenReturn(oilSample);
+
+        // When
+        OilSampleResponse response = oilSampleService.setOilSampleEnabled(1L, true);
+
+        // Then
+        assertNotNull(response);
+        verify(oilSampleRepository).findById(1L);
+        verify(oilSampleRepository).save(any(OilSample.class));
+        ArgumentCaptor<OilSample> captor = ArgumentCaptor.forClass(OilSample.class);
+        verify(oilSampleRepository).save(captor.capture());
+        assertEquals(true, captor.getValue().getEnabled());
+    }
+
+    @Test
+    @DisplayName("禁用油样 - 成功")
+    void setOilSampleEnabled_Disable_Success() {
+        // Given
+        when(oilSampleRepository.findById(1L)).thenReturn(Optional.of(oilSample));
+        oilSample.setEnabled(true); // 初始为启用
+        when(oilSampleRepository.save(any(OilSample.class))).thenReturn(oilSample);
+
+        // When
+        OilSampleResponse response = oilSampleService.setOilSampleEnabled(1L, false);
+
+        // Then
+        assertNotNull(response);
+        verify(oilSampleRepository).findById(1L);
+        verify(oilSampleRepository).save(any(OilSample.class));
+        ArgumentCaptor<OilSample> captor = ArgumentCaptor.forClass(OilSample.class);
+        verify(oilSampleRepository).save(captor.capture());
+        assertEquals(false, captor.getValue().getEnabled());
+    }
+
+    @Test
+    @DisplayName("设置油样状态 - ID为空")
+    void setOilSampleEnabled_NullId() {
+        // When & Then
+        assertThrows(BusinessException.class, () -> oilSampleService.setOilSampleEnabled(null, true));
+        verify(oilSampleRepository, never()).save(any(OilSample.class));
+    }
+
+    @Test
+    @DisplayName("设置油样状态 - 油样不存在")
+    void setOilSampleEnabled_NotFound() {
+        // Given
+        when(oilSampleRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(ResourceNotFoundException.class, () -> oilSampleService.setOilSampleEnabled(999L, true));
+        verify(oilSampleRepository, never()).save(any(OilSample.class));
+    }
+
+    @Test
+    @DisplayName("切换油样状态 - 从启用到禁用")
+    void toggleOilSampleEnabled_FromEnabledToDisabled() {
+        // Given
+        oilSample.setEnabled(true);
+        when(oilSampleRepository.findById(1L)).thenReturn(Optional.of(oilSample));
+        when(oilSampleRepository.save(any(OilSample.class))).thenReturn(oilSample);
+
+        // When
+        OilSampleResponse response = oilSampleService.toggleOilSampleEnabled(1L);
+
+        // Then
+        assertNotNull(response);
+        ArgumentCaptor<OilSample> captor = ArgumentCaptor.forClass(OilSample.class);
+        verify(oilSampleRepository).save(captor.capture());
+        assertEquals(false, captor.getValue().getEnabled());
+    }
+
+    @Test
+    @DisplayName("切换油样状态 - 从禁用到启用")
+    void toggleOilSampleEnabled_FromDisabledToEnabled() {
+        // Given
+        oilSample.setEnabled(false);
+        when(oilSampleRepository.findById(1L)).thenReturn(Optional.of(oilSample));
+        when(oilSampleRepository.save(any(OilSample.class))).thenReturn(oilSample);
+
+        // When
+        OilSampleResponse response = oilSampleService.toggleOilSampleEnabled(1L);
+
+        // Then
+        assertNotNull(response);
+        ArgumentCaptor<OilSample> captor = ArgumentCaptor.forClass(OilSample.class);
+        verify(oilSampleRepository).save(captor.capture());
+        assertEquals(true, captor.getValue().getEnabled());
+    }
+
+    @Test
+    @DisplayName("切换油样状态 - ID为空")
+    void toggleOilSampleEnabled_NullId() {
+        // When & Then
+        assertThrows(BusinessException.class, () -> oilSampleService.toggleOilSampleEnabled(null));
+        verify(oilSampleRepository, never()).save(any(OilSample.class));
+    }
+
+    @Test
+    @DisplayName("切换油样状态 - 油样不存在")
+    void toggleOilSampleEnabled_NotFound() {
+        // Given
+        when(oilSampleRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(ResourceNotFoundException.class, () -> oilSampleService.toggleOilSampleEnabled(999L));
+        verify(oilSampleRepository, never()).save(any(OilSample.class));
     }
 }

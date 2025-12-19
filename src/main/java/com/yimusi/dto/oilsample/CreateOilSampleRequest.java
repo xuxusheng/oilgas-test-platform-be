@@ -1,6 +1,5 @@
 package com.yimusi.dto.oilsample;
 
-import com.yimusi.enums.OilSampleStatus;
 import com.yimusi.enums.OilSampleUsage;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -39,8 +38,8 @@ public class CreateOilSampleRequest {
 
     private String offlineTestNo;
 
-    @NotNull(message = "状态不能为空")
-    private OilSampleStatus status;
+    @NotNull(message = "启用状态不能为空")
+    private Boolean enabled = true;
 
     private String remark;
 

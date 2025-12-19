@@ -251,12 +251,12 @@ class ProjectServiceImplTest {
 
     @Test
     @DisplayName("项目唯一性验证 - 验证项目编号唯一性")
-    void validateProjectNoUnique_ShouldReturnTrue() {
+    void isProjectNoUnique_ShouldReturnTrue() {
         // Arrange - 设置测试环境：模拟项目编号不存在
         when(projectRepository.existsByProjectNoAndDeletedFalse("PRJ999")).thenReturn(false);
 
         // Act - 执行唯一性验证
-        boolean result = projectService.validateProjectNoUnique("PRJ999");
+        boolean result = projectService.isProjectNoUnique("PRJ999");
 
         // Assert - 验证项目编号唯一
         assertTrue(result);
@@ -264,12 +264,12 @@ class ProjectServiceImplTest {
 
     @Test
     @DisplayName("项目唯一性验证 - 重复项目编号应返回false")
-    void validateProjectNoUnique_WithDuplicate_ShouldReturnFalse() {
+    void isProjectNoUnique_WithDuplicate_ShouldReturnFalse() {
         // Arrange - 设置测试环境：模拟项目编号已存在
         when(projectRepository.existsByProjectNoAndDeletedFalse("PRJ001")).thenReturn(true);
 
         // Act - 执行唯一性验证
-        boolean result = projectService.validateProjectNoUnique("PRJ001");
+        boolean result = projectService.isProjectNoUnique("PRJ001");
 
         // Assert - 验证返回false（不唯一）
         assertFalse(result);
@@ -277,9 +277,9 @@ class ProjectServiceImplTest {
 
     @Test
     @DisplayName("项目唯一性验证 - 空项目编号不验证")
-    void validateProjectNoUnique_WithNull_ShouldReturnTrue() {
+    void isProjectNoUnique_WithNull_ShouldReturnTrue() {
         // Act - 执行空项目编号验证
-        boolean result = projectService.validateProjectNoUnique(null);
+        boolean result = projectService.isProjectNoUnique(null);
 
         // Assert - 验证空项目编号直接返回true
         assertTrue(result);
@@ -287,12 +287,12 @@ class ProjectServiceImplTest {
 
     @Test
     @DisplayName("项目唯一性验证 - 已删除项目不影响唯一性验证")
-    void validateProjectNoUnique_WithDeletedProject_ShouldReturnTrue() {
+    void isProjectNoUnique_WithDeletedProject_ShouldReturnTrue() {
         // Arrange - 设置测试环境：模拟项目编号对应项目已删除
         when(projectRepository.existsByProjectNoAndDeletedFalse("DEL001")).thenReturn(false);
 
         // Act - 执行唯一性验证
-        boolean result = projectService.validateProjectNoUnique("DEL001");
+        boolean result = projectService.isProjectNoUnique("DEL001");
 
         // Assert - 验证已删除项目不影响唯一性
         assertTrue(result);

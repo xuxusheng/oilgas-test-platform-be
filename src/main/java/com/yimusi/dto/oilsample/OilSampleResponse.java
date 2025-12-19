@@ -1,7 +1,6 @@
 package com.yimusi.dto.oilsample;
 
 import com.yimusi.entity.OilSampleParameter;
-import com.yimusi.enums.OilSampleStatus;
 import com.yimusi.enums.OilSampleUsage;
 import lombok.Data;
 
@@ -55,9 +54,9 @@ public class OilSampleResponse {
     private String offlineTestNo;
 
     /**
-     * 油样状态
+     * 是否启用
      */
-    private OilSampleStatus status;
+    private Boolean enabled;
 
     /**
      * 备注

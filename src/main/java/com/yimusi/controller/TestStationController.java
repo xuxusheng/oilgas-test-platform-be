@@ -120,14 +120,50 @@ public class TestStationController {
     }
 
     /**
-     * 验证工位编号唯一性
+     * 判断工位编号是否唯一
      *
      * @param stationNo 工位编号
      * @return 是否唯一
      */
     @GetMapping("/validate-station-no/{stationNo}")
     public ApiResponse<Boolean> validateStationNoUnique(@PathVariable Integer stationNo) {
-        boolean isUnique = testStationService.validateStationNoUnique(stationNo);
+        boolean isUnique = testStationService.isStationNoUnique(stationNo);
         return ApiResponse.success(isUnique);
+    }
+
+    /**
+     * 启用测试工位
+     *
+     * @param id 工位 ID
+     * @return 更新后的工位信息
+     */
+    @PatchMapping("/{id}/enable")
+    public ApiResponse<TestStationResponse> enableStation(@PathVariable Long id) {
+        TestStationResponse response = testStationService.setStationEnabled(id, true);
+        return ApiResponse.success(response);
+    }
+
+    /**
+     * 禁用测试工位
+     *
+     * @param id 工位 ID
+     * @return 更新后的工位信息
+     */
+    @PatchMapping("/{id}/disable")
+    public ApiResponse<TestStationResponse> disableStation(@PathVariable Long id) {
+        TestStationResponse response = testStationService.setStationEnabled(id, false);
+        return ApiResponse.success(response);
+    }
+
+    /**
+     * 切换测试工位启用状态（启用↔禁用）
+     *
+     * @param id 工位 ID
+     * @return 更新后的工位信息
+     */
+    @PatchMapping("/{id}/toggle")
+    public ApiResponse<TestStationResponse> toggleStation(@PathVariable Long id) {
+        TestStationResponse response = testStationService.toggleStationEnabled(id);
+        return ApiResponse.success(response);
     }
 }

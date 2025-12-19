@@ -1,7 +1,6 @@
 package com.yimusi.entity;
 
 import com.yimusi.entity.base.SoftDeletableEntity;
-import com.yimusi.enums.OilSampleStatus;
 import com.yimusi.enums.OilSampleUsage;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,7 +32,7 @@ import java.util.List;
     indexes = {
         @Index(name = "idx_oil_samples_sample_no", columnList = "sample_no"),
         @Index(name = "idx_oil_samples_cylinder_no", columnList = "cylinder_no"),
-        @Index(name = "idx_oil_samples_usage_status", columnList = "usage_type,status")
+        @Index(name = "idx_oil_samples_usage_enabled", columnList = "usage_type,enabled")
     }
 )
 @SQLDelete(sql = "UPDATE oil_samples SET deleted = true, deleted_at = NOW() WHERE id = ?")
@@ -78,10 +77,13 @@ public class OilSample extends SoftDeletableEntity {
     @Column(name = "offline_test_no", length = 100)
     private String offlineTestNo;
 
-    /** 油样状态枚举（启用/禁用） */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    private OilSampleStatus status = OilSampleStatus.ENABLED;
+    /**
+     * 是否启用
+     * true - 启用（正常可用）
+     * false - 禁用（不可使用，但数据可见）
+     */
+    @Column(name = "enabled", nullable = false)
+    private Boolean enabled = true;
 
     /** 备注 */
     @Column(name = "remark", length = 500)

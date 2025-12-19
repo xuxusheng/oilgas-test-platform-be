@@ -70,10 +70,27 @@ public interface TestStationService {
     void deleteStation(Long id);
 
     /**
-     * 验证工位编号的唯一性。
+     * 判断工位编号是否唯一。
      *
      * @param stationNo 工位编号
-     * @return true 如果不存在，false 如果已存在
+     * @return true 如果唯一（不存在），false 如果已存在
      */
-    boolean validateStationNoUnique(Integer stationNo);
+    boolean isStationNoUnique(Integer stationNo);
+
+    /**
+     * 设置工位启用状态
+     *
+     * @param id 工位 ID
+     * @param enabled true=启用, false=禁用
+     * @return 更新后的工位响应
+     */
+    TestStationResponse setStationEnabled(Long id, boolean enabled);
+
+    /**
+     * 切换工位启用状态（启用↔禁用）
+     *
+     * @param id 工位 ID
+     * @return 更新后的工位响应
+     */
+    TestStationResponse toggleStationEnabled(Long id);
 }

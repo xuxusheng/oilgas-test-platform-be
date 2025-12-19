@@ -83,4 +83,12 @@ public interface UserService {
      * @param id 要删除的用户ID
      */
     void deleteUser(Long id);
+
+    /**
+     * 判断用户名是否唯一。
+     *
+     * @param username 用户名
+     * @return true 如果唯一（不存在），false 如果已存在
+     */
+    boolean isUsernameUnique(String username);
 }

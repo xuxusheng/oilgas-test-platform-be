@@ -116,14 +116,14 @@ public class ProjectController {
     }
 
     /**
-     * 验证项目编号唯一性
+     * 判断项目编号是否唯一
      *
      * @param projectNo 项目编号
      * @return 是否唯一
      */
     @GetMapping("/validate-unique/{projectNo}")
     public ApiResponse<Boolean> validateProjectNoUnique(@PathVariable String projectNo) {
-        boolean isUnique = projectService.validateProjectNoUnique(projectNo);
+        boolean isUnique = projectService.isProjectNoUnique(projectNo);
         return ApiResponse.success(isUnique);
     }
 }

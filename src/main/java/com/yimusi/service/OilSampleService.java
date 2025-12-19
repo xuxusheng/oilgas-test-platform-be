@@ -52,10 +52,27 @@ public interface OilSampleService {
     void deleteOilSample(Long id);
 
     /**
-     * 校验编号唯一性接口
+     * 判断油样编号是否唯一
      *
      * @param sampleNo 油样编号
-     * @return true 如果不存在（可用），false 如果已存在（不可用）
+     * @return true 如果唯一（不存在），false 如果已存在
      */
-    boolean validateSampleNoUnique(String sampleNo);
+    boolean isSampleNoUnique(String sampleNo);
+
+    /**
+     * 设置油样状态
+     *
+     * @param id 油样 ID
+     * @param enabled true=启用, false=禁用
+     * @return 更新后的油样响应
+     */
+    OilSampleResponse setOilSampleEnabled(Long id, boolean enabled);
+
+    /**
+     * 切换油样启用状态（启用↔禁用）
+     *
+     * @param id 油样 ID
+     * @return 更新后的油样响应
+     */
+    OilSampleResponse toggleOilSampleEnabled(Long id);
 }

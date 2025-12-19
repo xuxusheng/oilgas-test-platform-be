@@ -97,7 +97,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectResponse createProject(CreateProjectRequest createProjectRequest) {
         // 验证项目编号唯一性
-        if (!validateProjectNoUnique(createProjectRequest.getProjectNo())) {
+        if (!isProjectNoUnique(createProjectRequest.getProjectNo())) {
             throw new BadRequestException(String.format("项目编号 %s 已存在", createProjectRequest.getProjectNo()));
         }
 
@@ -143,7 +143,7 @@ public class ProjectServiceImpl implements ProjectService {
      * {@inheritDoc}
      */
     @Override
-    public boolean validateProjectNoUnique(String projectNo) {
+    public boolean isProjectNoUnique(String projectNo) {
         if (projectNo == null) {
             return true;
         }

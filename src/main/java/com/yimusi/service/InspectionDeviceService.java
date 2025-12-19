@@ -68,18 +68,18 @@ public interface InspectionDeviceService {
     void deleteDevice(Long id);
 
     /**
-     * 验证出厂编号的唯一性。
+     * 判断出厂编号是否唯一。
      *
      * @param serialNumber 出厂编号
-     * @return true 如果不存在，false 如果已存在
+     * @return true 如果唯一（不存在），false 如果已存在
      */
-    boolean validateSerialNumberUnique(String serialNumber);
+    boolean isSerialNumberUnique(String serialNumber);
 
     /**
-     * 验证 IP 地址的唯一性。
+     * 判断 IP 地址是否唯一。
      *
      * @param ip IP 地址
-     * @return true 如果不存在，false 如果已存在
+     * @return true 如果唯一（不存在），false 如果已存在
      */
-    boolean validateIpUnique(String ip);
+    boolean isIpUnique(String ip);
 }

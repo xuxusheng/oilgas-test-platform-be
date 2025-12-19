@@ -167,9 +167,10 @@ class UserServiceImplTest {
         // Act - 执行用户删除操作
         userService.deleteUser(1L);
 
-        // Assert - 验证用户被标记为已删除且保存方法被调用
-        assertTrue(user.getDeleted());
-        verify(userRepository).save(user);
+        // Assert - 验证调用了 deleteById，由 @SQLDelete 处理软删除
+        verify(userRepository).findById(1L);
+        verify(userRepository).deleteById(1L);
+        // 不再验证手动设置 deleted 字段，因为由 @SQLDelete 自动处理
     }
 
     // === 分支覆盖测试 ===

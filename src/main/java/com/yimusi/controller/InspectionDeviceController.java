@@ -120,26 +120,26 @@ public class InspectionDeviceController {
     }
 
     /**
-     * 验证出厂编号唯一性
+     * 判断出厂编号是否唯一
      *
      * @param serialNumber 出厂编号
      * @return 是否唯一
      */
     @GetMapping("/validate-serial-number/{serialNumber}")
     public ApiResponse<Boolean> validateSerialNumberUnique(@PathVariable String serialNumber) {
-        boolean isUnique = deviceService.validateSerialNumberUnique(serialNumber);
+        boolean isUnique = deviceService.isSerialNumberUnique(serialNumber);
         return ApiResponse.success(isUnique);
     }
 
     /**
-     * 验证IP地址唯一性
+     * 判断IP地址是否唯一
      *
      * @param ip IP 地址
      * @return 是否唯一
      */
     @GetMapping("/validate-ip/{ip}")
     public ApiResponse<Boolean> validateIpUnique(@PathVariable String ip) {
-        boolean isUnique = deviceService.validateIpUnique(ip);
+        boolean isUnique = deviceService.isIpUnique(ip);
         return ApiResponse.success(isUnique);
     }
 }

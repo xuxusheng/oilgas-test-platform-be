@@ -459,22 +459,14 @@ class TestStationServiceImplTest {
     void deleteStation_Success() {
         // Given
         when(stationRepository.findById(1L)).thenReturn(Optional.of(mockStation));
-        when(stationRepository.save(any(TestStation.class))).thenReturn(mockStation);
 
         // When
         testStationService.deleteStation(1L);
 
-        // Then
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<TestStation> captor = ArgumentCaptor.forClass(TestStation.class);
-        verify(stationRepository).save(captor.capture());
-
-        TestStation deleted = captor.getValue();
-        // 验证软删除字段被设置
-        assertEquals(true, deleted.getDeleted());
-        assertNotNull(deleted.getDeletedAt());
-        assertNotNull(deleted.getDeletedBy());
+        // Then - 现在调用 deleteById 而不是 save
         verify(stationRepository).findById(1L);
+        verify(stationRepository).deleteById(1L);
+        // 不再验证 save 方法被调用
     }
 
     @Test
@@ -492,17 +484,17 @@ class TestStationServiceImplTest {
 
         // When & Then
         assertThrows(ResourceNotFoundException.class, () -> testStationService.deleteStation(999L));
-        verify(stationRepository, never()).save(any(TestStation.class));
+        verify(stationRepository, never()).deleteById(any(Long.class));
     }
 
     @Test
     @DisplayName("验证工位编号唯一性 - 是唯一的")
-    void validateStationNoUnique_Unique() {
+    void isStationNoUnique_Unique() {
         // Given
         when(stationRepository.existsByStationNoAndDeletedFalse(1002)).thenReturn(false);
 
         // When
-        boolean result = testStationService.validateStationNoUnique(1002);
+        boolean result = testStationService.isStationNoUnique(1002);
 
         // Then
         assertTrue(result);
@@ -511,19 +503,23 @@ class TestStationServiceImplTest {
 
     @Test
     @DisplayName("验证工位编号唯一性 - 已存在")
-    void validateStationNoUnique_Duplicate() {
+    void isStationNoUnique_Duplicate() {
         // Given
         when(stationRepository.existsByStationNoAndDeletedFalse(1001)).thenReturn(true);
 
-        // When & Then
-        assertThrows(BadRequestException.class, () -> testStationService.validateStationNoUnique(1001));
+        // When
+        boolean result = testStationService.isStationNoUnique(1001);
+
+        // Then - 现在返回 false 而不是抛出异常
+        assertFalse(result);
+        verify(stationRepository).existsByStationNoAndDeletedFalse(1001);
     }
 
     @Test
     @DisplayName("验证工位编号唯一性 - 编号为空")
-    void validateStationNoUnique_Null() {
+    void isStationNoUnique_Null() {
         // When
-        boolean result = testStationService.validateStationNoUnique(null);
+        boolean result = testStationService.isStationNoUnique(null);
 
         // Then
         assertTrue(result);
@@ -531,28 +527,18 @@ class TestStationServiceImplTest {
     }
 
     @Test
-    @DisplayName("标记删除 - 验证字段设置")
-    void markDeleted_FieldsSetCorrectly() {
-        // Given: 模拟测试 markDeleted 方法被调用
-        TestStation station = new TestStation();
-        station.setId(1L);
-        station.setStationNo(1001);
-
-        when(stationRepository.findById(1L)).thenReturn(Optional.of(station));
-        when(stationRepository.save(any(TestStation.class))).thenReturn(station);
+    @DisplayName("删除工位 - 验证调用deleteById")
+    void deleteStation_CallsDeleteById() {
+        // Given: 测试新的删除实现
+        when(stationRepository.findById(1L)).thenReturn(Optional.of(mockStation));
 
         // When: 调用删除
         testStationService.deleteStation(1L);
 
-        // Then: 验证软删除字段
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<TestStation> captor = ArgumentCaptor.forClass(TestStation.class);
-        verify(stationRepository).save(captor.capture());
-
-        TestStation deleted = captor.getValue();
-        assertEquals(true, deleted.getDeleted());
-        assertNotNull(deleted.getDeletedAt());
-        assertNotNull(deleted.getDeletedBy());
+        // Then: 验证调用 deleteById，@SQLDelete 会自动处理软删除
+        verify(stationRepository).findById(1L);
+        verify(stationRepository).deleteById(1L);
+        // 不再验证手动设置软删除字段，因为由 @SQLDelete 处理
     }
 
     @Test
@@ -584,7 +570,7 @@ class TestStationServiceImplTest {
         when(stationRepository.save(any(TestStation.class))).thenReturn(newStation);
 
         // When: 更新
-        TestStationResponse updateResponse = testStationService.updateStation(stationId, updateReq);
+        testStationService.updateStation(stationId, updateReq);
 
         // Then: 更新成功
         verify(stationRepository, times(2)).save(any(TestStation.class));
@@ -595,14 +581,122 @@ class TestStationServiceImplTest {
         // When: 删除
         testStationService.deleteStation(stationId);
 
-        // Then: 删除成功
-        verify(stationRepository, times(3)).save(any(TestStation.class));
+        // Then: 删除成功 - 现在调用 deleteById 而不是 save
+        verify(stationRepository, times(2)).save(any(TestStation.class)); // 创建 + 更新
+        verify(stationRepository).deleteById(stationId); // 删除
+    }
 
-        @SuppressWarnings("unchecked")
+    @Test
+    @DisplayName("启用工位 - 成功")
+    void setStationEnabled_Enable_Success() {
+        // Given
+        when(stationRepository.findById(1L)).thenReturn(Optional.of(mockStation));
+        mockStation.setEnabled(false); // 初始为禁用
+        when(stationRepository.save(any(TestStation.class))).thenReturn(mockStation);
+
+        // When
+        TestStationResponse response = testStationService.setStationEnabled(1L, true);
+
+        // Then
+        assertNotNull(response);
+        verify(stationRepository).findById(1L);
+        verify(stationRepository).save(any(TestStation.class));
         ArgumentCaptor<TestStation> captor = ArgumentCaptor.forClass(TestStation.class);
-        verify(stationRepository, times(3)).save(captor.capture());
+        verify(stationRepository).save(captor.capture());
+        assertEquals(true, captor.getValue().getEnabled());
+    }
 
-        TestStation lastSaved = captor.getValue();
-        assertEquals(true, lastSaved.getDeleted());
+    @Test
+    @DisplayName("禁用工位 - 成功")
+    void setStationEnabled_Disable_Success() {
+        // Given
+        when(stationRepository.findById(1L)).thenReturn(Optional.of(mockStation));
+        mockStation.setEnabled(true); // 初始为启用
+        when(stationRepository.save(any(TestStation.class))).thenReturn(mockStation);
+
+        // When
+        TestStationResponse response = testStationService.setStationEnabled(1L, false);
+
+        // Then
+        assertNotNull(response);
+        verify(stationRepository).findById(1L);
+        verify(stationRepository).save(any(TestStation.class));
+        ArgumentCaptor<TestStation> captor = ArgumentCaptor.forClass(TestStation.class);
+        verify(stationRepository).save(captor.capture());
+        assertEquals(false, captor.getValue().getEnabled());
+    }
+
+    @Test
+    @DisplayName("设置工位状态 - ID为空")
+    void setStationEnabled_NullId() {
+        // When & Then
+        assertThrows(BadRequestException.class, () -> testStationService.setStationEnabled(null, true));
+        verify(stationRepository, never()).save(any(TestStation.class));
+    }
+
+    @Test
+    @DisplayName("设置工位状态 - 工位不存在")
+    void setStationEnabled_NotFound() {
+        // Given
+        when(stationRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(ResourceNotFoundException.class, () -> testStationService.setStationEnabled(999L, true));
+        verify(stationRepository, never()).save(any(TestStation.class));
+    }
+
+    @Test
+    @DisplayName("切换工位状态 - 从启用到禁用")
+    void toggleStationEnabled_FromEnabledToDisabled() {
+        // Given
+        mockStation.setEnabled(true);
+        when(stationRepository.findById(1L)).thenReturn(Optional.of(mockStation));
+        when(stationRepository.save(any(TestStation.class))).thenReturn(mockStation);
+
+        // When
+        TestStationResponse response = testStationService.toggleStationEnabled(1L);
+
+        // Then
+        assertNotNull(response);
+        ArgumentCaptor<TestStation> captor = ArgumentCaptor.forClass(TestStation.class);
+        verify(stationRepository).save(captor.capture());
+        assertEquals(false, captor.getValue().getEnabled());
+    }
+
+    @Test
+    @DisplayName("切换工位状态 - 从禁用到启用")
+    void toggleStationEnabled_FromDisabledToEnabled() {
+        // Given
+        mockStation.setEnabled(false);
+        when(stationRepository.findById(1L)).thenReturn(Optional.of(mockStation));
+        when(stationRepository.save(any(TestStation.class))).thenReturn(mockStation);
+
+        // When
+        TestStationResponse response = testStationService.toggleStationEnabled(1L);
+
+        // Then
+        assertNotNull(response);
+        ArgumentCaptor<TestStation> captor = ArgumentCaptor.forClass(TestStation.class);
+        verify(stationRepository).save(captor.capture());
+        assertEquals(true, captor.getValue().getEnabled());
+    }
+
+    @Test
+    @DisplayName("切换工位状态 - ID为空")
+    void toggleStationEnabled_NullId() {
+        // When & Then
+        assertThrows(BadRequestException.class, () -> testStationService.toggleStationEnabled(null));
+        verify(stationRepository, never()).save(any(TestStation.class));
+    }
+
+    @Test
+    @DisplayName("切换工位状态 - 工位不存在")
+    void toggleStationEnabled_NotFound() {
+        // Given
+        when(stationRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(ResourceNotFoundException.class, () -> testStationService.toggleStationEnabled(999L));
+        verify(stationRepository, never()).save(any(TestStation.class));
     }
 }

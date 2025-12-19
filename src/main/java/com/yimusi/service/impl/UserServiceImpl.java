@@ -6,7 +6,6 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.yimusi.common.exception.BadRequestException;
 import com.yimusi.common.exception.ResourceNotFoundException;
-import com.yimusi.common.util.OperatorUtil;
 import com.yimusi.dto.auth.UserRegisterRequest;
 import com.yimusi.dto.common.PageResult;
 import com.yimusi.dto.user.CreateUserRequest;
@@ -19,17 +18,19 @@ import com.yimusi.enums.UserRole;
 import com.yimusi.mapper.UserMapper;
 import com.yimusi.repository.UserRepository;
 import com.yimusi.service.UserService;
-import java.time.Instant;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
  * 用户服务实现类，处理所有与用户相关的业务逻辑。
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -79,7 +80,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserResponse register(UserRegisterRequest registerRequest) {
-        validateUsernameUnique(registerRequest.getUsername());
+        if (!isUsernameUnique(registerRequest.getUsername())) {
+            throw new BadRequestException(String.format("用户名 %s 已存在", registerRequest.getUsername()));
+        }
 
         User user = userMapper.toEntity(registerRequest);
         user.setPassword(BCrypt.hashpw(registerRequest.getPassword()));
@@ -93,7 +96,9 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserResponse createUser(CreateUserRequest createUserRequest) {
-        validateUsernameUnique(createUserRequest.getUsername());
+        if (!isUsernameUnique(createUserRequest.getUsername())) {
+            throw new BadRequestException(String.format("用户名 %s 已存在", createUserRequest.getUsername()));
+        }
 
         User user = userMapper.toEntity(createUserRequest);
         user.setPassword(BCrypt.hashpw(createUserRequest.getPassword()));
@@ -153,7 +158,9 @@ public class UserServiceImpl implements UserService {
         User user = getUserById(id);
 
         if (updateUserRequest.getUsername() != null && !updateUserRequest.getUsername().equals(user.getUsername())) {
-            validateUsernameUnique(updateUserRequest.getUsername());
+            if (!isUsernameUnique(updateUserRequest.getUsername())) {
+                throw new BadRequestException(String.format("用户名 %s 已存在", updateUserRequest.getUsername()));
+            }
         }
 
         userMapper.updateEntityFromRequest(updateUserRequest, user);
@@ -171,21 +178,25 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("用户 ID 不能为空");
         }
 
+        // 先查询验证存在性
         User user = getUserById(id);
-        markDeleted(user);
-        userRepository.save(user);
+
+        // 直接调用 repository.deleteById()，由 @SQLDelete 自动处理软删除
+        userRepository.deleteById(id);
+
+        log.info("删除用户: 用户名={}, ID={}", user.getUsername(), id);
     }
 
-    private void validateUsernameUnique(String username) {
-        if (StrUtil.isNotBlank(username) && userRepository.existsByUsernameAndDeletedFalse(username)) {
-            throw new BadRequestException(String.format("用户名 %s 已存在", username));
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isUsernameUnique(String username) {
+        if (StrUtil.isBlank(username)) {
+            return true;
         }
-    }
-
-    private void markDeleted(User user) {
-        user.setDeleted(true);
-        user.setDeletedAt(Instant.now());
-        user.setDeletedBy(OperatorUtil.getOperator());
+        return !userRepository.existsByUsernameAndDeletedFalse(username);
     }
 
     /**

@@ -99,4 +99,16 @@ public class UserController {
         userService.deleteUser(id);
         return ApiResponse.success();
     }
+
+    /**
+     * 判断用户名是否唯一
+     *
+     * @param username 用户名
+     * @return 是否唯一
+     */
+    @GetMapping("/validate-username/{username}")
+    public ApiResponse<Boolean> validateUsernameUnique(@PathVariable String username) {
+        boolean isUnique = userService.isUsernameUnique(username);
+        return ApiResponse.success(isUnique);
+    }
 }

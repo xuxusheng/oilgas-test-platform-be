@@ -1,7 +1,6 @@
 package com.yimusi.dto.oilsample;
 
 import com.yimusi.dto.common.PageRequest;
-import com.yimusi.enums.OilSampleStatus;
 import com.yimusi.enums.OilSampleUsage;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -29,9 +28,9 @@ public class OilSamplePageRequest extends PageRequest {
     private OilSampleUsage usage;
 
     /**
-     * 状态筛选
+     * 启用状态筛选
      */
-    private OilSampleStatus status;
+    private Boolean enabled;
 
     /**
      * 油缸编号筛选

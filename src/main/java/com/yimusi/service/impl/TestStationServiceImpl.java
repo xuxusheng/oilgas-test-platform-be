@@ -5,7 +5,6 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.yimusi.common.exception.BadRequestException;
 import com.yimusi.common.exception.ResourceNotFoundException;
-import com.yimusi.common.util.OperatorUtil;
 import com.yimusi.dto.common.PageResult;
 import com.yimusi.dto.teststation.CreateTestStationRequest;
 import com.yimusi.dto.teststation.TestStationPageRequest;
@@ -24,7 +23,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -107,8 +105,10 @@ public class TestStationServiceImpl implements TestStationService {
      */
     @Override
     public TestStationResponse createStation(CreateTestStationRequest createRequest) {
-        // 验证唯一性约束
-        validateStationNoUnique(createRequest.getStationNo());
+        // 验证唯一性约束 - 需要手动抛出异常
+        if (!isStationNoUnique(createRequest.getStationNo())) {
+            throw new BadRequestException(String.format("工位编号 %s 已存在", createRequest.getStationNo()));
+        }
 
         // 转换为实体
         TestStation station = stationMapper.toEntity(createRequest);
@@ -147,7 +147,9 @@ public class TestStationServiceImpl implements TestStationService {
 
         // 如果更新了工位编号，需要验证唯一性
         if (updateRequest.getStationNo() != null && !updateRequest.getStationNo().equals(station.getStationNo())) {
-            validateStationNoUnique(updateRequest.getStationNo());
+            if (!isStationNoUnique(updateRequest.getStationNo())) {
+                throw new BadRequestException(String.format("工位编号 %s 已存在", updateRequest.getStationNo()));
+            }
         }
 
         // 更新实体
@@ -176,9 +178,12 @@ public class TestStationServiceImpl implements TestStationService {
             throw new BadRequestException("工位 ID 不能为空");
         }
 
+        // 先查询验证存在性
         TestStation station = getStationById(id);
-        markDeleted(station);
-        stationRepository.save(station);
+
+        // 直接调用 repository.deleteById()，由 @SQLDelete 自动处理软删除
+        stationRepository.deleteById(id);
+
         log.info("删除测试工位: 工位编号={}, 工位名称={}", station.getStationNo(), station.getStationName());
     }
 
@@ -187,26 +192,53 @@ public class TestStationServiceImpl implements TestStationService {
      */
     @Override
     @Transactional(readOnly = true)
-    public boolean validateStationNoUnique(Integer stationNo) {
+    public boolean isStationNoUnique(Integer stationNo) {
         if (stationNo == null) {
             return true;
         }
-        boolean exists = stationRepository.existsByStationNoAndDeletedFalse(stationNo);
-        if (exists) {
-            throw new BadRequestException(String.format("工位编号 %s 已存在", stationNo));
-        }
-        return true;
+        // 只返回布尔值，不抛出异常
+        return !stationRepository.existsByStationNoAndDeletedFalse(stationNo);
     }
 
     /**
-     * 标记工位为已删除
-     *
-     * @param station 工位实体
+     * {@inheritDoc}
      */
-    private void markDeleted(TestStation station) {
-        station.setDeleted(true);
-        station.setDeletedAt(Instant.now());
-        station.setDeletedBy(OperatorUtil.getOperator());
+    @Override
+    public TestStationResponse setStationEnabled(Long id, boolean enabled) {
+        if (id == null) {
+            throw new BadRequestException("工位 ID 不能为空");
+        }
+
+        TestStation station = getStationById(id);
+        station.setEnabled(enabled);
+        TestStation saved = stationRepository.save(station);
+
+        log.info("工位状态变更: ID={}, 工位编号={}, 新状态={}",
+            id, station.getStationNo(), enabled ? "启用" : "禁用");
+
+        return stationMapper.toResponse(saved);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public TestStationResponse toggleStationEnabled(Long id) {
+        if (id == null) {
+            throw new BadRequestException("工位 ID 不能为空");
+        }
+
+        TestStation station = getStationById(id);
+
+        // 切换状态
+        boolean newEnabled = !station.getEnabled();
+        station.setEnabled(newEnabled);
+        TestStation saved = stationRepository.save(station);
+
+        log.info("工位状态切换: ID={}, 工位编号={}, 新状态={}",
+            id, station.getStationNo(), newEnabled ? "启用" : "禁用");
+
+        return stationMapper.toResponse(saved);
     }
 
     /**

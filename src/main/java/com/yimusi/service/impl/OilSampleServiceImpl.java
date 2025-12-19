@@ -1,5 +1,8 @@
 package com.yimusi.service.impl;
 
+import cn.hutool.core.util.StrUtil;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Predicate;
 import com.yimusi.common.exception.BusinessException;
 import com.yimusi.common.exception.ErrorCode;
 import com.yimusi.common.exception.ResourceNotFoundException;
@@ -12,16 +15,13 @@ import com.yimusi.entity.OilSample;
 import com.yimusi.mapper.OilSampleMapper;
 import com.yimusi.repository.OilSampleRepository;
 import com.yimusi.service.OilSampleService;
-import jakarta.persistence.criteria.Predicate;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
+
+import static com.yimusi.entity.QOilSample.oilSample;
 
 /**
  * 油样管理服务实现类
@@ -43,32 +43,54 @@ public class OilSampleServiceImpl implements OilSampleService {
     @Override
     @Transactional(readOnly = true)
     public PageResult<OilSampleResponse> getOilSamplesPage(OilSamplePageRequest request) {
-        Specification<OilSample> spec = (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
+        // 使用 QueryDSL 构建查询条件
+        Predicate predicate = buildOilSamplePredicate(request);
 
-            if (StringUtils.hasText(request.getSampleNo())) {
-                predicates.add(cb.like(root.get("sampleNo"), "%" + request.getSampleNo() + "%"));
-            }
-            if (StringUtils.hasText(request.getSampleName())) {
-                predicates.add(cb.like(root.get("sampleName"), "%" + request.getSampleName() + "%"));
-            }
-            if (request.getUsage() != null) {
-                predicates.add(cb.equal(root.get("usage"), request.getUsage()));
-            }
-            if (request.getStatus() != null) {
-                predicates.add(cb.equal(root.get("status"), request.getStatus()));
-            }
-            if (request.getCylinderNo() != null) {
-                predicates.add(cb.equal(root.get("cylinderNo"), request.getCylinderNo()));
-            }
-
-            return cb.and(predicates.toArray(new Predicate[0]));
-        };
-
-        Page<OilSample> page = oilSampleRepository.findAll(spec, request.toJpaPageRequest("createdAt"));
+        Page<OilSample> page = oilSampleRepository.findAll(
+            predicate,
+            request.toJpaPageRequest("createdAt")
+        );
 
         // 使用全局方法封装返回结果
         return PageResult.from(page.map(oilSampleMapper::toResponse));
+    }
+
+    /**
+     * 使用 QueryDSL 构建油样查询条件
+     *
+     * @param request 分页查询请求对象
+     * @return Predicate 查询条件
+     */
+    private Predicate buildOilSamplePredicate(OilSamplePageRequest request) {
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(oilSample.deleted.isFalse());
+
+        // 油样编号模糊查询
+        if (StrUtil.isNotBlank(request.getSampleNo())) {
+            builder.and(oilSample.sampleNo.containsIgnoreCase(request.getSampleNo()));
+        }
+
+        // 油样名称模糊查询
+        if (StrUtil.isNotBlank(request.getSampleName())) {
+            builder.and(oilSample.sampleName.containsIgnoreCase(request.getSampleName()));
+        }
+
+        // 用途精确查询
+        if (request.getUsage() != null) {
+            builder.and(oilSample.usage.eq(request.getUsage()));
+        }
+
+        // 启用状态精确查询
+        if (request.getEnabled() != null) {
+            builder.and(oilSample.enabled.eq(request.getEnabled()));
+        }
+
+        // 油缸编号精确查询
+        if (request.getCylinderNo() != null) {
+            builder.and(oilSample.cylinderNo.eq(request.getCylinderNo()));
+        }
+
+        return builder;
     }
 
     /**
@@ -148,14 +170,70 @@ public class OilSampleServiceImpl implements OilSampleService {
     }
 
     /**
-     * 校验编号唯一性接口
+     * 判断油样编号是否唯一
      *
      * @param sampleNo 油样编号
-     * @return true 如果不存在（可用），false 如果已存在（不可用）
+     * @return true 如果唯一（不存在），false 如果已存在
      */
     @Override
     @Transactional(readOnly = true)
-    public boolean validateSampleNoUnique(String sampleNo) {
+    public boolean isSampleNoUnique(String sampleNo) {
+        if (sampleNo == null) {
+            return true;
+        }
         return !oilSampleRepository.existsBySampleNo(sampleNo);
+    }
+
+    /**
+     * 设置油样启用状态
+     *
+     * @param id 油样 ID
+     * @param enabled true=启用, false=禁用
+     * @return 更新后的油样响应
+     */
+    @Override
+    @Transactional
+    public OilSampleResponse setOilSampleEnabled(Long id, boolean enabled) {
+        if (id == null) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "油样 ID 不能为空");
+        }
+
+        OilSample oilSample = oilSampleRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("OilSample not found with id: " + id));
+
+        oilSample.setEnabled(enabled);
+        oilSample = oilSampleRepository.save(oilSample);
+
+        log.info("油样状态变更: ID={}, 油样编号={}, 新状态={}",
+            id, oilSample.getSampleNo(), enabled ? "启用" : "禁用");
+
+        return oilSampleMapper.toResponse(oilSample);
+    }
+
+    /**
+     * 切换油样启用状态（启用↔禁用）
+     *
+     * @param id 油样 ID
+     * @return 更新后的油样响应
+     */
+    @Override
+    @Transactional
+    public OilSampleResponse toggleOilSampleEnabled(Long id) {
+        if (id == null) {
+            throw new BusinessException(ErrorCode.BAD_REQUEST, "油样 ID 不能为空");
+        }
+
+        OilSample oilSample = oilSampleRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("OilSample not found with id: " + id));
+
+        // 切换状态
+        boolean newEnabled = !oilSample.getEnabled();
+        oilSample.setEnabled(newEnabled);
+        oilSample = oilSampleRepository.save(oilSample);
+
+        log.info("油样状态切换: ID={}, 油样编号={}, 新状态={}",
+            id, oilSample.getSampleNo(), newEnabled ? "启用" : "禁用");
+
+        return oilSampleMapper.toResponse(oilSample);
     }
 }

@@ -240,21 +240,21 @@ class InspectionDeviceServiceImplTest {
 
     @Test
     @DisplayName("校验出厂编号唯一性")
-    void validateSerialNumberUnique_ShouldReturnCorrectResult() {
+    void isSerialNumberUnique_ShouldReturnCorrectResult() {
         when(deviceRepository.existsBySerialNumberAndDeletedFalse("SN-001")).thenReturn(true);
         when(deviceRepository.existsBySerialNumberAndDeletedFalse("SN-NEW")).thenReturn(false);
 
-        assertThrows(BadRequestException.class, () -> inspectionDeviceService.validateSerialNumberUnique("SN-001"));
-        assertTrue(inspectionDeviceService.validateSerialNumberUnique("SN-NEW"));
+        assertFalse(inspectionDeviceService.isSerialNumberUnique("SN-001"));
+        assertTrue(inspectionDeviceService.isSerialNumberUnique("SN-NEW"));
     }
 
     @Test
     @DisplayName("校验IP唯一性")
-    void validateIpUnique_ShouldReturnCorrectResult() {
+    void isIpUnique_ShouldReturnCorrectResult() {
         when(deviceRepository.existsByIpAndDeletedFalse("192.168.1.10")).thenReturn(true);
         when(deviceRepository.existsByIpAndDeletedFalse("192.168.1.30")).thenReturn(false);
 
-        assertThrows(BadRequestException.class, () -> inspectionDeviceService.validateIpUnique("192.168.1.10"));
-        assertTrue(inspectionDeviceService.validateIpUnique("192.168.1.30"));
+        assertFalse(inspectionDeviceService.isIpUnique("192.168.1.10"));
+        assertTrue(inspectionDeviceService.isIpUnique("192.168.1.30"));
     }
 }
