@@ -180,25 +180,6 @@ public class InspectionDeviceServiceImpl implements InspectionDeviceService {
      * {@inheritDoc}
      */
     @Override
-    public void restoreDevice(Long id) {
-        if (id == null) {
-            throw new BadRequestException("设备 ID 不能为空");
-        }
-
-        InspectionDevice device = deviceRepository
-            .findByIdIncludingDeleted(id)
-            .orElseThrow(() -> new ResourceNotFoundException(String.format("ID 为 %s 的设备不存在", id)));
-        device.setDeleted(false);
-        device.setDeletedAt(null);
-        device.setDeletedBy(null);
-        deviceRepository.save(device);
-        log.info("恢复检测设备: {}", device.getDeviceNo());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public boolean validateSerialNumberUnique(String serialNumber) {
         if (serialNumber == null) {
             return true;

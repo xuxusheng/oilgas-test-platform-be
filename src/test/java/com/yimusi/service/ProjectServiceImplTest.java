@@ -19,7 +19,6 @@ import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,7 +35,7 @@ import org.springframework.data.domain.PageRequest;
 /**
  * 项目业务逻辑服务单元测试类
  *
- * 测试项目服务的各个功能，包括创建、查询、更新、删除、恢复等业务逻辑。
+ * 测试项目服务的各个功能，包括创建、查询、更新、删除等业务逻辑。
  */
 @ExtendWith(MockitoExtension.class)
 class ProjectServiceImplTest {
@@ -187,27 +186,6 @@ class ProjectServiceImplTest {
         verify(projectRepository).save(project);
     }
 
-    @Test
-    @DisplayName("项目恢复 - 恢复已删除的项目")
-    void restoreProject_ShouldClearDeletedFields() {
-        // Arrange - 设置测试环境：项目处于已删除状态
-        project.setDeleted(true);
-
-        // Mock原生SQL查询行为
-        @SuppressWarnings("unchecked")
-        jakarta.persistence.Query nativeQuery = mock(jakarta.persistence.Query.class);
-        when(entityManager.createNativeQuery(anyString(), eq(Project.class))).thenReturn(nativeQuery);
-        when(nativeQuery.setParameter(anyString(), any())).thenReturn(nativeQuery);
-        when(nativeQuery.getResultStream()).thenReturn(Stream.of(project));
-
-        // Act - 执行项目恢复操作
-        projectService.restoreProject(1L);
-
-        // Assert - 验证项目被恢复且保存方法被调用
-        assertFalse(project.getDeleted());
-        verify(projectRepository).save(project);
-    }
-
     // === 边界情况测试 ===
 
     @Test
@@ -268,14 +246,6 @@ class ProjectServiceImplTest {
     void deleteProject_WithNullId_ShouldThrowException() {
         // Act & Assert - 执行删除操作并验证抛出异常且未保存项目
         assertThrows(BadRequestException.class, () -> projectService.deleteProject(null));
-        verify(projectRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("项目恢复 - 使用空ID恢复时应抛出异常")
-    void restoreProject_WithNullId_ShouldThrowException() {
-        // Act & Assert - 执行恢复操作并验证抛出异常且未保存项目
-        assertThrows(BadRequestException.class, () -> projectService.restoreProject(null));
         verify(projectRepository, never()).save(any());
     }
 

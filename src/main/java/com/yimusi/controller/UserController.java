@@ -99,15 +99,4 @@ public class UserController {
         userService.deleteUser(id);
         return ApiResponse.success();
     }
-
-    /**
-     * 恢复已删除用户
-     *
-     * @param id 待恢复的用户 ID
-     */
-    @PostMapping("/{id}/restore")
-    public ApiResponse<Void> restoreUser(@PathVariable Long id) {
-        userService.restoreUser(id);
-        return ApiResponse.success();
-    }
 }

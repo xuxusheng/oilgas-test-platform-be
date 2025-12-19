@@ -136,20 +136,6 @@ public class InspectionDeviceControllerIntegrationTest extends BaseIntegrationTe
     }
 
     @Test
-    @DisplayName("恢复检测设备")
-    void shouldRestoreDevice() throws Exception {
-        TestAuditorConfig.setAuditor(1L);
-        InspectionDevice device = seedDevice("SN-001", "192.168.1.10");
-        deviceRepository.deleteById(device.getId());
-
-        mockMvc
-            .perform(post("/api/inspection-devices/" + device.getId() + "/restore"))
-            .andExpect(status().isOk());
-
-        assertThat(deviceRepository.findById(device.getId())).isPresent();
-    }
-
-    @Test
     @DisplayName("分页查询检测设备")
     void shouldGetDevicesPage() throws Exception {
         seedDevice("SN-001", "192.168.1.10");

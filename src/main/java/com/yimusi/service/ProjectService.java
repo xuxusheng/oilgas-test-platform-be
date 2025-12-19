@@ -68,13 +68,6 @@ public interface ProjectService {
     void deleteProject(Long id);
 
     /**
-     * 恢复已软删除的项目。
-     *
-     * @param id 项目ID
-     */
-    void restoreProject(Long id);
-
-    /**
      * 验证项目编号的唯一性。
      *
      * @param projectNo 项目编号

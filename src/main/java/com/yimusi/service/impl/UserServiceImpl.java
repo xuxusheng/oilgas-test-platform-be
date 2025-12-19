@@ -176,22 +176,6 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
-    @Override
-    public void restoreUser(Long id) {
-        if (id == null) {
-            throw new BadRequestException("用户 ID 不能为空");
-        }
-
-        User user = userRepository.findById(id).orElse(null);
-        if (user == null) {
-            throw new ResourceNotFoundException(String.format("ID 为 %s 的用户不存在", id));
-        }
-        user.setDeleted(false);
-        user.setDeletedAt(null);
-        user.setDeletedBy(null);
-        userRepository.save(user);
-    }
-
     private void validateUsernameUnique(String username) {
         if (StrUtil.isNotBlank(username) && userRepository.existsByUsernameAndDeletedFalse(username)) {
             throw new BadRequestException(String.format("用户名 %s 已存在", username));

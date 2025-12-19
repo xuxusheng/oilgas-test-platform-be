@@ -120,17 +120,6 @@ public class InspectionDeviceController {
     }
 
     /**
-     * 恢复已删除检测设备
-     *
-     * @param id 设备 ID
-     */
-    @PostMapping("/{id}/restore")
-    public ApiResponse<Void> restoreDevice(@PathVariable Long id) {
-        deviceService.restoreDevice(id);
-        return ApiResponse.success();
-    }
-
-    /**
      * 验证出厂编号唯一性
      *
      * @param serialNumber 出厂编号

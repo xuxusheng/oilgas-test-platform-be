@@ -1,7 +1,6 @@
 package com.yimusi.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -122,23 +121,6 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
         User updated = userRepository.findById(user.getId()).orElseThrow();
         assertThat(updated.getUpdatedBy()).isEqualTo(2L);
         assertThat(updated.getUsername()).isEqualTo("bob-new");
-    }
-
-    /**
-     * 测试用户软删除和恢复功能
-     * 验证用户删除后不可查询，且恢复操作返回未找到的状态
-     */
-    @Test
-    @DisplayName("测试用户软删除和恢复")
-    void shouldSoftDeleteAndRestoreUser() throws Exception {
-        TestAuditorConfig.setAuditor(3L);
-        User user = seedUser("charlie", UserRole.MEMBER);
-
-        mockMvc.perform(delete("/api/users/" + user.getId())).andExpect(status().isOk());
-
-        assertThat(userRepository.findById(user.getId())).isEmpty();
-
-        mockMvc.perform(post("/api/users/" + user.getId() + "/restore")).andExpect(status().isNotFound());
     }
 
     /**

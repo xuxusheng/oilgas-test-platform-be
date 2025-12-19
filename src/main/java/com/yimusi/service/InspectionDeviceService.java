@@ -68,13 +68,6 @@ public interface InspectionDeviceService {
     void deleteDevice(Long id);
 
     /**
-     * 恢复已软删除的检测设备。
-     *
-     * @param id 设备ID
-     */
-    void restoreDevice(Long id);
-
-    /**
      * 验证出厂编号的唯一性。
      *
      * @param serialNumber 出厂编号

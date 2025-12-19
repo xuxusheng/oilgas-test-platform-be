@@ -13,7 +13,6 @@ import com.yimusi.dto.inspection.InspectionDevicePageRequest;
 import com.yimusi.dto.inspection.InspectionDeviceResponse;
 import com.yimusi.dto.inspection.UpdateInspectionDeviceRequest;
 import com.yimusi.entity.InspectionDevice;
-import com.yimusi.entity.Project;
 import com.yimusi.enums.InspectionDeviceStatus;
 import com.yimusi.enums.SequenceBizType;
 import com.yimusi.mapper.InspectionDeviceMapper;
@@ -37,7 +36,6 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
@@ -237,21 +235,6 @@ class InspectionDeviceServiceImplTest {
 
         assertTrue(device.getDeleted());
         assertNotNull(device.getDeletedAt());
-        verify(deviceRepository).save(device);
-    }
-
-    @Test
-    @DisplayName("恢复检测设备")
-    void restoreDevice_ShouldMarkAsNotDeleted() {
-        device.setDeleted(true);
-        device.setDeletedAt(Instant.now());
-        when(deviceRepository.findByIdIncludingDeleted(1L)).thenReturn(Optional.of(device));
-        when(deviceRepository.save(any(InspectionDevice.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        inspectionDeviceService.restoreDevice(1L);
-
-        assertFalse(device.getDeleted());
-        assertNull(device.getDeletedAt());
         verify(deviceRepository).save(device);
     }
 

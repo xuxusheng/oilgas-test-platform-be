@@ -15,7 +15,6 @@ import com.yimusi.config.TestAuditorConfig;
 import com.yimusi.dto.project.CreateProjectRequest;
 import com.yimusi.dto.project.ProjectResponse;
 import com.yimusi.dto.project.UpdateProjectRequest;
-import com.yimusi.entity.Project;
 import com.yimusi.repository.ProjectRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -317,55 +316,6 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
         // 由于 @SQLRestriction("deleted = false")，已删除的项目无法通过 findById 查询
         mockMvc.perform(get("/api/projects/" + projectId))
                 .andExpect(status().isNotFound());  // 期望返回404，表示项目已被删除
-    }
-
-    /**
-     * 测试恢复已删除项目功能
-     * 验证能够正确恢复已删除的项目
-     */
-    @Test
-    @DisplayName("测试恢复已删除的项目")
-    void restoreProject() throws Exception {
-        TestAuditorConfig.setAuditor(1L);
-
-        // 创建测试项目并删除
-        CreateProjectRequest createRequest = new CreateProjectRequest();
-        createRequest.setProjectNo("PRJ001");
-        createRequest.setProjectName("测试项目");
-        createRequest.setProjectLeader("张三");
-        createRequest.setRemark("测试备注");
-
-        String createResponseJson = mockMvc.perform(post("/api/projects")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createRequest))
-                )
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        ApiResponse<ProjectResponse> createResponse = objectMapper.readValue(createResponseJson,
-                new TypeReference<ApiResponse<ProjectResponse>>() {});
-        Long projectId = createResponse.getData().getId();
-
-        // 删除项目
-        mockMvc.perform(delete("/api/projects/" + projectId))
-                .andExpect(status().isOk());
-
-        // 恢复项目
-        String restoreResponseJson = mockMvc.perform(post("/api/projects/" + projectId + "/restore"))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        ApiResponse<Void> restoreResponse = objectMapper.readValue(restoreResponseJson, ApiResponse.class);
-        assertThat(restoreResponse.getCode()).isEqualTo(200);
-
-        // 验证项目已被恢复
-        Project restored = projectRepository.findById(projectId).orElse(null);
-        assertThat(restored).isNotNull();
-        assertThat(restored.getDeleted()).isFalse();
     }
 
     /**

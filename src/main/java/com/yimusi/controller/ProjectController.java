@@ -116,17 +116,6 @@ public class ProjectController {
     }
 
     /**
-     * 恢复已删除项目
-     *
-     * @param id 项目 ID
-     */
-    @PostMapping("/{id}/restore")
-    public ApiResponse<Void> restoreProject(@PathVariable Long id) {
-        projectService.restoreProject(id);
-        return ApiResponse.success();
-    }
-
-    /**
      * 验证项目编号唯一性
      *
      * @param projectNo 项目编号

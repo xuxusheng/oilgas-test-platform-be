@@ -16,7 +16,6 @@ import com.yimusi.entity.QProject;
 import com.yimusi.mapper.ProjectMapper;
 import com.yimusi.repository.ProjectRepository;
 import com.yimusi.service.ProjectService;
-import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +34,6 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
     private final ProjectMapper projectMapper;
-    private final EntityManager entityManager;
 
     /**
      * {@inheritDoc}
@@ -138,32 +136,6 @@ public class ProjectServiceImpl implements ProjectService {
 
         Project project = getProjectById(id);
         markDeleted(project);
-        projectRepository.save(project);
-    }
-
-    @Override
-    public void restoreProject(Long id) {
-        if (id == null) {
-            throw new BadRequestException("项目 ID 不能为空");
-        }
-
-        // 使用原生 SQL 查询，绕过 @SQLRestriction 限制
-        // 这样可以查询到已删除的项目
-        @SuppressWarnings("unchecked")
-        Project project = (Project) entityManager
-            .createNativeQuery("SELECT * FROM projects WHERE id = :id", Project.class)
-            .setParameter("id", id)
-            .getResultStream()
-            .findFirst()
-            .orElse(null);
-
-        if (project == null) {
-            throw new ResourceNotFoundException(String.format("ID 为 %s 的项目不存在", id));
-        }
-
-        project.setDeleted(false);
-        project.setDeletedAt(null);
-        project.setDeletedBy(null);
         projectRepository.save(project);
     }
 

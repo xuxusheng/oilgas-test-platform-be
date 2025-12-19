@@ -34,7 +34,7 @@ import org.springframework.data.domain.PageImpl;
  * 用户业务逻辑服务单元测试类
  *
  * <p>该类对 {@link UserServiceImpl} 进行全面的单元测试，
- * 覆盖用户操作的各个场景，包括用户创建、查询、更新、删除、恢复、分页查询等业务逻辑。
+ * 覆盖用户操作的各个场景，包括用户创建、查询、更新、删除、分页查询等业务逻辑。
  * 使用 Mockito 框架进行依赖注入和模拟，确保测试的隔离性和可靠性。</p>
  *
  * <p>测试覆盖范围:</p>
@@ -42,7 +42,7 @@ import org.springframework.data.domain.PageImpl;
  *   <li>用户创建功能：正常创建、用户名重复校验、空用户名处理</li>
  *   <li>用户查询功能：按ID查询、查询所有用户、查询不存在的用户</li>
  *   <li>用户更新功能：正常更新、同名用户更新、用户名重复校验</li>
- *   <li>用户删除与恢复：逻辑删除、硬删除ID校验、用户恢复</li>
+ *   <li>用户删除：逻辑删除、硬删除ID校验</li>
  *   <li>分页查询功能：无过滤条件分页、用户名过滤分页、角色过滤分页</li>
  *   <li>用户验证功能：密码验证、用户名验证</li>
  *   <li>异常边界情况：空参数校验、资源不存在处理</li>
@@ -172,21 +172,6 @@ class UserServiceImplTest {
         verify(userRepository).save(user);
     }
 
-    @Test
-    @DisplayName("用户恢复 - 恢复已删除的用户")
-    void restoreUser_ShouldClearDeletedFields() {
-        // Arrange - 设置测试环境：用户处于已删除状态
-        user.setDeleted(true);
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-
-        // Act - 执行用户恢复操作
-        userService.restoreUser(1L);
-
-        // Assert - 验证用户被恢复且保存方法被调用
-        assertFalse(user.getDeleted());
-        verify(userRepository).save(user);
-    }
-
     // === 分支覆盖测试 ===
 
     @Test
@@ -276,14 +261,6 @@ class UserServiceImplTest {
     void deleteUser_WithNullId_ShouldThrowException() {
         // Act & Assert - 执行删除操作并验证抛异常且未保存用户
         assertThrows(BadRequestException.class, () -> userService.deleteUser(null));
-        verify(userRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("用户恢复 - 使用空ID恢复时应抛出异常")
-    void restoreUser_WithNullId_ShouldThrowException() {
-        // Act & Assert - 执行恢复操作并验证抛异常且未保存用户
-        assertThrows(BadRequestException.class, () -> userService.restoreUser(null));
         verify(userRepository, never()).save(any());
     }
 

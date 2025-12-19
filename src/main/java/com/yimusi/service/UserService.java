@@ -83,11 +83,4 @@ public interface UserService {
      * @param id 要删除的用户ID
      */
     void deleteUser(Long id);
-
-    /**
-     * 恢复已软删除的用户。
-     *
-     * @param id 用户ID
-     */
-    void restoreUser(Long id);
 }
