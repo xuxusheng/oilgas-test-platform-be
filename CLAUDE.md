@@ -59,6 +59,9 @@ src/main/java/com/yimusi/
 │   ├── user/                               # 用户管理 DTO
 │   ├── project/                            # 项目管理 DTO
 │   ├── inspection/                         # 检测设备 DTO
+│   ├── oilsample/                          # 油样管理 DTO
+│   ├── teststation/                        # 测试工位 DTO
+│   │   └── parameter/                      # 工位参数 DTO
 │   └── common/                             # 共享 DTO
 ├── entity/                                 # JPA 实体/ORM 模型
 ├── enums/                                  # 枚举类型
@@ -194,6 +197,8 @@ public class UserResponse {
 - **users**: 用户账户和认证
 - **projects**: 项目管理
 - **inspection_device**: 带有自动生成编号的设备跟踪
+- **oil_samples**: 油样管理，支持 JSON 参数存储
+- **test_stations**: 测试工位管理，支持电磁阀参数和油阀映射
 - **sequence_generator**: ID 生成状态管理
 
 #### 实体架构
@@ -228,9 +233,54 @@ public class UserResponse {
 
 目前在 `/docs/` 目录下的文档：
 - **Authentication-API.md**: 完整的 JWT 认证指南
-- **distributed-sequence-generator.md**: 详细的架构和用法
-- **sequence-generator-optimization.md**: 性能考虑
+- **design/oil_sample_service_design.md**: 油样管理 Service 层设计方案
 
 本地开发服务器默认运行在 `http://localhost:8080`。所有 API 端点都包含 Swagger/OpenAPI 文档，可通过 Actuator 端点访问。
 
-有关序列生成器设计的详细信息，请参阅 `/docs/distributed-sequence-generator.md` 和 `docs/sequence-generator-optimization.md`。
+### 新增业务模块
+
+#### 油样管理 (OilSample)
+- **实体**: `OilSample` - 支持 JSON 格式存储动态参数列表
+- **参数验证**: 支持 CH4, C2H2, C2H4, C2H6, H2, CO, CO2, H2O 等参数键
+- **唯一性约束**: `sampleNo` 全局唯一
+- **软删除**: 继承 `SoftDeletableEntity`
+
+#### 测试工位管理 (TestStation)
+- **实体**: `TestStation` - 支持电磁阀控制参数和油阀映射关系
+- **枚举类型**:
+  - `TestStationUsage`: INHOUSE_TEST(厂内测试), RND_TEST(研发测试)
+  - `ValveCommType`: SERIAL_MODBUS(Serial,Modbus), TCP_MODBUS(Tcp,Modbus)
+- **查询特性**: 使用 QueryDSL 支持多字段组合查询
+- **软删除**: 继承 `SoftDeletableEntity`
+
+### 分页查询规范
+
+所有分页查询统一使用以下模式：
+```java
+// Service 层
+PageResult<XXXResponse> getXXXPage(XXXPageRequest request) {
+    // 1. 构建查询条件 (Specification 或 QueryDSL Predicate)
+    // 2. 使用 request.toJpaPageRequest("默认排序字段") 构建分页
+    // 3. 使用 PageResult.from(page.map(mapper::toResponse)) 封装结果
+}
+```
+
+### API 端点示例
+
+#### 油样管理
+- `GET /api/oil-samples/page` - 分页查询
+- `GET /api/oil-samples/{id}` - 详情查询
+- `POST /api/oil-samples` - 创建油样
+- `PUT /api/oil-samples/{id}` - 更新油样
+- `DELETE /api/oil-samples/{id}` - 删除油样
+- `GET /api/oil-samples/validate-unique/{sampleNo}` - 验证编号唯一性
+
+#### 测试工位管理
+- `GET /api/test-stations` - 获取所有工位
+- `GET /api/test-stations/page` - 分页查询
+- `GET /api/test-stations/{id}` - 根据ID查询
+- `GET /api/test-stations/by-station-no/{stationNo}` - 根据工位编号查询
+- `POST /api/test-stations` - 创建工位
+- `PUT /api/test-stations/{id}` - 更新工位
+- `DELETE /api/test-stations/{id}` - 删除工位
+- `GET /api/test-stations/validate-station-no/{stationNo}` - 验证工位编号唯一性
