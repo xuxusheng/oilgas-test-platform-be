@@ -21,35 +21,35 @@ env:
 jobs:
   # 1. 单元测试与覆盖率检查
   test:
-    name: 🧪 运行单元测试与覆盖率检查
+    name: 运行单元测试与覆盖率检查
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 拉取代码
+      - name: 拉取代码
         uses: actions/checkout@v4
 
-      - name: ☕ 设置 JDK ${{ env.JAVA_VERSION }}
+      - name: 设置 JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: 📦 缓存 Maven 依赖
+      - name: 缓存 Maven 依赖
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: 🏃 运行单元测试
+      - name: 运行单元测试
         run: ./mvnw clean test -B
 
-      - name: 📊 生成测试报告
+      - name: 生成测试报告
         if: always()
         run: ./mvnw surefire-report:report
 
-      - name: 📤 上传测试报告
+      - name: 上传测试报告
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -59,10 +59,10 @@ jobs:
             target/site/surefire-report.html
           retention-days: 7
 
-      - name: 🎯 验证代码覆盖率
+      - name: 验证代码覆盖率
         run: ./mvnw jacoco:check
 
-      - name: 📤 上传覆盖率报告
+      - name: 上传覆盖率报告
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -72,34 +72,34 @@ jobs:
 
   # 2. 代码质量检查
   code-quality:
-    name: 🔍 代码质量检查
+    name: 代码质量检查
     runs-on: ubuntu-latest
     needs: test
 
     steps:
-      - name: 📥 拉取代码
+      - name: 拉取代码
         uses: actions/checkout@v4
 
-      - name: ☕ 设置 JDK ${{ env.JAVA_VERSION }}
+      - name: 设置 JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: 📦 缓存 Maven 依赖
+      - name: 缓存 Maven 依赖
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: 🏗️ 编译检查
+      - name: 编译检查
         run: ./mvnw clean compile -B
 
   # 3. 构建 Docker 镜像 - 开发环境
   build-dev:
-    name: 🐳 构建 Docker 镜像 (开发)
+    name: 构建 Docker 镜像 (开发)
     runs-on: ubuntu-latest
     needs: [test, code-quality]
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
@@ -109,10 +109,10 @@ jobs:
       image-digest: ${{ steps.docker_build.outputs.digest }}
 
     steps:
-      - name: 📥 拉取代码
+      - name: 拉取代码
         uses: actions/checkout@v4
 
-      - name: 📝 提取镜像元数据 (开发)
+      - name: 提取镜像元数据 (开发)
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -122,20 +122,20 @@ jobs:
             type=ref,event=branch,suffix=-{{sha}}
             type=sha,prefix={{branch}}-,format=short
 
-      - name: 🐧 设置 QEMU
+      - name: 设置 QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: ⚙️ 设置 Docker Buildx
+      - name: 设置 Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: 🔐 登录 Docker 镜像仓库
+      - name: 登录 Docker 镜像仓库
         uses: docker/login-action@v3
         with:
           registry: ${{ vars.DOCKER_REGISTRY }}
           username: ${{ vars.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: 🏗️ 构建并推送开发镜像
+      - name: 构建并推送开发镜像
         id: docker_build
         uses: docker/build-push-action@v6
         with:
@@ -150,15 +150,15 @@ jobs:
           build-args: |
             APP_VERSION=${{ steps.meta.outputs.version }}
 
-      - name: ✅ 开发镜像构建成功
+      - name: 开发镜像构建成功
         run: |
-          echo "✅ 开发镜像构建并推送成功"
-          echo "📦 镜像: ${{ steps.meta.outputs.tags }}"
-          echo "🔍 摘要: ${{ steps.docker_build.outputs.digest }}"
+          echo "开发镜像构建并推送成功"
+          echo "镜像: ${{ steps.meta.outputs.tags }}"
+          echo "摘要: ${{ steps.docker_build.outputs.digest }}"
 
   # 4. 构建 Docker 镜像 - 生产环境
   build-prod:
-    name: 🐳 构建 Docker 镜像 (生产)
+    name: 构建 Docker 镜像 (生产)
     runs-on: ubuntu-latest
     needs: [test, code-quality]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -168,10 +168,10 @@ jobs:
       image-digest: ${{ steps.docker_build.outputs.digest }}
 
     steps:
-      - name: 📥 拉取代码
+      - name: 拉取代码
         uses: actions/checkout@v4
 
-      - name: 📝 提取镜像元数据 (生产)
+      - name: 提取镜像元数据 (生产)
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -188,20 +188,20 @@ jobs:
             # 最新标签: latest
             type=raw,value=latest
 
-      - name: 🐧 设置 QEMU
+      - name: 设置 QEMU
         uses: docker/setup-qemu-action@v3
 
-      - name: ⚙️ 设置 Docker Buildx
+      - name: 设置 Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: 🔐 登录 Docker 镜像仓库
+      - name: 登录 Docker 镜像仓库
         uses: docker/login-action@v3
         with:
           registry: ${{ vars.DOCKER_REGISTRY }}
           username: ${{ vars.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: 🏗️ 构建并推送生产镜像
+      - name: 构建并推送生产镜像
         id: docker_build
         uses: docker/build-push-action@v6
         with:
@@ -216,9 +216,9 @@ jobs:
           build-args: |
             APP_VERSION=${{ steps.meta.outputs.version }}
 
-      - name: ✅ 生产镜像构建成功
+      - name: 生产镜像构建成功
         run: |
-          echo "✅ 生产镜像构建并推送成功"
-          echo "📦 镜像: ${{ steps.meta.outputs.tags }}"
-          echo "🔍 摘要: ${{ steps.docker_build.outputs.digest }}"
-          echo "🏃 运行编号: ${{ github.run_number }}"
+          echo "生产镜像构建并推送成功"
+          echo "镜像: ${{ steps.meta.outputs.tags }}"
+          echo "摘要: ${{ steps.docker_build.outputs.digest }}"
+          echo "运行编号: ${{ github.run_number }}"
