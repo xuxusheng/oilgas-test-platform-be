@@ -1,0 +1,96 @@
+# Git 版本控制
+.git
+.gitignore
+
+# IDE 配置文件
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+
+# 构建产物
+target/
+build/
+out/
+*.jar
+!target/*.jar
+
+# 日志文件
+*.log
+logs/
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# 文档（如果不需要在容器中）
+docs/
+README.md
+CHANGELOG.md
+
+# 开发脚本
+mvnw
+mvnw.cmd
+.mvn/
+
+# 测试相关
+test-results/
+coverage-reports/
+
+# 环境变量文件（敏感信息）
+.env
+.env.local
+.env.*.local
+
+# Docker 相关（避免嵌套）
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# CI/CD 配置
+.github/
+.gitlab-ci.yml
+.jenkinsfile
+
+# Node.js（如果前端构建产物不包含）
+node_modules/
+package.json
+package-lock.json
+pnpm-lock.yaml
+
+# Python（如果有）
+venv/
+__pycache__/
+*.pyc
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+
+# 安全相关
+secrets/
+*.key
+*.pem
+*.crt
+*.csr
+
+# 文档和示例
+examples/
+demo/
+samples/
+
+# 性能分析
+*.jfr
+*.hprof
+
+# 本地配置覆盖
+src/main/resources/application-local.yml
+src/main/resources/application-dev.yml
