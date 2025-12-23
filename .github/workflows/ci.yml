@@ -8,9 +8,9 @@ on:
     branches: [ main, develop ]
 
 # 并发控制，防止重复运行
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.ref }}
+#   cancel-in-progress: true
 
 env:
   # 项目名称
