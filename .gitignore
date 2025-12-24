@@ -192,3 +192,8 @@ dist
 *.ipr
 
 # End of https://www.toptal.com/developers/gitignore/api/java,maven,node
+
+### Custom ###
+# Runtime data directories
+data/
+logs/

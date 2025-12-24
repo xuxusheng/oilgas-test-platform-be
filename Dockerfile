@@ -35,8 +35,8 @@ RUN mkdir -p /app/logs && \
 USER yimusi
 EXPOSE 8080
 
-# JVM 参数
+# JVM 参数（可被环境变量覆盖）
 ENV JAVA_OPTS="--XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -Dspring.profiles.active=prod"
 
-# 启动命令
-CMD ["java", "$JAVA_OPTS", "-jar", "app.jar"]
+# 启动命令（使用 shell 格式以支持环境变量展开）
+CMD ["sh", "-c", "java ${JAVA_OPTS} -jar app.jar"]

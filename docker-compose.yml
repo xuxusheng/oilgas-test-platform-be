@@ -52,12 +52,16 @@ services:
       SA_TOKEN_JWT_SECRET_KEY: "your-jwt-secret-key-for-docker-production"
       # 日志路径
       LOG_PATH: /app/logs
+      # 修复 JAVA_OPTS 问题 - 设置为空字符串
+      JAVA_OPTS: ""
     volumes:
       - ./logs:/app/logs
     depends_on:
       - mysql
       - redis
     restart: unless-stopped
+    # 显式覆盖启动命令，避免镜像内部的 JAVA_OPTS 问题
+    command: ["java", "-jar", "/app/app.jar"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 10s
