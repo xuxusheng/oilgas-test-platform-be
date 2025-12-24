@@ -1,7 +1,11 @@
-# 完整应用栈配置 (应用 + 依赖服务)
+# 完整应用栈配置 (前端 + 后端 + 依赖服务)
 # 使用方式: docker-compose up -d
+# 访问地址:
+#   - 前端: http://localhost:3000
+#   - 后端 API: http://localhost:8080
+#   - Swagger 文档: http://localhost:8080/swagger-ui.html
+
 services:
-  # MySQL 数据库服务
   mysql:
     image: mysql:8.0
     container_name: oilgas-mysql
@@ -19,58 +23,55 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
       - --sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123456"]
-      timeout: 20s
-      retries: 10
 
-  # Redis 缓存服务
   redis:
     image: redis:7-alpine
     container_name: oilgas-redis
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
+      - ./data/redis:/data
     command: redis-server --appendonly yes --requirepass redis123456
-    networks:
-      - oilgas-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "redis123456", "ping"]
-      timeout: 3s
-      retries: 10
 
-  # 应用服务
-  app:
-    image: registry.cn-hangzhou.aliyuncs.com/xusheng/oilgas-test-platform-be:dev-de2d6bd
-    container_name: oilgas-app
+  backend:
+    image: registry.cn-hangzhou.aliyuncs.com/xusheng/oilgas-test-platform-be:dev-ef74b92
+    container_name: oilgas-backend
     ports:
       - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      # 数据库配置（覆盖 application-prod.yml）
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/oilgas_test?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: yimusi
       SPRING_DATASOURCE_PASSWORD: yimusi123456
-      SPRING_REDIS_HOST: redis
-      SPRING_REDIS_PORT: 6379
-      SPRING_REDIS_PASSWORD: redis123456
+      # Redis 配置（覆盖 application-prod.yml）
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: redis123456
+      # JWT 密钥（覆盖 application-prod.yml）
+      SA_TOKEN_JWT_SECRET_KEY: "your-jwt-secret-key-for-docker-production"
+      # 日志路径
+      LOG_PATH: /app/logs
+    volumes:
+      - ./logs:/app/logs
     depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - oilgas-network
+      - mysql
+      - redis
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
 
-# 网络配置
-networks:
-  oilgas-network:
-    driver: bridge
-
-# 数据卷配置
-volumes:
-  mysql_data:
-    driver: local
-  redis_data:
-    driver: local
+  frontend:
+    image: registry.cn-hangzhou.aliyuncs.com/xusheng/oilgas-test-platform-fe:dev-e795d07
+    container_name: oilgas-frontend
+    restart: unless-stopped
+    ports:
+      - '3000:8080'
+    environment:
+      - API_URL=http://backend:8080
+    depends_on:
+      - backend

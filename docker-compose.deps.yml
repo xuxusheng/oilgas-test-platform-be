@@ -1,4 +1,9 @@
+# 仅依赖服务配置 (MySQL + Redis)
+# 适合本地开发时使用，后端和前端在本地运行
+# 使用方式: docker-compose -f docker-compose.deps.yml up -d
+
 services:
+  # MySQL 数据库服务
   mysql:
     image: mysql:8.0
     container_name: oilgas-mysql
@@ -22,7 +27,9 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123456"]
       timeout: 20s
       retries: 10
+      start_period: 30s
 
+  # Redis 缓存服务
   redis:
     image: redis:7-alpine
     container_name: oilgas-redis
@@ -37,11 +44,14 @@ services:
       test: ["CMD", "redis-cli", "-a", "redis123456", "ping"]
       timeout: 3s
       retries: 10
+      start_period: 10s
 
+# 网络配置
 networks:
   oilgas-network:
     driver: bridge
 
+# 数据卷配置
 volumes:
   mysql_data:
     driver: local
