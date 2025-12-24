@@ -16,8 +16,9 @@ public enum ErrorCode {
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, 40001, "Validation failed"),
     MISSING_REQUEST_PARAMETER(HttpStatus.BAD_REQUEST, 40002, "Missing request parameter"),
 
-    // --- 业务错误 (示例) ---
+    // --- 资源相关错误 ---
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, 40400, "Resource not found"),
+    API_ENDPOINT_NOT_FOUND(HttpStatus.NOT_FOUND, 40401, "API endpoint not found"),
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, 40101, "Invalid credentials"),
 
     // --- Sa-Token 相关错误 ---

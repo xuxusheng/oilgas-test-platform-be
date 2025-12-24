@@ -1,6 +1,7 @@
 package com.yimusi.exception;
 
 import com.yimusi.common.exception.*;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import com.yimusi.common.model.ApiResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -182,7 +183,10 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(ErrorCode.INTERNAL_SERVER_ERROR.getCode(), response.getBody().getCode());
-        assertEquals(ErrorCode.INTERNAL_SERVER_ERROR.getMessage(), response.getBody().getMessage());
+        // 消息已改为更友好的中文提示
+        assertEquals("系统内部发生错误，请联系管理员", response.getBody().getMessage());
+        // 验证包含错误详情
+        assertNotNull(response.getBody().getErrors());
     }
 
     @Test
@@ -213,5 +217,34 @@ class GlobalExceptionHandlerTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(ErrorCode.INTERNAL_SERVER_ERROR.getCode(), response.getBody().getCode());
+    }
+
+    @Test
+    void testHandleNoResourceFoundException() {
+        // 给定 - 模拟客户端请求了错误的路径 /auth/login (缺少 /api 前缀)
+        // NoResourceFoundException 构造函数: (HttpMethod, resourcePath)
+        NoResourceFoundException exception = new NoResourceFoundException(
+            org.springframework.http.HttpMethod.GET,
+            "auth/login"
+        );
+
+        // 当
+        ResponseEntity<ApiResponse<Void>> response = exceptionHandler.handleNoResourceFoundException(exception);
+
+        // 那么
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(ErrorCode.API_ENDPOINT_NOT_FOUND.getCode(), response.getBody().getCode());
+        // 验证消息包含路径信息
+        String message = response.getBody().getMessage();
+        assertNotNull(message);
+        assertTrue(message.contains("auth/login") || message.contains("请检查URL路径是否正确"));
+
+        // 验证错误详情
+        Map<String, Object> errors = (Map<String, Object>) response.getBody().getErrors();
+        assertNotNull(errors);
+        assertTrue(errors.containsKey("path"));
+        assertTrue(errors.containsKey("recommendation"));
     }
 }

@@ -17,6 +17,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -282,13 +283,51 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 处理静态资源未找到异常 (NoResourceFoundException)
+     * 通常发生在客户端请求了错误的 URL 路径时
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNoResourceFoundException(NoResourceFoundException ex) {
+        ErrorCode errorCode = ErrorCode.API_ENDPOINT_NOT_FOUND;
+
+        // 使用 getResourcePath() 获取路径信息
+        String requestPath = ex.getResourcePath();
+        String httpMethod = ex.getHttpMethod() != null ? ex.getHttpMethod().name() : "UNKNOWN";
+
+        String errorMessage = String.format(
+            "请求的API接口不存在: %s (%s) - 请检查URL路径是否正确",
+            requestPath, httpMethod
+        );
+
+        Map<String, Object> errorDetails = new LinkedHashMap<>();
+        errorDetails.put("path", requestPath);
+        errorDetails.put("method", httpMethod);
+        errorDetails.put("timestamp", new Date());
+        errorDetails.put("recommendation", "请检查：1) URL是否包含/api前缀 2) 请求方法(GET/POST)是否正确 3) 接口路径是否拼写错误");
+
+        log.warn("API端点未找到 - 请求路径: {}, 方法: {}", requestPath, httpMethod);
+
+        ApiResponse<Void> apiResponse = ApiResponse.error(errorCode.getCode(), errorMessage, errorDetails);
+        return new ResponseEntity<>(apiResponse, errorCode.getHttpStatus());
+    }
+
+    /**
      * 处理所有其他未捕获的异常 (兜底)
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
         ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
-        log.error("An unexpected error occurred", ex);
-        ApiResponse<Void> apiResponse = ApiResponse.error(errorCode.getCode(), errorCode.getMessage());
+
+        Map<String, Object> errorDetails = new LinkedHashMap<>();
+        errorDetails.put("timestamp", new Date());
+        errorDetails.put("type", ex.getClass().getSimpleName());
+        errorDetails.put("recommendation", "请联系系统管理员或稍后重试");
+
+        // 对于未预期的异常，记录完整堆栈信息
+        log.error("系统发生未预期异常 - 类型: {} | 消息: {}", ex.getClass().getSimpleName(), ex.getMessage(), ex);
+
+        String errorMessage = "系统内部发生错误，请联系管理员";
+        ApiResponse<Void> apiResponse = ApiResponse.error(errorCode.getCode(), errorMessage, errorDetails);
         return new ResponseEntity<>(apiResponse, errorCode.getHttpStatus());
     }
 }
