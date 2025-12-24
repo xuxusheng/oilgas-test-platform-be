@@ -11,11 +11,30 @@
 ### 前置要求
 - **Java 21** (LTS 版本)
 - **Maven 3.9+** (包含 Maven Wrapper `mvnw`)
-- **MySQL** 用于数据库
-- **Redis** 用于分布式锁
+- **Docker** 和 **Docker Compose** (用于容器化依赖服务)
+- **MySQL** 用于数据库 (可通过 Docker 启动)
+- **Redis** 用于分布式锁 (可通过 Docker 启动)
 - **pnpm** 用于代码格式化 (JavaScript/TypeScript 可选)
 
 ### 核心命令
+
+#### 依赖服务管理
+```bash
+# 启动仅依赖服务 (MySQL, Redis) - 适合本地开发
+docker-compose -f docker-compose.deps.yml up -d
+
+# 启动完整应用栈 (应用 + 依赖) - 适合完整环境测试
+docker-compose up -d
+
+# 停止服务
+docker-compose down                    # 完整环境
+docker-compose -f docker-compose.deps.yml down  # 仅依赖
+
+# 查看服务状态
+docker-compose ps
+```
+
+#### 应用构建与运行
 ```bash
 # 构建项目
 ./mvnw clean compile
@@ -29,7 +48,7 @@
 # 运行单个测试方法
 ./mvnw -Dtest=UserRepositoryQueryDslTest#testFindAllByQueryDsl test
 
-# 启动应用程序
+# 启动应用程序 (需先启动依赖服务)
 ./mvnw spring-boot:run
 
 # 不带测试构建 (用于快速迭代)
@@ -228,6 +247,21 @@ public class UserResponse {
 - **懒加载**: 关联关系默认使用 JPA 懒加载
 - **数据库索引**: 根据唯一约束和外键自动生成
 - **连接池**: 通过 Spring Boot 配置 HikariCP
+
+## Docker 部署配置
+
+### 文件说明
+- **`docker-compose.deps.yml`**: 仅包含依赖服务 (MySQL, Redis)，适合本地开发
+- **`docker-compose.yml`**: 完整应用栈，包含应用容器 + 依赖服务，适合完整环境测试
+
+### 配置详情
+- **MySQL**: 端口 3306, 数据库 `oilgas_test`, 用户 `yimusi`
+- **Redis**: 端口 6379, 密码 `redis123456`
+- **应用**: 端口 8080, 使用 `prod` profile
+
+### 开发工作流
+1. **本地开发** (推荐): `docker-compose.deps.yml` + 本地运行应用
+2. **完整测试**: `docker-compose.yml` 运行完整容器栈
 
 ## 文档
 

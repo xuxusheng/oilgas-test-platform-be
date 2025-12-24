@@ -1,7 +1,4 @@
-# 完整应用栈配置 (应用 + 依赖服务)
-# 使用方式: docker-compose up -d
 services:
-  # MySQL 数据库服务
   mysql:
     image: mysql:8.0
     container_name: oilgas-mysql
@@ -13,18 +10,19 @@ services:
       MYSQL_USER: yimusi
       MYSQL_PASSWORD: yimusi123456
     volumes:
-      - ./data/mysql:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
     command:
       - --default-authentication-plugin=mysql_native_password
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
       - --sql_mode=STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION
+    networks:
+      - oilgas-network
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123456"]
       timeout: 20s
       retries: 10
 
-  # Redis 缓存服务
   redis:
     image: redis:7-alpine
     container_name: oilgas-redis
@@ -40,35 +38,10 @@ services:
       timeout: 3s
       retries: 10
 
-  # 应用服务
-  app:
-    image: registry.cn-hangzhou.aliyuncs.com/xusheng/oilgas-test-platform-be:dev-de2d6bd
-    container_name: oilgas-app
-    ports:
-      - "8080:8080"
-    environment:
-      SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/oilgas_test?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: yimusi
-      SPRING_DATASOURCE_PASSWORD: yimusi123456
-      SPRING_REDIS_HOST: redis
-      SPRING_REDIS_PORT: 6379
-      SPRING_REDIS_PASSWORD: redis123456
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - oilgas-network
-    restart: unless-stopped
-
-# 网络配置
 networks:
   oilgas-network:
     driver: bridge
 
-# 数据卷配置
 volumes:
   mysql_data:
     driver: local
