@@ -34,7 +34,7 @@ services:
     command: redis-server --appendonly yes --requirepass redis123456
 
   backend:
-    image: registry.cn-hangzhou.aliyuncs.com/xusheng/oilgas-test-platform-be:dev-ef74b92
+    image: registry.cn-hangzhou.aliyuncs.com/xusheng/oilgas-test-platform-be:dev-9a7a8b9
     container_name: oilgas-backend
     ports:
       - "8080:8080"
@@ -50,6 +50,8 @@ services:
       SPRING_DATA_REDIS_PASSWORD: redis123456
       # JWT 密钥（覆盖 application-prod.yml）
       SA_TOKEN_JWT_SECRET_KEY: "your-jwt-secret-key-for-docker-production"
+      # JPA DDL 自动建表策略（开发环境可设置为 update，生产环境建议为 none）
+      JPA_DDL_AUTO: update
       # 日志路径
       LOG_PATH: /app/logs
       # 修复 JAVA_OPTS 问题 - 设置为空字符串

@@ -22,7 +22,7 @@ spring:
   # --- JPA/Hibernate 配置 ---
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: ${JPA_DDL_AUTO:none}
     show-sql: false
 
   # --- Redis 配置 ---
