@@ -3,15 +3,19 @@ package com.yimusi.controller;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import com.yimusi.common.model.ApiResponse;
+import com.yimusi.dto.auth.FirstAdminCreateRequest;
 import com.yimusi.dto.auth.LoginRequest;
 import com.yimusi.dto.auth.LoginResponse;
+import com.yimusi.dto.auth.SystemStatusResponse;
 import com.yimusi.dto.user.UserResponse;
 import com.yimusi.entity.User;
 import com.yimusi.mapper.UserMapper;
+import com.yimusi.repository.UserRepository;
 import com.yimusi.service.UserService;
 import jakarta.validation.Valid;
 import java.time.Instant;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,10 +29,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
 
     private final UserService userService;
     private final UserMapper userMapper;
+    private final UserRepository userRepository;
 
     /**
      * 用户登录
@@ -88,5 +94,56 @@ public class AuthController {
         Long userId = Long.parseLong(StpUtil.getLoginIdAsString());
         User user = userService.getUserById(userId);
         return ApiResponse.success(userMapper.toResponse(user));
+    }
+
+    /**
+     * 检测系统状态（无需认证）
+     * 用于前端判断是否需要引导用户创建第一个管理员
+     *
+     * GET /api/auth/system-status
+     */
+    @GetMapping("/system-status")
+    public ApiResponse<SystemStatusResponse> checkSystemStatus() {
+        log.debug("检测系统部署状态...");
+
+        boolean isFirstDeployment = userService.isSystemFirstDeployment();
+        long userCount = userRepository.count();
+
+        SystemStatusResponse response = SystemStatusResponse.builder()
+            .firstDeployment(isFirstDeployment)
+            .userCount(userCount)
+            .message(isFirstDeployment
+                ? "系统首次部署，请创建第一个管理员账户"
+                : "系统已初始化")
+            .build();
+
+        log.info("系统状态: 首次部署={}, 用户数量={}", isFirstDeployment, userCount);
+        return ApiResponse.success(response);
+    }
+
+    /**
+     * 创建第一个管理员用户（无需认证，仅在首次部署时可用）
+     * 用户名固定为 "admin"
+     *
+     * POST /api/auth/init-admin
+     *
+     * 请求示例:
+     * {
+     *   "password": "SecurePass123",
+     *   "confirmPassword": "SecurePass123"
+     * }
+     */
+    @PostMapping("/init-admin")
+    public ApiResponse<UserResponse> initFirstAdmin(
+        @Valid @RequestBody FirstAdminCreateRequest request
+    ) {
+        log.info("收到创建第一个管理员请求");
+
+        UserResponse userResponse = userService.createFirstAdmin(request);
+
+        log.info("第一个管理员创建成功: username={}, id={}",
+            userResponse.getUsername(), userResponse.getId());
+
+        return ApiResponse.success(userResponse);
     }
 }

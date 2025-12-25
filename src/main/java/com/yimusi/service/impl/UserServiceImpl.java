@@ -6,6 +6,7 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
 import com.yimusi.common.exception.BadRequestException;
 import com.yimusi.common.exception.ResourceNotFoundException;
+import com.yimusi.dto.auth.FirstAdminCreateRequest;
 import com.yimusi.dto.auth.UserRegisterRequest;
 import com.yimusi.dto.common.PageResult;
 import com.yimusi.dto.user.CreateUserRequest;
@@ -222,5 +223,54 @@ public class UserServiceImpl implements UserService {
         }
 
         return builder;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isSystemFirstDeployment() {
+        long count = userRepository.count();
+        log.debug("当前系统用户数量: {}", count);
+        return count == 0;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public UserResponse createFirstAdmin(FirstAdminCreateRequest request) {
+        log.info("开始创建第一个管理员用户...");
+
+        // 1. 验证系统是否确实首次部署
+        if (!isSystemFirstDeployment()) {
+            log.warn("系统已存在用户，拒绝创建第一个管理员");
+            throw new BadRequestException("系统已存在用户，无法重复创建第一个管理员");
+        }
+
+        // 2. 验证密码一致性
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            log.warn("密码不匹配");
+            throw new BadRequestException("两次输入的密码不一致");
+        }
+
+        // 3. 验证用户名唯一性（理论上总是通过）
+        if (!isUsernameUnique("admin")) {
+            log.error("用户名admin已存在，这不应该发生");
+            throw new BadRequestException("用户名 admin 已存在");
+        }
+
+        // 4. 创建用户并分配ADMIN角色
+        User user = new User();
+        user.setUsername("admin");  // 固定用户名
+        user.setPassword(BCrypt.hashpw(request.getPassword()));
+        user.setRole(UserRole.ADMIN);  // 关键：自动分配ADMIN角色
+
+        User savedUser = userRepository.save(user);
+        log.info("✅ 系统首次部署：成功创建第一个管理员用户 - admin (ID: {})", savedUser.getId());
+
+        return userMapper.toResponse(savedUser);
     }
 }

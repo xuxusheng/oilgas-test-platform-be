@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 
 import com.yimusi.common.exception.BadRequestException;
 import com.yimusi.common.exception.ResourceNotFoundException;
+import com.yimusi.dto.auth.FirstAdminCreateRequest;
 import com.yimusi.dto.common.PageResult;
 import com.yimusi.dto.user.CreateUserRequest;
 import com.yimusi.dto.user.UpdateUserRequest;
@@ -424,5 +425,108 @@ class UserServiceImplTest {
         // Assert - 验证未调用用户名唯一性验证方法
         assertNotNull(response);
         verify(userRepository, never()).existsByUsernameAndDeletedFalse(any());
+    }
+
+    // === 首次部署相关测试 ===
+
+    @Test
+    @DisplayName("系统首次部署检测 - 当无用户时返回true")
+    void isSystemFirstDeployment_WhenNoUsers_ReturnsTrue() {
+        // Arrange - 设置测试环境：模拟用户数量为0
+        when(userRepository.count()).thenReturn(0L);
+
+        // Act - 执行系统首次部署检测
+        boolean result = userService.isSystemFirstDeployment();
+
+        // Assert - 验证返回true
+        assertTrue(result);
+        verify(userRepository).count();
+    }
+
+    @Test
+    @DisplayName("系统首次部署检测 - 当有用户时返回false")
+    void isSystemFirstDeployment_WhenUsersExist_ReturnsFalse() {
+        // Arrange - 设置测试环境：模拟用户数量为5
+        when(userRepository.count()).thenReturn(5L);
+
+        // Act - 执行系统首次部署检测
+        boolean result = userService.isSystemFirstDeployment();
+
+        // Assert - 验证返回false
+        assertFalse(result);
+        verify(userRepository).count();
+    }
+
+    @Test
+    @DisplayName("创建第一个管理员 - 首次部署时成功创建")
+    void createFirstAdmin_WhenFirstDeployment_Success() {
+        // Arrange - 设置测试环境：无用户，准备创建管理员
+        FirstAdminCreateRequest request = new FirstAdminCreateRequest();
+        request.setPassword("password123");
+        request.setConfirmPassword("password123");
+
+        when(userRepository.count()).thenReturn(0L);
+        when(userRepository.existsByUsernameAndDeletedFalse("admin")).thenReturn(false);
+
+        User adminUser = new User();
+        adminUser.setId(1L);
+        adminUser.setUsername("admin");
+        adminUser.setRole(UserRole.ADMIN);
+
+        when(userRepository.save(any(User.class))).thenReturn(adminUser);
+        when(userMapper.toResponse(adminUser)).thenReturn(new UserResponse());
+
+        // Act - 执行创建第一个管理员操作
+        UserResponse response = userService.createFirstAdmin(request);
+
+        // Assert - 验证管理员创建成功
+        assertNotNull(response);
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("创建第一个管理员 - 系统已有用户时应抛出异常")
+    void createFirstAdmin_WhenAlreadyExists_ThrowsException() {
+        // Arrange - 设置测试环境：系统已有用户
+        FirstAdminCreateRequest request = new FirstAdminCreateRequest();
+        request.setPassword("password123");
+        request.setConfirmPassword("password123");
+
+        when(userRepository.count()).thenReturn(1L);
+
+        // Act & Assert - 验证抛出异常且未保存用户
+        assertThrows(BadRequestException.class, () -> userService.createFirstAdmin(request));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("创建第一个管理员 - 密码不匹配时应抛出异常")
+    void createFirstAdmin_WhenPasswordMismatch_ThrowsException() {
+        // Arrange - 设置测试环境：密码不匹配
+        FirstAdminCreateRequest request = new FirstAdminCreateRequest();
+        request.setPassword("password123");
+        request.setPassword("different456"); // 设置不同的确认密码
+
+        when(userRepository.count()).thenReturn(0L);
+
+        // Act & Assert - 验证抛出异常且未保存用户
+        assertThrows(BadRequestException.class, () -> userService.createFirstAdmin(request));
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("创建第一个管理员 - 用户名admin已存在时应抛出异常")
+    void createFirstAdmin_WhenAdminUsernameExists_ThrowsException() {
+        // Arrange - 设置测试环境：admin用户名已存在（理论上不应该发生）
+        FirstAdminCreateRequest request = new FirstAdminCreateRequest();
+        request.setPassword("password123");
+        request.setConfirmPassword("password123");
+
+        when(userRepository.count()).thenReturn(0L);
+        when(userRepository.existsByUsernameAndDeletedFalse("admin")).thenReturn(true);
+
+        // Act & Assert - 验证抛出异常且未保存用户
+        assertThrows(BadRequestException.class, () -> userService.createFirstAdmin(request));
+        verify(userRepository, never()).save(any(User.class));
     }
 }

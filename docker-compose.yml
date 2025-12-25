@@ -34,7 +34,7 @@ services:
     command: redis-server --appendonly yes --requirepass redis123456
 
   backend:
-    image: registry.cn-hangzhou.aliyuncs.com/xusheng/oilgas-test-platform-be:dev-9a7a8b9
+    image: registry.cn-hangzhou.aliyuncs.com/xusheng/oilgas-test-platform-be:dev-936b59b
     container_name: oilgas-backend
     ports:
       - "8080:8080"

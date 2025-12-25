@@ -1,5 +1,6 @@
 package com.yimusi.service;
 
+import com.yimusi.dto.auth.FirstAdminCreateRequest;
 import com.yimusi.dto.common.PageResult;
 import com.yimusi.dto.user.CreateUserRequest;
 import com.yimusi.dto.user.UpdateUserRequest;
@@ -91,4 +92,21 @@ public interface UserService {
      * @return true 如果唯一（不存在），false 如果已存在
      */
     boolean isUsernameUnique(String username);
+
+    /**
+     * 检测系统是否首次部署
+     * 通过统计用户数量判断
+     *
+     * @return true 如果系统中没有任何用户
+     */
+    boolean isSystemFirstDeployment();
+
+    /**
+     * 创建第一个管理员用户（仅用于系统首次部署）
+     * 用户名固定为 "admin"
+     *
+     * @param request 创建请求
+     * @return 创建成功的用户信息
+     */
+    UserResponse createFirstAdmin(FirstAdminCreateRequest request);
 }
