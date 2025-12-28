@@ -34,7 +34,7 @@ services:
     command: redis-server --appendonly yes --requirepass redis123456
 
   backend:
-    image: registry.cn-hangzhou.aliyuncs.com/xusheng/oilgas-test-platform-be:dev-936b59b
+    image: registry.cn-hangzhou.aliyuncs.com/xusheng/oilgas-test-platform-be:dev-d1261dd
     container_name: oilgas-backend
     ports:
       - "8080:8080"
@@ -54,8 +54,6 @@ services:
       JPA_DDL_AUTO: update
       # 日志路径
       LOG_PATH: /app/logs
-      # 修复 JAVA_OPTS 问题 - 设置为空字符串
-      JAVA_OPTS: ""
     volumes:
       - ./logs:/app/logs
     depends_on:
@@ -72,7 +70,7 @@ services:
       start_period: 40s
 
   frontend:
-    image: registry.cn-hangzhou.aliyuncs.com/xusheng/oilgas-test-platform-fe:dev-e795d07
+    image: registry.cn-hangzhou.aliyuncs.com/xusheng/oilgas-test-platform-fe:dev-f89da7e
     container_name: oilgas-frontend
     restart: unless-stopped
     ports:

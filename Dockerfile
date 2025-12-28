@@ -18,21 +18,15 @@ LABEL maintainer="yimusi <your-email@example.com>" \
 
 WORKDIR /app
 
-# 创建非 root 用户
-RUN groupadd -r yimusi -g 1001 && \
-    useradd -r -u 1001 -g yimusi yimusi
-
 # 复制构建产物
 COPY --from=builder /app/target/*.jar app.jar
 COPY --from=builder /app/target/BOOT-INF/lib ./lib
 COPY --from=builder /app/target/BOOT-INF/classes ./classes
 COPY --from=builder /app/target/META-INF ./META-INF
 
-# 创建日志目录并设置权限
-RUN mkdir -p /app/logs && \
-    chown -R yimusi:yimusi /app
+# 创建日志目录
+RUN mkdir -p /app/logs
 
-USER yimusi
 EXPOSE 8080
 
 # JVM 参数（可被环境变量覆盖）
