@@ -14,8 +14,6 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root123456
       MYSQL_DATABASE: oilgas_test
-      MYSQL_USER: yimusi
-      MYSQL_PASSWORD: yimusi123456
     volumes:
       - ./data/mysql:/var/lib/mysql
     command:
@@ -34,7 +32,7 @@ services:
     command: redis-server --appendonly yes --requirepass redis123456
 
   backend:
-    image: registry.cn-hangzhou.aliyuncs.com/xusheng/oilgas-test-platform-be:dev-d1261dd
+    image: registry.cn-hangzhou.aliyuncs.com/xusheng/oilgas-test-platform-be:dev-1436836
     container_name: oilgas-backend
     ports:
       - "8080:8080"
@@ -42,8 +40,8 @@ services:
       SPRING_PROFILES_ACTIVE: prod
       # 数据库配置（覆盖 application-prod.yml）
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/oilgas_test?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: yimusi
-      SPRING_DATASOURCE_PASSWORD: yimusi123456
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123456
       # Redis 配置（覆盖 application-prod.yml）
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
@@ -70,7 +68,7 @@ services:
       start_period: 40s
 
   frontend:
-    image: registry.cn-hangzhou.aliyuncs.com/xusheng/oilgas-test-platform-fe:dev-f89da7e
+    image: registry.cn-hangzhou.aliyuncs.com/xusheng/oilgas-test-platform-fe:dev-54e6208
     container_name: oilgas-frontend
     restart: unless-stopped
     ports:
