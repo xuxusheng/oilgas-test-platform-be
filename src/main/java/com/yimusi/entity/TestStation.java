@@ -24,7 +24,7 @@ import java.util.List;
     indexes = {
         @Index(name = "idx_test_stations_station_no", columnList = "stationNo"),
         @Index(name = "idx_test_stations_responsible_person", columnList = "responsiblePerson"),
-        @Index(name = "idx_test_stations_usage_status", columnList = "usage_type,status")
+        @Index(name = "idx_test_stations_usage_enabled", columnList = "usage_type,enabled")
     }
 )
 @SQLDelete(sql = "UPDATE test_stations SET deleted = true, deleted_at = NOW() WHERE id = ?")
