@@ -2,9 +2,8 @@ package com.yimusi.dto.inspection;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.yimusi.enums.InspectionDeviceStatus;
-import lombok.Data;
-
 import java.time.Instant;
+import lombok.Data;
 
 /**
  * 用于返回检测设备信息的数据传输对象 (DTO)。

@@ -2,20 +2,19 @@ package com.yimusi.repository;
 
 import com.yimusi.entity.InspectionDevice;
 import com.yimusi.enums.InspectionDeviceStatus;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * 检测设备数据访问接口.
  * 继承 JpaRepository 提供基础 CRUD 操作.
  * 继承 QuerydslPredicateExecutor 提供 QueryDSL 动态查询能力.
  */
-public interface InspectionDeviceRepository extends JpaRepository<InspectionDevice, Long>, QuerydslPredicateExecutor<InspectionDevice> {
-
+public interface InspectionDeviceRepository
+    extends JpaRepository<InspectionDevice, Long>, QuerydslPredicateExecutor<InspectionDevice> {
     /**
      * 根据设备编号和未删除状态查找设备
      *
@@ -87,7 +86,9 @@ public interface InspectionDeviceRepository extends JpaRepository<InspectionDevi
      * @param projectId 项目 ID
      * @return 项目内最大序号
      */
-    @Query("SELECT MAX(d.projectInternalNo) FROM InspectionDevice d WHERE d.projectId = :projectId AND d.deleted = false")
+    @Query(
+        "SELECT MAX(d.projectInternalNo) FROM InspectionDevice d WHERE d.projectId = :projectId AND d.deleted = false"
+    )
     Optional<Integer> findMaxProjectInternalNoByProjectId(Long projectId);
 
     /**
@@ -98,7 +99,10 @@ public interface InspectionDeviceRepository extends JpaRepository<InspectionDevi
      * @param projectId 项目 ID
      * @return 项目内最大序号（包含已删除的设备）
      */
-    @Query(value = "SELECT MAX(d.project_internal_no) FROM inspection_devices d WHERE d.project_id = :projectId", nativeQuery = true)
+    @Query(
+        value = "SELECT MAX(d.project_internal_no) FROM inspection_devices d WHERE d.project_id = :projectId",
+        nativeQuery = true
+    )
     Optional<Integer> findMaxProjectInternalNoIncludingDeletedByProjectId(Long projectId);
 
     /**

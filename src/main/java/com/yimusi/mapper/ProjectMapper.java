@@ -1,8 +1,8 @@
 package com.yimusi.mapper;
 
 import com.yimusi.dto.project.CreateProjectRequest;
-import com.yimusi.dto.project.UpdateProjectRequest;
 import com.yimusi.dto.project.ProjectResponse;
+import com.yimusi.dto.project.UpdateProjectRequest;
 import com.yimusi.entity.Project;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
@@ -16,7 +16,6 @@ import org.springframework.lang.NonNull;
  */
 @Mapper(componentModel = "spring", config = BaseMapperConfig.class)
 public interface ProjectMapper {
-
     /**
      * 将Project实体转换为ProjectResponse DTO。
      *

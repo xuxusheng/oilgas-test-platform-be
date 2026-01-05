@@ -16,7 +16,6 @@ import org.springframework.lang.NonNull;
  */
 @Mapper(componentModel = "spring", config = BaseMapperConfig.class)
 public interface InspectionDeviceMapper {
-
     /**
      * 将InspectionDevice实体转换为InspectionDeviceResponse DTO。
      *

@@ -1,5 +1,7 @@
 package com.yimusi.service.impl;
 
+import static com.yimusi.entity.QTestStation.testStation;
+
 import cn.hutool.core.util.StrUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
@@ -16,18 +18,15 @@ import com.yimusi.entity.TestStationParameter;
 import com.yimusi.mapper.TestStationMapper;
 import com.yimusi.repository.TestStationRepository;
 import com.yimusi.service.TestStationService;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.yimusi.entity.QTestStation.testStation;
 
 /**
  * 测试工位服务实现类，处理所有与测试工位相关的业务逻辑。
@@ -128,8 +127,12 @@ public class TestStationServiceImpl implements TestStationService {
         }
 
         TestStation savedStation = stationRepository.save(station);
-        log.info("创建测试工位: 工位编号={}, 工位名称={}, 启用状态={}",
-            savedStation.getStationNo(), savedStation.getStationName(), savedStation.getEnabled());
+        log.info(
+            "创建测试工位: 工位编号={}, 工位名称={}, 启用状态={}",
+            savedStation.getStationNo(),
+            savedStation.getStationName(),
+            savedStation.getEnabled()
+        );
 
         return stationMapper.toResponse(savedStation);
     }
@@ -213,8 +216,7 @@ public class TestStationServiceImpl implements TestStationService {
         station.setEnabled(enabled);
         TestStation saved = stationRepository.save(station);
 
-        log.info("工位状态变更: ID={}, 工位编号={}, 新状态={}",
-            id, station.getStationNo(), enabled ? "启用" : "禁用");
+        log.info("工位状态变更: ID={}, 工位编号={}, 新状态={}", id, station.getStationNo(), enabled ? "启用" : "禁用");
 
         return stationMapper.toResponse(saved);
     }
@@ -235,8 +237,12 @@ public class TestStationServiceImpl implements TestStationService {
         station.setEnabled(newEnabled);
         TestStation saved = stationRepository.save(station);
 
-        log.info("工位状态切换: ID={}, 工位编号={}, 新状态={}",
-            id, station.getStationNo(), newEnabled ? "启用" : "禁用");
+        log.info(
+            "工位状态切换: ID={}, 工位编号={}, 新状态={}",
+            id,
+            station.getStationNo(),
+            newEnabled ? "启用" : "禁用"
+        );
 
         return stationMapper.toResponse(saved);
     }
@@ -251,7 +257,8 @@ public class TestStationServiceImpl implements TestStationService {
         if (requests == null) {
             return new ArrayList<>();
         }
-        return requests.stream()
+        return requests
+            .stream()
             .map(request -> {
                 TestStationParameter param = new TestStationParameter();
                 param.setKey(request.getKey());

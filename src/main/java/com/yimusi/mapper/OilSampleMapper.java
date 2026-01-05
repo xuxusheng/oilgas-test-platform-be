@@ -18,7 +18,6 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
  */
 @Mapper(componentModel = "spring", config = BaseMapperConfig.class)
 public interface OilSampleMapper {
-
     /**
      * Entity 转 Response
      */

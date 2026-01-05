@@ -9,7 +9,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum TestStationUsage {
-
     INHOUSE_TEST("厂内测试"),
 
     RND_TEST("研发测试");

@@ -7,7 +7,6 @@ import com.yimusi.dto.user.UpdateUserRequest;
 import com.yimusi.dto.user.UserResponse;
 import com.yimusi.entity.User;
 import com.yimusi.enums.UserRole;
-
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -163,9 +162,7 @@ class UserMapperTest {
         List<User> users = List.of(user1, user2);
 
         // Act
-        List<UserResponse> responses = users.stream()
-                .map(userMapper::toResponse)
-                .toList();
+        List<UserResponse> responses = users.stream().map(userMapper::toResponse).toList();
 
         // Assert
         assertNotNull(responses);

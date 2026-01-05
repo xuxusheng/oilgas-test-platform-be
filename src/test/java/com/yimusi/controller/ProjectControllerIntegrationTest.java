@@ -16,6 +16,7 @@ import com.yimusi.dto.project.CreateProjectRequest;
 import com.yimusi.dto.project.ProjectResponse;
 import com.yimusi.dto.project.UpdateProjectRequest;
 import com.yimusi.repository.ProjectRepository;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,8 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.List;
 
 /**
  * 项目控制器集成测试类
@@ -78,17 +77,21 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
         createRequest.setProjectLeader("张三");
         createRequest.setRemark("这是一个测试项目");
 
-        String responseJson = mockMvc.perform(post("/api/projects")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createRequest))
-                )
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        String responseJson = mockMvc
+            .perform(
+                post("/api/projects")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(createRequest))
+            )
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
-        ApiResponse<ProjectResponse> response = objectMapper.readValue(responseJson,
-                new TypeReference<ApiResponse<ProjectResponse>>() {});
+        ApiResponse<ProjectResponse> response = objectMapper.readValue(
+            responseJson,
+            new TypeReference<ApiResponse<ProjectResponse>>() {}
+        );
 
         assertThat(response.getData()).isNotNull();
         assertThat(response.getData().getProjectNo()).isEqualTo("PRJ001");
@@ -112,30 +115,34 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
         createRequest1.setProjectLeader("张三");
         createRequest1.setRemark("第一个项目");
 
-        mockMvc.perform(post("/api/projects")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createRequest1))
-                )
-                .andExpect(status().isOk());
+        mockMvc
+            .perform(
+                post("/api/projects")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(createRequest1))
+            )
+            .andExpect(status().isOk());
 
         // 尝试创建相同项目编号的项目
         CreateProjectRequest createRequest2 = new CreateProjectRequest();
-        createRequest2.setProjectNo("PRJ001");  // 相同的项目编号
+        createRequest2.setProjectNo("PRJ001"); // 相同的项目编号
         createRequest2.setProjectName("测试项目2");
         createRequest2.setProjectLeader("李四");
         createRequest2.setRemark("第二个项目");
 
-        String responseJson = mockMvc.perform(post("/api/projects")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createRequest2))
-                )
-                .andExpect(status().isBadRequest())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        String responseJson = mockMvc
+            .perform(
+                post("/api/projects")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(createRequest2))
+            )
+            .andExpect(status().isBadRequest())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
         ApiResponse<?> response = objectMapper.readValue(responseJson, ApiResponse.class);
-        assertThat(response.getCode()).isEqualTo(40000);  // BAD_REQUEST 错误码
+        assertThat(response.getCode()).isEqualTo(40000); // BAD_REQUEST 错误码
         assertThat(response.getMessage()).contains("PRJ001");
     }
 
@@ -155,28 +162,35 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
         createRequest.setProjectLeader("张三");
         createRequest.setRemark("测试备注");
 
-        String createResponseJson = mockMvc.perform(post("/api/projects")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createRequest))
-                )
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        String createResponseJson = mockMvc
+            .perform(
+                post("/api/projects")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(createRequest))
+            )
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
-        ApiResponse<ProjectResponse> createResponse = objectMapper.readValue(createResponseJson,
-                new TypeReference<ApiResponse<ProjectResponse>>() {});
+        ApiResponse<ProjectResponse> createResponse = objectMapper.readValue(
+            createResponseJson,
+            new TypeReference<ApiResponse<ProjectResponse>>() {}
+        );
         Long projectId = createResponse.getData().getId();
 
         // 查询创建的项目
-        String responseJson = mockMvc.perform(get("/api/projects/" + projectId))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        String responseJson = mockMvc
+            .perform(get("/api/projects/" + projectId))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
-        ApiResponse<ProjectResponse> response = objectMapper.readValue(responseJson,
-                new TypeReference<ApiResponse<ProjectResponse>>() {});
+        ApiResponse<ProjectResponse> response = objectMapper.readValue(
+            responseJson,
+            new TypeReference<ApiResponse<ProjectResponse>>() {}
+        );
 
         assertThat(response.getData()).isNotNull();
         assertThat(response.getData().getId()).isEqualTo(projectId);
@@ -199,21 +213,26 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
         createRequest.setProjectLeader("张三");
         createRequest.setRemark("测试备注");
 
-        mockMvc.perform(post("/api/projects")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createRequest))
-                )
-                .andExpect(status().isOk());
+        mockMvc
+            .perform(
+                post("/api/projects")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(createRequest))
+            )
+            .andExpect(status().isOk());
 
         // 根据项目编号查询项目
-        String responseJson = mockMvc.perform(get("/api/projects/by-project-no/PRJ001"))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        String responseJson = mockMvc
+            .perform(get("/api/projects/by-project-no/PRJ001"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
-        ApiResponse<ProjectResponse> response = objectMapper.readValue(responseJson,
-                new TypeReference<ApiResponse<ProjectResponse>>() {});
+        ApiResponse<ProjectResponse> response = objectMapper.readValue(
+            responseJson,
+            new TypeReference<ApiResponse<ProjectResponse>>() {}
+        );
 
         assertThat(response.getData()).isNotNull();
         assertThat(response.getData().getProjectNo()).isEqualTo("PRJ001");
@@ -236,17 +255,21 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
         createRequest.setProjectLeader("张三");
         createRequest.setRemark("原始备注");
 
-        String createResponseJson = mockMvc.perform(post("/api/projects")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createRequest))
-                )
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        String createResponseJson = mockMvc
+            .perform(
+                post("/api/projects")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(createRequest))
+            )
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
-        ApiResponse<ProjectResponse> createResponse = objectMapper.readValue(createResponseJson,
-                new TypeReference<ApiResponse<ProjectResponse>>() {});
+        ApiResponse<ProjectResponse> createResponse = objectMapper.readValue(
+            createResponseJson,
+            new TypeReference<ApiResponse<ProjectResponse>>() {}
+        );
         Long projectId = createResponse.getData().getId();
 
         // 更新项目信息
@@ -255,17 +278,21 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
         updateRequest.setProjectLeader("李四");
         updateRequest.setRemark("更新后的备注");
 
-        String updateResponseJson = mockMvc.perform(put("/api/projects/" + projectId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest))
-                )
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        String updateResponseJson = mockMvc
+            .perform(
+                put("/api/projects/" + projectId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(updateRequest))
+            )
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
-        ApiResponse<ProjectResponse> updateResponse = objectMapper.readValue(updateResponseJson,
-                new TypeReference<ApiResponse<ProjectResponse>>() {});
+        ApiResponse<ProjectResponse> updateResponse = objectMapper.readValue(
+            updateResponseJson,
+            new TypeReference<ApiResponse<ProjectResponse>>() {}
+        );
 
         assertThat(updateResponse.getData()).isNotNull();
         assertThat(updateResponse.getData().getProjectName()).isEqualTo("更新后的测试项目");
@@ -289,33 +316,37 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
         createRequest.setProjectLeader("张三");
         createRequest.setRemark("测试备注");
 
-        String createResponseJson = mockMvc.perform(post("/api/projects")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createRequest))
-                )
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        String createResponseJson = mockMvc
+            .perform(
+                post("/api/projects")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(createRequest))
+            )
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
-        ApiResponse<ProjectResponse> createResponse = objectMapper.readValue(createResponseJson,
-                new TypeReference<ApiResponse<ProjectResponse>>() {});
+        ApiResponse<ProjectResponse> createResponse = objectMapper.readValue(
+            createResponseJson,
+            new TypeReference<ApiResponse<ProjectResponse>>() {}
+        );
         Long projectId = createResponse.getData().getId();
 
         // 删除项目
-        String deleteResponseJson = mockMvc.perform(delete("/api/projects/" + projectId))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        String deleteResponseJson = mockMvc
+            .perform(delete("/api/projects/" + projectId))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
         ApiResponse<Void> deleteResponse = objectMapper.readValue(deleteResponseJson, ApiResponse.class);
         assertThat(deleteResponse.getCode()).isEqualTo(200);
 
         // 验证项目已被逻辑删除（通过API验证无法获取到，而不是直接查数据库）
         // 由于 @SQLRestriction("deleted = false")，已删除的项目无法通过 findById 查询
-        mockMvc.perform(get("/api/projects/" + projectId))
-                .andExpect(status().isNotFound());  // 期望返回404，表示项目已被删除
+        mockMvc.perform(get("/api/projects/" + projectId)).andExpect(status().isNotFound()); // 期望返回404，表示项目已被删除
     }
 
     /**
@@ -328,14 +359,17 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
         TestAuditorConfig.setAuditor(1L);
 
         // 验证未使用的项目编号是唯一的
-        String responseJson1 = mockMvc.perform(get("/api/projects/validate-unique/PRJ001"))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        String responseJson1 = mockMvc
+            .perform(get("/api/projects/validate-unique/PRJ001"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
-        ApiResponse<Boolean> response1 = objectMapper.readValue(responseJson1,
-                new TypeReference<ApiResponse<Boolean>>() {});
+        ApiResponse<Boolean> response1 = objectMapper.readValue(
+            responseJson1,
+            new TypeReference<ApiResponse<Boolean>>() {}
+        );
         assertThat(response1.getData()).isTrue();
 
         // 创建项目
@@ -345,21 +379,26 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
         createRequest.setProjectLeader("张三");
         createRequest.setRemark("测试备注");
 
-        mockMvc.perform(post("/api/projects")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createRequest))
-                )
-                .andExpect(status().isOk());
+        mockMvc
+            .perform(
+                post("/api/projects")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(createRequest))
+            )
+            .andExpect(status().isOk());
 
         // 验证已使用的项目编号不是唯一的
-        String responseJson2 = mockMvc.perform(get("/api/projects/validate-unique/PRJ001"))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        String responseJson2 = mockMvc
+            .perform(get("/api/projects/validate-unique/PRJ001"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
-        ApiResponse<Boolean> response2 = objectMapper.readValue(responseJson2,
-                new TypeReference<ApiResponse<Boolean>>() {});
+        ApiResponse<Boolean> response2 = objectMapper.readValue(
+            responseJson2,
+            new TypeReference<ApiResponse<Boolean>>() {}
+        );
         assertThat(response2.getData()).isFalse();
     }
 
@@ -380,22 +419,27 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
             createRequest.setProjectLeader("负责人" + i);
             createRequest.setRemark("测试备注" + i);
 
-            mockMvc.perform(post("/api/projects")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(createRequest))
-                    )
-                    .andExpect(status().isOk());
+            mockMvc
+                .perform(
+                    post("/api/projects")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest))
+                )
+                .andExpect(status().isOk());
         }
 
         // 获取所有项目
-        String responseJson = mockMvc.perform(get("/api/projects"))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        String responseJson = mockMvc
+            .perform(get("/api/projects"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
-        ApiResponse<List<ProjectResponse>> response = objectMapper.readValue(responseJson,
-                new TypeReference<ApiResponse<List<ProjectResponse>>>() {});
+        ApiResponse<List<ProjectResponse>> response = objectMapper.readValue(
+            responseJson,
+            new TypeReference<ApiResponse<List<ProjectResponse>>>() {}
+        );
 
         assertThat(response.getData()).isNotNull();
         assertThat(response.getData()).hasSize(3);
@@ -418,22 +462,22 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
             createRequest.setProjectLeader("负责人" + i);
             createRequest.setRemark("测试备注" + i);
 
-            mockMvc.perform(post("/api/projects")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(createRequest))
-                    )
-                    .andExpect(status().isOk());
+            mockMvc
+                .perform(
+                    post("/api/projects")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest))
+                )
+                .andExpect(status().isOk());
         }
 
         // 分页查询（每页3条，第一页）
-        String responseJson = mockMvc.perform(get("/api/projects/page")
-                        .param("page", "1")
-                        .param("size", "3")
-                )
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        String responseJson = mockMvc
+            .perform(get("/api/projects/page").param("page", "1").param("size", "3"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
         ApiResponse<?> response = objectMapper.readValue(responseJson, ApiResponse.class);
         assertThat(response.getData()).isNotNull();
@@ -462,32 +506,38 @@ public class ProjectControllerIntegrationTest extends BaseIntegrationTest {
         createRequest.setProjectLeader("张三");
         createRequest.setRemark("测试备注");
 
-        String createResponseJson = mockMvc.perform(post("/api/projects")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createRequest))
-                )
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        String createResponseJson = mockMvc
+            .perform(
+                post("/api/projects")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(createRequest))
+            )
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
-        ApiResponse<ProjectResponse> createResponse = objectMapper.readValue(createResponseJson,
-                new TypeReference<ApiResponse<ProjectResponse>>() {});
+        ApiResponse<ProjectResponse> createResponse = objectMapper.readValue(
+            createResponseJson,
+            new TypeReference<ApiResponse<ProjectResponse>>() {}
+        );
         Long projectId = createResponse.getData().getId();
 
         // 删除项目
-        mockMvc.perform(delete("/api/projects/" + projectId))
-                .andExpect(status().isOk());
+        mockMvc.perform(delete("/api/projects/" + projectId)).andExpect(status().isOk());
 
         // 验证删除后的项目编号仍然是唯一的（因为已删除）
-        String responseJson = mockMvc.perform(get("/api/projects/validate-unique/PRJ001"))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
+        String responseJson = mockMvc
+            .perform(get("/api/projects/validate-unique/PRJ001"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
-        ApiResponse<Boolean> response = objectMapper.readValue(responseJson,
-                new TypeReference<ApiResponse<Boolean>>() {});
+        ApiResponse<Boolean> response = objectMapper.readValue(
+            responseJson,
+            new TypeReference<ApiResponse<Boolean>>() {}
+        );
         assertThat(response.getData()).isTrue();
     }
 }

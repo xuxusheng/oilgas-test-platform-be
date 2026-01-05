@@ -1,11 +1,20 @@
 package com.yimusi.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.yimusi.BaseIntegrationTest;
-import com.yimusi.enums.SequenceBizType;
 import com.yimusi.common.exception.BadRequestException;
 import com.yimusi.entity.SequenceGenerator;
 import com.yimusi.enums.ResetStrategy;
+import com.yimusi.enums.SequenceBizType;
 import com.yimusi.repository.SequenceGeneratorRepository;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,23 +24,11 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-    import java.util.List;
-    import java.time.Instant;
-    import java.util.Random;
-    import java.util.concurrent.*;
-    import java.util.Collections;
-
-import static org.junit.jupiter.api.Assertions.*;
-    import static org.junit.jupiter.api.Assertions.assertThrows;
-
 /**
  * 序列号生成器服务集成测试
  */
 @Transactional
-@TestPropertySource(properties = {
-    "spring.jpa.hibernate.ddl-auto=create-drop"
-})
+@TestPropertySource(properties = { "spring.jpa.hibernate.ddl-auto=create-drop" })
 class SequenceGeneratorServiceTest extends BaseIntegrationTest {
 
     @Autowired
@@ -94,9 +91,7 @@ class SequenceGeneratorServiceTest extends BaseIntegrationTest {
         // 先生成一些序列号
         sequenceGeneratorService.nextIds(SequenceBizType.INSPECTION_DEVICE, 2);
 
-        Long currentValue = sequenceGeneratorService.getCurrentValue(
-            SequenceBizType.INSPECTION_DEVICE
-        );
+        Long currentValue = sequenceGeneratorService.getCurrentValue(SequenceBizType.INSPECTION_DEVICE);
 
         assertEquals(2L, currentValue);
     }
@@ -106,10 +101,7 @@ class SequenceGeneratorServiceTest extends BaseIntegrationTest {
     void testBatchCreate() {
         // 模拟批量创建设备
         int batchSize = 2;
-        List<String> deviceNos = sequenceGeneratorService.nextIds(
-            SequenceBizType.INSPECTION_DEVICE,
-            batchSize
-        );
+        List<String> deviceNos = sequenceGeneratorService.nextIds(SequenceBizType.INSPECTION_DEVICE, batchSize);
 
         assertEquals(batchSize, deviceNos.size());
 
@@ -124,30 +116,24 @@ class SequenceGeneratorServiceTest extends BaseIntegrationTest {
     @DisplayName("参数校验 - 业务类型为null时应抛出异常")
     void testNextId_WithNullBizType_ShouldThrowException() {
         // 测试空业务类型参数
-        assertThrows(BadRequestException.class,
-            () -> sequenceGeneratorService.nextId((String) null));
+        assertThrows(BadRequestException.class, () -> sequenceGeneratorService.nextId((String) null));
     }
 
     @Test
     @DisplayName("参数校验 - 业务类型为空字符串时应抛出异常")
     void testNextId_WithEmptyBizType_ShouldThrowException() {
         // 测试空字符串业务类型
-        assertThrows(BadRequestException.class,
-            () -> sequenceGeneratorService.nextId(""));
-        assertThrows(BadRequestException.class,
-            () -> sequenceGeneratorService.nextId("   "));
+        assertThrows(BadRequestException.class, () -> sequenceGeneratorService.nextId(""));
+        assertThrows(BadRequestException.class, () -> sequenceGeneratorService.nextId("   "));
     }
 
     @Test
     @DisplayName("参数校验 - 业务类型包含特殊字符时应抛出异常")
     void testNextId_WithInvalidBizType_ShouldThrowException() {
         // 测试包含特殊字符的业务类型（防SQL注入）
-        assertThrows(BadRequestException.class,
-            () -> sequenceGeneratorService.nextId("test-biz"));
-        assertThrows(BadRequestException.class,
-            () -> sequenceGeneratorService.nextId("test biz"));
-        assertThrows(BadRequestException.class,
-            () -> sequenceGeneratorService.nextId("test<biz>"));
+        assertThrows(BadRequestException.class, () -> sequenceGeneratorService.nextId("test-biz"));
+        assertThrows(BadRequestException.class, () -> sequenceGeneratorService.nextId("test biz"));
+        assertThrows(BadRequestException.class, () -> sequenceGeneratorService.nextId("test<biz>"));
     }
 
     @Test
@@ -155,32 +141,34 @@ class SequenceGeneratorServiceTest extends BaseIntegrationTest {
     void testNextId_WithLongBizType_ShouldThrowException() {
         // 测试超长业务类型（超过50字符）
         String longBizType = "a".repeat(51);
-        assertThrows(BadRequestException.class,
-            () -> sequenceGeneratorService.nextId(longBizType));
+        assertThrows(BadRequestException.class, () -> sequenceGeneratorService.nextId(longBizType));
     }
 
     @Test
     @DisplayName("参数校验 - 获取数量为0时应抛出异常")
     void testNextIds_WithZeroCount_ShouldThrowException() {
         // 测试获取数量为0
-        assertThrows(BadRequestException.class,
-            () -> sequenceGeneratorService.nextIds(SequenceBizType.INSPECTION_DEVICE, 0));
+        assertThrows(BadRequestException.class, () ->
+            sequenceGeneratorService.nextIds(SequenceBizType.INSPECTION_DEVICE, 0)
+        );
     }
 
     @Test
     @DisplayName("参数校验 - 获取数量为负数时应抛出异常")
     void testNextIds_WithNegativeCount_ShouldThrowException() {
         // 测试获取数量为负数
-        assertThrows(BadRequestException.class,
-            () -> sequenceGeneratorService.nextIds(SequenceBizType.INSPECTION_DEVICE, -1));
+        assertThrows(BadRequestException.class, () ->
+            sequenceGeneratorService.nextIds(SequenceBizType.INSPECTION_DEVICE, -1)
+        );
     }
 
     @Test
     @DisplayName("参数校验 - 获取数量超过10000时应抛出异常")
     void testNextIds_WithLargeCount_ShouldThrowException() {
         // 测试获取数量超过10000的限制
-        assertThrows(BadRequestException.class,
-            () -> sequenceGeneratorService.nextIds(SequenceBizType.INSPECTION_DEVICE, 10001));
+        assertThrows(BadRequestException.class, () ->
+            sequenceGeneratorService.nextIds(SequenceBizType.INSPECTION_DEVICE, 10001)
+        );
     }
 
     // ==================== 重置策略测试 ====================
@@ -362,14 +350,16 @@ class SequenceGeneratorServiceTest extends BaseIntegrationTest {
         List<Future<String>> futures = new ArrayList<>();
 
         for (int i = 0; i < 10; i++) {
-            futures.add(executor.submit(() -> {
-                try {
-                    Thread.sleep(new Random().nextInt(10)); // 随机延迟
-                    return sequenceGeneratorService.nextId(bizType);
-                } catch (Exception e) {
-                    return "FAILED";
-                }
-            }));
+            futures.add(
+                executor.submit(() -> {
+                    try {
+                        Thread.sleep(new Random().nextInt(10)); // 随机延迟
+                        return sequenceGeneratorService.nextId(bizType);
+                    } catch (Exception e) {
+                        return "FAILED";
+                    }
+                })
+            );
         }
 
         List<String> results = new ArrayList<>();

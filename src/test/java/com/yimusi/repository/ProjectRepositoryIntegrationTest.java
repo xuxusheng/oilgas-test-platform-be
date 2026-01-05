@@ -6,6 +6,9 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.yimusi.BaseIntegrationTest;
 import com.yimusi.entity.Project;
 import com.yimusi.entity.QProject;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,10 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * ProjectRepository 集成测试
@@ -225,9 +224,10 @@ class ProjectRepositoryIntegrationTest extends BaseIntegrationTest {
         QProject qProject = QProject.project;
 
         // 构建查询条件：项目名称包含"测试"，项目负责人是"张三"
-        BooleanExpression condition = qProject.projectName.contains("测试")
-                .and(qProject.projectLeader.eq("张三"))
-                .and(qProject.deleted.isFalse());
+        BooleanExpression condition = qProject.projectName
+            .contains("测试")
+            .and(qProject.projectLeader.eq("张三"))
+            .and(qProject.deleted.isFalse());
 
         List<Project> projects = (List<Project>) projectRepository.findAll(condition);
 

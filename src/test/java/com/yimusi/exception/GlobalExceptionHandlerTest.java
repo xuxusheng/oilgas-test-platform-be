@@ -1,11 +1,14 @@
 package com.yimusi.exception;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import com.yimusi.common.exception.*;
-import org.springframework.web.servlet.resource.NoResourceFoundException;
 import com.yimusi.common.model.ApiResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Path;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -15,11 +18,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
-
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * GlobalExceptionHandler 单元测试
@@ -79,8 +78,7 @@ class GlobalExceptionHandlerTest {
         when(bindingResult.getFieldErrors()).thenReturn(Arrays.asList(fieldError1, fieldError2));
 
         // 当
-        ResponseEntity<ApiResponse<Void>> response =
-            exceptionHandler.handleValidationException(exception);
+        ResponseEntity<ApiResponse<Void>> response = exceptionHandler.handleValidationException(exception);
 
         // 那么
         assertNotNull(response);
@@ -119,8 +117,7 @@ class GlobalExceptionHandlerTest {
         ConstraintViolationException exception = new ConstraintViolationException(violations);
 
         // 当
-        ResponseEntity<ApiResponse<Void>> response =
-            exceptionHandler.handleConstraintViolationException(exception);
+        ResponseEntity<ApiResponse<Void>> response = exceptionHandler.handleConstraintViolationException(exception);
 
         // 那么
         assertNotNull(response);
@@ -138,12 +135,12 @@ class GlobalExceptionHandlerTest {
     @Test
     void testHandleMissingServletRequestParameterException() {
         // 给定
-        MissingServletRequestParameterException exception =
-            new MissingServletRequestParameterException("page", "int");
+        MissingServletRequestParameterException exception = new MissingServletRequestParameterException("page", "int");
 
         // 当
-        ResponseEntity<ApiResponse<Void>> response =
-            exceptionHandler.handleMissingServletRequestParameterException(exception);
+        ResponseEntity<ApiResponse<Void>> response = exceptionHandler.handleMissingServletRequestParameterException(
+            exception
+        );
 
         // 那么
         assertNotNull(response);
@@ -156,12 +153,15 @@ class GlobalExceptionHandlerTest {
     @Test
     void testHandleHttpRequestMethodNotSupportedException() {
         // 给定
-        HttpRequestMethodNotSupportedException exception =
-            new HttpRequestMethodNotSupportedException("POST", Arrays.asList("GET", "PUT"));
+        HttpRequestMethodNotSupportedException exception = new HttpRequestMethodNotSupportedException(
+            "POST",
+            Arrays.asList("GET", "PUT")
+        );
 
         // 当
-        ResponseEntity<ApiResponse<Void>> response =
-            exceptionHandler.handleHttpRequestMethodNotSupportedException(exception);
+        ResponseEntity<ApiResponse<Void>> response = exceptionHandler.handleHttpRequestMethodNotSupportedException(
+            exception
+        );
 
         // 那么
         assertNotNull(response);

@@ -50,7 +50,9 @@ class InspectionDeviceRepositoryIntegrationTest extends BaseIntegrationTest {
         deviceRepository.save(device3);
 
         // 4. 再次查询最大序号，应该仍然是 3 (包含已删除的)
-        Optional<Integer> maxNoAfterDelete = deviceRepository.findMaxProjectInternalNoIncludingDeletedByProjectId(projectId);
+        Optional<Integer> maxNoAfterDelete = deviceRepository.findMaxProjectInternalNoIncludingDeletedByProjectId(
+            projectId
+        );
         assertTrue(maxNoAfterDelete.isPresent());
         assertEquals(3, maxNoAfterDelete.get(), "即使最大序号的设备被删除，查询结果也应该包含它");
     }

@@ -6,14 +6,12 @@ import com.yimusi.dto.teststation.TestStationPageRequest;
 import com.yimusi.dto.teststation.TestStationResponse;
 import com.yimusi.dto.teststation.UpdateTestStationRequest;
 import com.yimusi.entity.TestStation;
-
 import java.util.List;
 
 /**
  * 测试工位服务接口，定义了测试工位相关的业务操作。
  */
 public interface TestStationService {
-
     /**
      * 获取所有测试工位列表。
      *

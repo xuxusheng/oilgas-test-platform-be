@@ -82,8 +82,7 @@ public class InspectionDeviceControllerIntegrationTest extends BaseIntegrationTe
             .getResponse()
             .getContentAsString();
 
-        ApiResponse<InspectionDeviceResponse> apiResponse =
-            objectMapper.readValue(response, new TypeReference<>() {});
+        ApiResponse<InspectionDeviceResponse> apiResponse = objectMapper.readValue(response, new TypeReference<>() {});
         InspectionDeviceResponse data = apiResponse.getData();
 
         assertThat(data.getSerialNumber()).isEqualTo("SN-001");
@@ -113,8 +112,7 @@ public class InspectionDeviceControllerIntegrationTest extends BaseIntegrationTe
             .getResponse()
             .getContentAsString();
 
-        ApiResponse<InspectionDeviceResponse> apiResponse =
-            objectMapper.readValue(response, new TypeReference<>() {});
+        ApiResponse<InspectionDeviceResponse> apiResponse = objectMapper.readValue(response, new TypeReference<>() {});
         InspectionDeviceResponse data = apiResponse.getData();
 
         assertThat(data.getDeviceModel()).isEqualTo("MODEL-B");
@@ -128,9 +126,7 @@ public class InspectionDeviceControllerIntegrationTest extends BaseIntegrationTe
         TestAuditorConfig.setAuditor(1L);
         InspectionDevice device = seedDevice("SN-001", "192.168.1.10");
 
-        mockMvc
-            .perform(delete("/api/inspection-devices/" + device.getId()))
-            .andExpect(status().isOk());
+        mockMvc.perform(delete("/api/inspection-devices/" + device.getId())).andExpect(status().isOk());
 
         assertThat(deviceRepository.findById(device.getId())).isEmpty();
     }
@@ -148,20 +144,27 @@ public class InspectionDeviceControllerIntegrationTest extends BaseIntegrationTe
             .getResponse()
             .getContentAsString();
 
-        ApiResponse<PageResult<InspectionDeviceResponse>> apiResponse =
-            objectMapper.readValue(response, new TypeReference<>() {});
+        ApiResponse<PageResult<InspectionDeviceResponse>> apiResponse = objectMapper.readValue(
+            response,
+            new TypeReference<>() {}
+        );
 
         assertThat(apiResponse.getData().getTotal()).isEqualTo(2);
     }
 
     @Test
-    @DisplayName("验证出厂编号唯一性 - 存在时抛出异常")
-    void shouldThrowExceptionWhenSerialNumberExists() throws Exception {
+    @DisplayName("验证出厂编号唯一性 - 存在时返回False")
+    void shouldReturnFalseWhenSerialNumberExists() throws Exception {
         seedDevice("SN-001", "192.168.1.10");
 
         mockMvc
             .perform(get("/api/inspection-devices/validate-serial-number/SN-001"))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isOk())
+            .andExpect(result -> {
+                String content = result.getResponse().getContentAsString();
+                ApiResponse<Boolean> apiResponse = objectMapper.readValue(content, new TypeReference<>() {});
+                assertThat(apiResponse.getData()).isFalse();
+            });
     }
 
     @Test

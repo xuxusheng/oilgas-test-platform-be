@@ -7,20 +7,18 @@ import com.yimusi.dto.teststation.parameter.TestStationParameterRequest;
 import com.yimusi.dto.teststation.parameter.TestStationParameterResponse;
 import com.yimusi.entity.TestStation;
 import com.yimusi.entity.TestStationParameter;
+import java.util.List;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-import java.util.List;
-
 /**
  * MapStruct映射器接口，用于在TestStation实体和DTO之间进行转换。
  */
 @Mapper(componentModel = "spring", config = BaseMapperConfig.class)
 public interface TestStationMapper {
-
     /**
      * 将TestStation实体转换为TestStationResponse DTO。
      *

@@ -1,5 +1,8 @@
 package com.yimusi.util;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import cn.dev33.satoken.stp.StpUtil;
 import com.yimusi.common.util.OperatorUtil;
 import org.junit.jupiter.api.AfterEach;
@@ -9,9 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 /**
  * 操作者工具类单元测试
@@ -140,10 +140,10 @@ class OperatorUtilTest {
     void getOperator_WithVariousUserIdLengths_ShouldReturnCorrectResult() {
         // 测试不同长度的用户ID (Long类型)
         Long[] testUserIds = {
-            1L,                    // 单数字
-            123456789L,             // 普通长度
-            1234567890123456789L,   // 长ID
-            999999999999999999L     // 超长ID
+            1L, // 单数字
+            123456789L, // 普通长度
+            1234567890123456789L, // 长ID
+            999999999999999999L // 超长ID
         };
 
         for (Long userId : testUserIds) {

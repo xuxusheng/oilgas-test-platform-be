@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.yimusi.dto.user.CreateUserRequest;
 import com.yimusi.dto.user.UpdateUserRequest;
 import com.yimusi.enums.UserRole;
-
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -57,8 +56,10 @@ class UserRequestValidationTest {
         assertFalse(violations.isEmpty(), "应有验证错误");
         // 可能有多个验证错误（如@NotBlank和@Size），但至少应该有1个
         assertTrue(violations.size() >= 1, "至少应有1个验证错误");
-        assertTrue(violations.stream().anyMatch(v -> v.getPropertyPath().toString().contains("username")),
-                "应有用户名相关的验证错误");
+        assertTrue(
+            violations.stream().anyMatch(v -> v.getPropertyPath().toString().contains("username")),
+            "应有用户名相关的验证错误"
+        );
     }
 
     @Test

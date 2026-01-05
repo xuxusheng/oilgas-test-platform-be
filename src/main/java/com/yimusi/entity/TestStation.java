@@ -4,6 +4,8 @@ import com.yimusi.entity.base.SoftDeletableEntity;
 import com.yimusi.enums.TestStationUsage;
 import com.yimusi.enums.ValveCommType;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -11,16 +13,14 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.type.SqlTypes;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * 测试工位实体，对应数据库中的 "test_stations" 表。
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = "test_stations",
+@Table(
+    name = "test_stations",
     indexes = {
         @Index(name = "idx_test_stations_station_no", columnList = "stationNo"),
         @Index(name = "idx_test_stations_responsible_person", columnList = "responsiblePerson"),

@@ -112,9 +112,7 @@ public class AuthController {
         SystemStatusResponse response = SystemStatusResponse.builder()
             .firstDeployment(isFirstDeployment)
             .userCount(userCount)
-            .message(isFirstDeployment
-                ? "系统首次部署，请创建第一个管理员账户"
-                : "系统已初始化")
+            .message(isFirstDeployment ? "系统首次部署，请创建第一个管理员账户" : "系统已初始化")
             .build();
 
         log.info("系统状态: 首次部署={}, 用户数量={}", isFirstDeployment, userCount);
@@ -134,15 +132,12 @@ public class AuthController {
      * }
      */
     @PostMapping("/init-admin")
-    public ApiResponse<UserResponse> initFirstAdmin(
-        @Valid @RequestBody FirstAdminCreateRequest request
-    ) {
+    public ApiResponse<UserResponse> initFirstAdmin(@Valid @RequestBody FirstAdminCreateRequest request) {
         log.info("收到创建第一个管理员请求");
 
         UserResponse userResponse = userService.createFirstAdmin(request);
 
-        log.info("第一个管理员创建成功: username={}, id={}",
-            userResponse.getUsername(), userResponse.getId());
+        log.info("第一个管理员创建成功: username={}, id={}", userResponse.getUsername(), userResponse.getId());
 
         return ApiResponse.success(userResponse);
     }

@@ -2,7 +2,6 @@ package com.yimusi.dto.user;
 
 import com.yimusi.dto.common.PageRequest;
 import com.yimusi.enums.UserRole;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

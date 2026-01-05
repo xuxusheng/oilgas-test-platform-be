@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import com.querydsl.core.types.Predicate;
 import com.yimusi.common.exception.BusinessException;
 import com.yimusi.common.exception.ResourceNotFoundException;
 import com.yimusi.dto.common.PageResult;
@@ -16,7 +17,6 @@ import com.yimusi.enums.OilSampleUsage;
 import com.yimusi.mapper.OilSampleMapper;
 import com.yimusi.repository.OilSampleRepository;
 import com.yimusi.service.impl.OilSampleServiceImpl;
-import com.querydsl.core.types.Predicate;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;

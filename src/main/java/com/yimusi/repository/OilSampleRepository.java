@@ -8,11 +8,8 @@ import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 /**
  * 油样仓储接口，供后续业务层使用。
  */
-public interface OilSampleRepository extends
-    JpaRepository<OilSample, Long>,
-    JpaSpecificationExecutor<OilSample>,
-    QuerydslPredicateExecutor<OilSample> {
-
+public interface OilSampleRepository
+    extends JpaRepository<OilSample, Long>, JpaSpecificationExecutor<OilSample>, QuerydslPredicateExecutor<OilSample> {
     /**
      * 检查油样编号是否存在
      *

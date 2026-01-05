@@ -47,9 +47,7 @@ public class TestStationController {
      * @return 分页结果，包含测试工位列表及分页信息
      */
     @GetMapping("/page")
-    public ApiResponse<PageResult<TestStationResponse>> getStationsPage(
-        @Valid TestStationPageRequest request
-    ) {
+    public ApiResponse<PageResult<TestStationResponse>> getStationsPage(@Valid TestStationPageRequest request) {
         PageResult<TestStationResponse> pageResult = testStationService.getStationsPage(request);
         return ApiResponse.success(pageResult);
     }
@@ -74,7 +72,9 @@ public class TestStationController {
      */
     @GetMapping("/by-station-no/{stationNo}")
     public ApiResponse<TestStationResponse> getStationByStationNo(@PathVariable Integer stationNo) {
-        TestStationResponse response = testStationMapper.toResponse(testStationService.getStationByStationNo(stationNo));
+        TestStationResponse response = testStationMapper.toResponse(
+            testStationService.getStationByStationNo(stationNo)
+        );
         return ApiResponse.success(response);
     }
 
@@ -85,9 +85,7 @@ public class TestStationController {
      * @return 新增的 {@link TestStationResponse}
      */
     @PostMapping
-    public ApiResponse<TestStationResponse> createStation(
-        @Valid @RequestBody CreateTestStationRequest createRequest
-    ) {
+    public ApiResponse<TestStationResponse> createStation(@Valid @RequestBody CreateTestStationRequest createRequest) {
         TestStationResponse stationResponse = testStationService.createStation(createRequest);
         return ApiResponse.success(stationResponse);
     }

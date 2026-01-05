@@ -1,11 +1,10 @@
 package com.yimusi.dto.common;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
-
-import java.util.List;
 
 /**
  * 通用分页查询结果封装.
@@ -44,10 +43,10 @@ public class PageResult<T> {
      */
     public static <T> PageResult<T> from(Page<T> page) {
         return new PageResult<>(
-                page.getContent(),
-                page.getTotalElements(),
-                page.getNumber() + 1,  // JPA 页码 + 1
-                page.getSize()
+            page.getContent(),
+            page.getTotalElements(),
+            page.getNumber() + 1, // JPA 页码 + 1
+            page.getSize()
         );
     }
 }

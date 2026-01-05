@@ -1,10 +1,10 @@
 package com.yimusi.exception;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.yimusi.common.exception.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * 自定义异常类单元测试

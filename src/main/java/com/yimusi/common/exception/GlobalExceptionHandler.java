@@ -296,14 +296,18 @@ public class GlobalExceptionHandler {
 
         String errorMessage = String.format(
             "请求的API接口不存在: %s (%s) - 请检查URL路径是否正确",
-            requestPath, httpMethod
+            requestPath,
+            httpMethod
         );
 
         Map<String, Object> errorDetails = new LinkedHashMap<>();
         errorDetails.put("path", requestPath);
         errorDetails.put("method", httpMethod);
         errorDetails.put("timestamp", new Date());
-        errorDetails.put("recommendation", "请检查：1) URL是否包含/api前缀 2) 请求方法(GET/POST)是否正确 3) 接口路径是否拼写错误");
+        errorDetails.put(
+            "recommendation",
+            "请检查：1) URL是否包含/api前缀 2) 请求方法(GET/POST)是否正确 3) 接口路径是否拼写错误"
+        );
 
         log.warn("API端点未找到 - 请求路径: {}, 方法: {}", requestPath, httpMethod);
 

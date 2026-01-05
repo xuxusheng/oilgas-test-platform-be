@@ -88,8 +88,7 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
             .getResponse()
             .getContentAsString();
 
-        ApiResponse<UserResponse> apiResponse =
-            objectMapper.readValue(response, new TypeReference<>() {});
+        ApiResponse<UserResponse> apiResponse = objectMapper.readValue(response, new TypeReference<>() {});
         User saved = userRepository.findById(apiResponse.getData().getId()).orElseThrow();
 
         assertThat(saved.getCreatedBy()).isEqualTo(1L);
@@ -139,7 +138,11 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
         request.setRole(UserRole.ADMIN);
 
         mockMvc
-            .perform(post("/api/users").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(request)))
+            .perform(
+                post("/api/users")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
             .andExpect(status().isBadRequest());
     }
 
@@ -155,10 +158,14 @@ public class UserControllerIntegrationTest extends BaseIntegrationTest {
         User deleted = seedUser("frank", UserRole.MEMBER);
         userRepository.deleteById(deleted.getId());
 
-        String response = mockMvc.perform(get("/api/users")).andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        String response = mockMvc
+            .perform(get("/api/users"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
-        ApiResponse<List<UserResponse>> apiResponse =
-            objectMapper.readValue(response, new TypeReference<>() {});
+        ApiResponse<List<UserResponse>> apiResponse = objectMapper.readValue(response, new TypeReference<>() {});
 
         assertThat(apiResponse.getData()).hasSize(1);
         assertThat(apiResponse.getData().getFirst().getUsername()).isEqualTo("eve");

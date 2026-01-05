@@ -12,7 +12,6 @@ import lombok.Getter;
  */
 @Getter
 public enum SequenceBizType {
-
     /**
      * 检测设备编号
      * 格式：IND + YYYYMMDD + 4位流水号

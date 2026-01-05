@@ -7,7 +7,6 @@ import com.yimusi.BaseIntegrationTest;
 import com.yimusi.entity.QUser;
 import com.yimusi.entity.User;
 import com.yimusi.enums.UserRole;
-
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -114,16 +113,13 @@ class UserRepositoryQueryDslTest extends BaseIntegrationTest {
         QUser qUser = QUser.user;
 
         // QueryDSL: 查找角色为MEMBER且未删除的用户
-        BooleanExpression memberCondition = qUser.role.eq(UserRole.MEMBER)
-                .and(qUser.deleted.isFalse());
+        BooleanExpression memberCondition = qUser.role.eq(UserRole.MEMBER).and(qUser.deleted.isFalse());
 
         List<User> members = (List<User>) userRepository.findAll(memberCondition);
 
         assertEquals(2, members.size(), "应该有2个成员用户");
-        assertTrue(members.stream().allMatch(u -> u.getRole() == UserRole.MEMBER),
-                "所有结果应该是MEMBER角色");
-        assertTrue(members.stream().allMatch(u -> !u.getDeleted()),
-                "所有结果应该是未删除的");
+        assertTrue(members.stream().allMatch(u -> u.getRole() == UserRole.MEMBER), "所有结果应该是MEMBER角色");
+        assertTrue(members.stream().allMatch(u -> !u.getDeleted()), "所有结果应该是未删除的");
     }
 
     /**
@@ -156,8 +152,7 @@ class UserRepositoryQueryDslTest extends BaseIntegrationTest {
         List<User> allActiveUsers = (List<User>) userRepository.findAll(notDeleted);
 
         assertEquals(3, allActiveUsers.size(), "应该有3个活跃用户");
-        assertTrue(allActiveUsers.stream().noneMatch(User::getDeleted),
-                "所有活跃用户都不应标记为删除");
+        assertTrue(allActiveUsers.stream().noneMatch(User::getDeleted), "所有活跃用户都不应标记为删除");
     }
 
     /**
@@ -170,8 +165,9 @@ class UserRepositoryQueryDslTest extends BaseIntegrationTest {
         QUser qUser = QUser.user;
 
         // 查找ADMIN或MEMBER角色的用户
-        BooleanExpression multiRoleCondition = qUser.role.in(UserRole.ADMIN, UserRole.MEMBER)
-                .and(qUser.deleted.isFalse());
+        BooleanExpression multiRoleCondition = qUser.role
+            .in(UserRole.ADMIN, UserRole.MEMBER)
+            .and(qUser.deleted.isFalse());
 
         List<User> multiRoleUsers = (List<User>) userRepository.findAll(multiRoleCondition);
 
@@ -217,7 +213,9 @@ class UserRepositoryQueryDslTest extends BaseIntegrationTest {
         assertEquals(2, allActiveUsers.size(), "删除后应该有2个活跃用户");
 
         // 验证删除的用户不再包含在查询结果中
-        assertFalse(allActiveUsers.stream().anyMatch(u -> u.getId().equals(memberUser.getId())),
-                "删除的用户不应出现在活跃用户列表中");
+        assertFalse(
+            allActiveUsers.stream().anyMatch(u -> u.getId().equals(memberUser.getId())),
+            "删除的用户不应出现在活跃用户列表中"
+        );
     }
 }

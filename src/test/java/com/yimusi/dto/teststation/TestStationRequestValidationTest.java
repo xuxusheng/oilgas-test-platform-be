@@ -1,5 +1,7 @@
 package com.yimusi.dto.teststation;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.yimusi.dto.teststation.parameter.TestStationParameterRequest;
 import com.yimusi.enums.TestStationUsage;
 import com.yimusi.enums.ValveCommType;
@@ -7,15 +9,12 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 /**
  * 测试工位请求对象验证测试
@@ -353,7 +352,7 @@ class TestStationRequestValidationTest {
     @DisplayName("TestStationPageRequest - 完整有效数据")
     void pageRequest_Valid() {
         TestStationPageRequest request = new TestStationPageRequest();
-        request.setPage(1);  // 注意：继承的是page，不是pageNum
+        request.setPage(1); // 注意：继承的是page，不是pageNum
         request.setSize(10); // 注意：继承的是size，不是pageSize
         request.setStationNo(1001);
         request.setStationName("测试");

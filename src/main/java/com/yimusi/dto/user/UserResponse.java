@@ -1,10 +1,8 @@
 package com.yimusi.dto.user;
 
 import com.yimusi.enums.UserRole;
-
-import lombok.Data;
-
 import java.time.Instant;
+import lombok.Data;
 
 /**
  * 用于返回用户公开信息的数据传输对象 (DTO)。

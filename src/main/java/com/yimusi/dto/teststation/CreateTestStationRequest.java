@@ -4,9 +4,8 @@ import com.yimusi.dto.teststation.parameter.TestStationParameterRequest;
 import com.yimusi.enums.TestStationUsage;
 import com.yimusi.enums.ValveCommType;
 import jakarta.validation.constraints.*;
-import lombok.Data;
-
 import java.util.List;
+import lombok.Data;
 
 /**
  * 用于创建新测试工位的数据传输对象 (DTO)。

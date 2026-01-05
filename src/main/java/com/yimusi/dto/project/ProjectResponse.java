@@ -1,9 +1,8 @@
 package com.yimusi.dto.project;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Data;
-
 import java.time.Instant;
+import lombok.Data;
 
 /**
  * 用于返回项目公开信息的数据传输对象 (DTO)。

@@ -1,10 +1,9 @@
 package com.yimusi.entity;
 
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
 
 /**
  * 测试工位参数条目，存储在JSON字段中，用于电磁阀控制参数和油-阀对应关系。

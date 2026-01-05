@@ -1,9 +1,8 @@
 package com.yimusi.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.time.Instant;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import cn.hutool.core.collection.CollUtil;
 import com.querydsl.core.types.Predicate;
@@ -23,6 +22,13 @@ import com.yimusi.enums.ValveCommType;
 import com.yimusi.mapper.TestStationMapper;
 import com.yimusi.repository.TestStationRepository;
 import com.yimusi.service.impl.TestStationServiceImpl;
+import java.time.Instant;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.List;
+import java.util.Optional;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,14 +42,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 /**
  * 测试工位服务实现类单元测试
@@ -81,14 +79,16 @@ class TestStationServiceImplTest {
         mockStation.setValveCommType(ValveCommType.SERIAL_MODBUS);
         mockStation.setResponsiblePerson("张三");
         mockStation.setEnabled(true);
-        mockStation.setValveControlParams(new ArrayList<>(List.of(
-            new TestStationParameter("pressure", "0.5MPa"),
-            new TestStationParameter("temperature", "25℃")
-        )));
-        mockStation.setOilValveMapping(new ArrayList<>(List.of(
-            new TestStationParameter("oil1", "valve1"),
-            new TestStationParameter("oil2", "valve2")
-        )));
+        mockStation.setValveControlParams(
+            new ArrayList<>(
+                List.of(new TestStationParameter("pressure", "0.5MPa"), new TestStationParameter("temperature", "25℃"))
+            )
+        );
+        mockStation.setOilValveMapping(
+            new ArrayList<>(
+                List.of(new TestStationParameter("oil1", "valve1"), new TestStationParameter("oil2", "valve2"))
+            )
+        );
         mockStation.setDeleted(false);
         mockStation.setCreatedAt(Instant.now());
         mockStation.setCreatedBy(1L);
@@ -101,12 +101,8 @@ class TestStationServiceImplTest {
         createRequest.setValveCommType(ValveCommType.SERIAL_MODBUS);
         createRequest.setResponsiblePerson("李四");
         createRequest.setEnabled(true);
-        createRequest.setValveControlParams(List.of(
-            new TestStationParameterRequest("pressure", "0.6MPa")
-        ));
-        createRequest.setOilValveMapping(List.of(
-            new TestStationParameterRequest("oil3", "valve3")
-        ));
+        createRequest.setValveControlParams(List.of(new TestStationParameterRequest("pressure", "0.6MPa")));
+        createRequest.setOilValveMapping(List.of(new TestStationParameterRequest("oil3", "valve3")));
 
         // 更新请求
         updateRequest = new UpdateTestStationRequest();
@@ -405,21 +401,17 @@ class TestStationServiceImplTest {
         mutableStation.setStationNo(1001);
         mutableStation.setStationName("测试工位1号");
         mutableStation.setResponsiblePerson("张三");
-        mutableStation.setValveControlParams(new ArrayList<>(List.of(
-            new TestStationParameter("pressure", "0.5MPa")
-        )));
-        mutableStation.setOilValveMapping(new ArrayList<>(List.of(
-            new TestStationParameter("oil1", "valve1")
-        )));
+        mutableStation.setValveControlParams(new ArrayList<>(List.of(new TestStationParameter("pressure", "0.5MPa"))));
+        mutableStation.setOilValveMapping(new ArrayList<>(List.of(new TestStationParameter("oil1", "valve1"))));
 
         when(stationRepository.findById(1L)).thenReturn(Optional.of(mutableStation));
-        updateRequest.setValveControlParams(List.of(
-            new TestStationParameterRequest("pressure", "0.8MPa"),
-            new TestStationParameterRequest("temperature", "30℃")
-        ));
-        updateRequest.setOilValveMapping(List.of(
-            new TestStationParameterRequest("oilX", "valveX")
-        ));
+        updateRequest.setValveControlParams(
+            List.of(
+                new TestStationParameterRequest("pressure", "0.8MPa"),
+                new TestStationParameterRequest("temperature", "30℃")
+            )
+        );
+        updateRequest.setOilValveMapping(List.of(new TestStationParameterRequest("oilX", "valveX")));
         when(stationRepository.save(any(TestStation.class))).thenReturn(mutableStation);
 
         // When

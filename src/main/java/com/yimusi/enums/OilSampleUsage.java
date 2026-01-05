@@ -9,7 +9,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum OilSampleUsage {
-
     CLEANING("清洗"),
 
     CALIBRATION("标定"),

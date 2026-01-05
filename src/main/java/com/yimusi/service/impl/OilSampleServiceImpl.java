@@ -1,5 +1,7 @@
 package com.yimusi.service.impl;
 
+import static com.yimusi.entity.QOilSample.oilSample;
+
 import cn.hutool.core.util.StrUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Predicate;
@@ -20,8 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.yimusi.entity.QOilSample.oilSample;
 
 /**
  * 油样管理服务实现类
@@ -46,10 +46,7 @@ public class OilSampleServiceImpl implements OilSampleService {
         // 使用 QueryDSL 构建查询条件
         Predicate predicate = buildOilSamplePredicate(request);
 
-        Page<OilSample> page = oilSampleRepository.findAll(
-            predicate,
-            request.toJpaPageRequest("createdAt")
-        );
+        Page<OilSample> page = oilSampleRepository.findAll(predicate, request.toJpaPageRequest("createdAt"));
 
         // 使用全局方法封装返回结果
         return PageResult.from(page.map(oilSampleMapper::toResponse));
@@ -198,14 +195,14 @@ public class OilSampleServiceImpl implements OilSampleService {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "油样 ID 不能为空");
         }
 
-        OilSample oilSample = oilSampleRepository.findById(id)
+        OilSample oilSample = oilSampleRepository
+            .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("OilSample not found with id: " + id));
 
         oilSample.setEnabled(enabled);
         oilSample = oilSampleRepository.save(oilSample);
 
-        log.info("油样状态变更: ID={}, 油样编号={}, 新状态={}",
-            id, oilSample.getSampleNo(), enabled ? "启用" : "禁用");
+        log.info("油样状态变更: ID={}, 油样编号={}, 新状态={}", id, oilSample.getSampleNo(), enabled ? "启用" : "禁用");
 
         return oilSampleMapper.toResponse(oilSample);
     }
@@ -223,7 +220,8 @@ public class OilSampleServiceImpl implements OilSampleService {
             throw new BusinessException(ErrorCode.BAD_REQUEST, "油样 ID 不能为空");
         }
 
-        OilSample oilSample = oilSampleRepository.findById(id)
+        OilSample oilSample = oilSampleRepository
+            .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("OilSample not found with id: " + id));
 
         // 切换状态
@@ -231,8 +229,12 @@ public class OilSampleServiceImpl implements OilSampleService {
         oilSample.setEnabled(newEnabled);
         oilSample = oilSampleRepository.save(oilSample);
 
-        log.info("油样状态切换: ID={}, 油样编号={}, 新状态={}",
-            id, oilSample.getSampleNo(), newEnabled ? "启用" : "禁用");
+        log.info(
+            "油样状态切换: ID={}, 油样编号={}, 新状态={}",
+            id,
+            oilSample.getSampleNo(),
+            newEnabled ? "启用" : "禁用"
+        );
 
         return oilSampleMapper.toResponse(oilSample);
     }

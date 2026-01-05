@@ -9,7 +9,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ValveCommType {
-
     SERIAL_MODBUS("Serial,Modbus"),
 
     TCP_MODBUS("Tcp,Modbus");

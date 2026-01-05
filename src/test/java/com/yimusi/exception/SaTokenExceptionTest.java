@@ -1,18 +1,17 @@
 package com.yimusi.exception;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.exception.NotPermissionException;
 import cn.dev33.satoken.exception.NotRoleException;
 import cn.dev33.satoken.exception.SaTokenException;
 import com.yimusi.common.exception.GlobalExceptionHandler;
 import com.yimusi.common.model.ApiResponse;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
-
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Sa-Token 异常处理器测试类

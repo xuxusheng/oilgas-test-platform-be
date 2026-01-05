@@ -1,13 +1,13 @@
 package com.yimusi.repository;
 
 import com.yimusi.entity.Project;
+import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
-import jakarta.persistence.LockModeType;
 
 /**
  * 项目数据访问接口.
@@ -15,7 +15,6 @@ import jakarta.persistence.LockModeType;
  * 继承 QuerydslPredicateExecutor 提供 QueryDSL 动态查询能力.
  */
 public interface ProjectRepository extends JpaRepository<Project, Long>, QuerydslPredicateExecutor<Project> {
-
     /**
      * 根据项目编号和未删除状态检查项目是否存在
      *

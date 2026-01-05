@@ -89,11 +89,7 @@ public class PageRequest {
      */
     @NonNull
     public org.springframework.data.domain.PageRequest toJpaPageRequest(String defaultSortField) {
-        return org.springframework.data.domain.PageRequest.of(
-            getJpaPage(),
-            size,
-            toSort(defaultSortField)
-        );
+        return org.springframework.data.domain.PageRequest.of(getJpaPage(), size, toSort(defaultSortField));
     }
 
     /**

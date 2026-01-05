@@ -1,7 +1,10 @@
 package com.yimusi.auth;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import cn.hutool.crypto.digest.BCrypt;
 import com.yimusi.BaseIntegrationTest;
+import com.yimusi.common.model.ApiResponse;
 import com.yimusi.controller.AuthController;
 import com.yimusi.controller.UserController;
 import com.yimusi.dto.auth.LoginRequest;
@@ -15,10 +18,7 @@ import com.yimusi.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import com.yimusi.common.model.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * 认证集成测试类
@@ -91,7 +91,6 @@ class AuthIntegrationTest extends BaseIntegrationTest {
         assertTrue(exception.getMessage().contains("用户名或密码错误"));
     }
 
-    
     /**
      * 测试用户创建时密码自动加密功能
      * 验证通过用户创建接口创建用户时，密码应该被自动加密而不是明文存储
@@ -104,7 +103,9 @@ class AuthIntegrationTest extends BaseIntegrationTest {
         createRequest.setPassword("mypassword");
         createRequest.setRole(com.yimusi.enums.UserRole.MEMBER);
 
-        com.yimusi.common.model.ApiResponse<com.yimusi.dto.user.UserResponse> apiResponse = userController.createUser(createRequest);
+        com.yimusi.common.model.ApiResponse<com.yimusi.dto.user.UserResponse> apiResponse = userController.createUser(
+            createRequest
+        );
         User savedUser = userRepository.findById(apiResponse.getData().getId()).orElseThrow();
 
         // 密码应该被加密，而不是明文

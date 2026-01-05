@@ -10,7 +10,6 @@ import com.yimusi.dto.oilsample.UpdateOilSampleRequest;
  * 油样管理服务接口
  */
 public interface OilSampleService {
-
     /**
      * 分页查询油样列表
      *

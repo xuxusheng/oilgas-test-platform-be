@@ -1,18 +1,17 @@
 package com.yimusi.repository;
 
 import com.yimusi.entity.TestStation;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
-
-import java.util.Optional;
 
 /**
  * 测试工位数据访问接口.
  * 继承 JpaRepository 提供基础 CRUD 操作.
  * 继承 QuerydslPredicateExecutor 提供 QueryDSL 动态查询能力.
  */
-public interface TestStationRepository extends JpaRepository<TestStation, Long>, QuerydslPredicateExecutor<TestStation> {
-
+public interface TestStationRepository
+    extends JpaRepository<TestStation, Long>, QuerydslPredicateExecutor<TestStation> {
     /**
      * 根据工位编号和未删除状态查找工位
      *

@@ -9,7 +9,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum OilSampleStatus {
-
     ENABLED("启用"),
 
     DISABLED("禁用");

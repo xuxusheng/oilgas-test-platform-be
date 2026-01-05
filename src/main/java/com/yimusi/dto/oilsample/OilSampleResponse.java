@@ -2,10 +2,9 @@ package com.yimusi.dto.oilsample;
 
 import com.yimusi.entity.OilSampleParameter;
 import com.yimusi.enums.OilSampleUsage;
-import lombok.Data;
-
 import java.time.Instant;
 import java.util.List;
+import lombok.Data;
 
 /**
  * 油样响应 DTO

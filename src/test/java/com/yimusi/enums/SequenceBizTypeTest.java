@@ -1,12 +1,11 @@
 package com.yimusi.enums;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * SequenceBizType 枚举测试类
@@ -24,7 +23,9 @@ class SequenceBizTypeTest {
             String result = SequenceBizType.INSPECTION_DEVICE.formatSequenceNo(seqNo);
             String expectedPrefix = "IND";
             String expectedSeqNo = "1234";
-            String expectedDatePart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String expectedDatePart = java.time.LocalDate.now().format(
+                java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")
+            );
 
             String expected = expectedPrefix + expectedDatePart + expectedSeqNo;
             assertEquals(expected, result);
@@ -33,10 +34,12 @@ class SequenceBizTypeTest {
         @Test
         @DisplayName("INSPECTION_DEVICE 序列号超出长度时直接返回原始值")
         void inspectionDevice_should_returnOriginal_when_sequenceExceedsLength() {
-            Long seqNo = 99999L;  // 超出4位长度
+            Long seqNo = 99999L; // 超出4位长度
             String result = SequenceBizType.INSPECTION_DEVICE.formatSequenceNo(seqNo);
             String expectedPrefix = "IND";
-            String expectedDatePart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String expectedDatePart = java.time.LocalDate.now().format(
+                java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")
+            );
 
             String expected = expectedPrefix + expectedDatePart + "99999";
             assertEquals(expected, result);
@@ -47,7 +50,7 @@ class SequenceBizTypeTest {
         void projectInternal_should_formatWithoutMaxLength() {
             Long seqNo = 123456789L;
             String result = SequenceBizType.PROJECT_INTERNAL.formatSequenceNo(seqNo);
-            String expected = "123456789";  // 没有前缀和日期
+            String expected = "123456789"; // 没有前缀和日期
             assertEquals(expected, result);
         }
 
@@ -58,7 +61,9 @@ class SequenceBizTypeTest {
             String result = SequenceBizType.INSPECTION_DEVICE.formatSequenceNo(seqNo);
             String expectedPrefix = "IND";
             String expectedSeqNo = "0005";
-            String expectedDatePart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String expectedDatePart = java.time.LocalDate.now().format(
+                java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")
+            );
 
             String expected = expectedPrefix + expectedDatePart + expectedSeqNo;
             assertEquals(expected, result);
@@ -71,7 +76,9 @@ class SequenceBizTypeTest {
             String result = SequenceBizType.INSPECTION_DEVICE.formatSequenceNo(seqNo);
             String expectedPrefix = "IND";
             String expectedSeqNo = "0001";
-            String expectedDatePart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String expectedDatePart = java.time.LocalDate.now().format(
+                java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")
+            );
 
             String expected = expectedPrefix + expectedDatePart + expectedSeqNo;
             assertEquals(expected, result);
@@ -84,7 +91,9 @@ class SequenceBizTypeTest {
             String result = SequenceBizType.INSPECTION_DEVICE.formatSequenceNo(seqNo);
             String expectedPrefix = "IND";
             String expectedSeqNo = "9999";
-            String expectedDatePart = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String expectedDatePart = java.time.LocalDate.now().format(
+                java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")
+            );
 
             String expected = expectedPrefix + expectedDatePart + expectedSeqNo;
             assertEquals(expected, result);

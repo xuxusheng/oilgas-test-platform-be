@@ -3,10 +3,9 @@ package com.yimusi.dto.teststation;
 import com.yimusi.dto.teststation.parameter.TestStationParameterResponse;
 import com.yimusi.enums.TestStationUsage;
 import com.yimusi.enums.ValveCommType;
-import lombok.Data;
-
 import java.time.Instant;
 import java.util.List;
+import lombok.Data;
 
 /**
  * 用于返回测试工位信息的数据传输对象 (DTO)。

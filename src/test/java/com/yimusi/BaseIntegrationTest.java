@@ -1,6 +1,7 @@
 package com.yimusi;
 
 import com.yimusi.config.TestAuditorConfig;
+import org.junit.jupiter.api.condition.DisabledIf;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
@@ -8,8 +9,9 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -17,13 +19,31 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 /**
  * 基础集成测试类
  * 所有的集成测试都应该继承这个类，它提供了共享的测试容器和Spring Boot测试上下文
+ * <p>
+ * 注意：此测试类需要 Docker 环境才能运行。如果没有 Docker 环境，测试将被自动跳过。
  */
 @Testcontainers
 @ActiveProfiles("test")
 @SpringBootTest
 @Import(TestAuditorConfig.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@DisabledIf("isDockerNotAvailable")
 public abstract class BaseIntegrationTest {
+
+    /**
+     * 检查 Docker 是否可用
+     * 如果 Docker 不可用，所有继承此类的集成测试将被跳过
+     *
+     * @return true 如果 Docker 不可用（需要跳过测试），false 如果 Docker 可用
+     */
+    static boolean isDockerNotAvailable() {
+        try {
+            DockerClientFactory.instance().client();
+            return false;
+        } catch (Exception e) {
+            return true;
+        }
+    }
 
     /**
      * 定义和管理MySQL测试容器
@@ -44,9 +64,9 @@ public abstract class BaseIntegrationTest {
     @Container
     @SuppressWarnings("resource")
     private static final GenericContainer<?> REDIS_CONTAINER = new GenericContainer<>("redis:7.0")
-            .withReuse(false)
-            .withExposedPorts(6379)
-            .withLogConsumer(new Slf4jLogConsumer(org.slf4j.LoggerFactory.getLogger(GenericContainer.class)));
+        .withReuse(false)
+        .withExposedPorts(6379)
+        .withLogConsumer(new Slf4jLogConsumer(org.slf4j.LoggerFactory.getLogger(GenericContainer.class)));
 
     /**
      * 配置动态属性，将测试容器的连接信息注入到 Spring 环境中

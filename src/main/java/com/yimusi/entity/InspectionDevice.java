@@ -15,7 +15,8 @@ import org.hibernate.annotations.SQLRestriction;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Table(name = "inspection_devices",
+@Table(
+    name = "inspection_devices",
     indexes = {
         @Index(name = "idx_inspection_devices_device_no", columnList = "deviceNo"),
         @Index(name = "idx_inspection_devices_serial_number", columnList = "serialNumber"),

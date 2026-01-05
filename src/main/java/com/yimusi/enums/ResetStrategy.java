@@ -1,11 +1,10 @@
 package com.yimusi.enums;
 
-import lombok.Getter;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import lombok.Getter;
 
 /**
  * 序列号重置策略枚举
@@ -13,7 +12,6 @@ import java.time.format.DateTimeFormatter;
  */
 @Getter
 public enum ResetStrategy {
-
     /**
      * 按日重置：每天从1开始
      */
@@ -60,8 +58,7 @@ public enum ResetStrategy {
             case DAILY:
                 return !lastResetDate.equals(now);
             case MONTHLY:
-                return lastResetDate.getYear() != now.getYear()
-                    || lastResetDate.getMonthValue() != now.getMonthValue();
+                return lastResetDate.getYear() != now.getYear() || lastResetDate.getMonthValue() != now.getMonthValue();
             case YEARLY:
                 return lastResetDate.getYear() != now.getYear();
             default:

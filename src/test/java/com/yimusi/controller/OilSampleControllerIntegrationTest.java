@@ -143,7 +143,10 @@ public class OilSampleControllerIntegrationTest extends BaseIntegrationTest {
             .getResponse()
             .getContentAsString();
 
-        ApiResponse<PageResult<OilSampleResponse>> apiResponse = objectMapper.readValue(response, new TypeReference<>() {});
+        ApiResponse<PageResult<OilSampleResponse>> apiResponse = objectMapper.readValue(
+            response,
+            new TypeReference<>() {}
+        );
         assertThat(apiResponse.getData().getTotal()).isEqualTo(2);
     }
 
@@ -195,4 +198,3 @@ public class OilSampleControllerIntegrationTest extends BaseIntegrationTest {
         return apiResponse.getData().getId();
     }
 }
-

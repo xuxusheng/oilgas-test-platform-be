@@ -19,14 +19,13 @@ import com.yimusi.enums.UserRole;
 import com.yimusi.mapper.UserMapper;
 import com.yimusi.repository.UserRepository;
 import com.yimusi.service.UserService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * 用户服务实现类，处理所有与用户相关的业务逻辑。
@@ -264,9 +263,9 @@ public class UserServiceImpl implements UserService {
 
         // 4. 创建用户并分配ADMIN角色
         User user = new User();
-        user.setUsername("admin");  // 固定用户名
+        user.setUsername("admin"); // 固定用户名
         user.setPassword(BCrypt.hashpw(request.getPassword()));
-        user.setRole(UserRole.ADMIN);  // 关键：自动分配ADMIN角色
+        user.setRole(UserRole.ADMIN); // 关键：自动分配ADMIN角色
 
         User savedUser = userRepository.save(user);
         log.info("✅ 系统首次部署：成功创建第一个管理员用户 - admin (ID: {})", savedUser.getId());
